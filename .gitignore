@@ -1,0 +1,9 @@
+#Ignore everything
+Debug/*
+
+#Whitelist subdirectories
+#*.project
+#*.cproject
+#ignore temp files
+*~
+
