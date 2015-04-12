@@ -15,8 +15,10 @@ class SLArithUnit
 public:
   SLArithUnit();
 
-  SLProcessor::_MUnit comb(const SLProcessor::_DecodeEx &decEx);
-  void update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::_MUnit &comb);
+  void reset();
+
+  SLProcessor::_MUnit comb();
+  void update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::_MUnit &comb,uint32_t en);
 
 protected:
   struct _PendingOp
@@ -29,7 +31,6 @@ protected:
   _PendingOp macPipeline_[2];
   uint32_t curCycle_;
 
-  uint32_t state_ : 4;
   _qfp32_t dataRegister_[2];
 
   struct _SumMode

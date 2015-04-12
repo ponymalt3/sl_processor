@@ -9,15 +9,28 @@
 
 SLArithUnit::SLArithUnit()
 {
+  reset();
 }
 
-SLProcessor::_MUnit SLArithUnit::comb(const SLProcessor::_DecodeEx &decEx)
+void SLArithUnit::reset()
+{
+  for(uint32_t i=0;i<32;++i)
+    pipeline_[i].cmd_=0xFF;
+
+  macPipeline_[0].cmd_=0xFF;
+  macPipeline_[1].cmd_=0xFF;
+
+  curCycle_=0;
+  dataRegister_={0,0};
+
+  sumModeState_=1;
+  activeOp_=0;
+  pendingOp_=0;
+}
+
+SLProcessor::_MUnit SLArithUnit::comb()
 {
   SLProcessor::_MUnit munit;
-
-  _qfp32_t a,b;
-  a.asUint=decEx.a_;
-  b.asUint=decEx.b_;
 
   munit.cmpEq_=0;
   munit.cmpLt_=0;
@@ -25,8 +38,9 @@ SLProcessor::_MUnit SLArithUnit::comb(const SLProcessor::_DecodeEx &decEx)
   munit.sameUnitReady_=0;
   munit.idle_=activeOp_ != 0;
   munit.cmd_=activeOp_;
+  munit.result_=0xABCDEF89;
 
-  if(activeOp_ == SLProcessor::CMD_MAC)
+  if(activeOp_ == SLCode::CMD_MAC)
   {
     munit.sameUnitReady_=sumModeState_<=2;
     munit.complete_=sumModeState_==8;
@@ -39,36 +53,19 @@ SLProcessor::_MUnit SLArithUnit::comb(const SLProcessor::_DecodeEx &decEx)
       munit.result_=pipeline_[curCycle_].result_;
       munit.complete_=1;
       munit.sameUnitReady_=1;
-    }
-  }
-  else
-  {
-    munit.complete_=1;
-    munit.result_=0xABCDEF89;
-  }
 
-  if(decEx.en_)
-  {
-    if(decEx.cmd_ == SLProcessor::CMD_MOV)
-    {
-      munit.result_=a.asUint;
-    }
-    else if(decEx.cmd_ == SLProcessor::CMD_NEG)
-    {
-      munit.result_=(a*-1).asUint;
-    }
-    else if(decEx.cmd_ == SLProcessor::CMD_CMP)
-    {
-      munit.result_=0xABCDEF89;
-      munit.cmpEq_=a==b;
-      munit.cmpLt_=a<b;
+      if(pipeline_[curCycle_].cmd_ == SLCode::CMD_SUB)
+      {
+        munit.cmpEq_=pipeline_[curCycle_].result_ == 0;
+        munit.cmpLt_=pipeline_[curCycle_].result_ >= 0x80000000;
+      }
     }
   }
 
   return munit;
 }
 
-void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::_MUnit &comb)
+void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::_MUnit &comb,uint32_t en)
 {
   _qfp32_t a,b;
   a.initFromRaw(decEx.a_);
@@ -76,12 +73,12 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
 
   if(comb.complete_ && pendingOp_ == 0)
   {
-    if(decEx.en_)
+    if(en)
       activeOp_=decEx.cmd_;
     else
       activeOp_=0;//NOP mov to result
   }
-  else if(activeOp_ != 0 && decEx.en_)
+  else if(activeOp_ != 0 && en)
     pendingOp_=decEx.cmd_;
 
   _SumMode sumModeNext={0,1,1,0,0,0,0,0,0,0};
@@ -109,7 +106,7 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
   uint32_t mulRes=0;
   uint32_t intermediateEn=0;
 
-  if(pipeline_[curCycle_].cmd_ == SLProcessor::CMD_MAC)
+  if(pipeline_[curCycle_].cmd_ == SLCode::CMD_MAC)
   {
     mulRes=pipeline_[curCycle_].result_;
     intermediateEn=1;
@@ -145,7 +142,7 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
   {
     extA=dataRegister_[0];
     extB=dataRegister_[1];
-    macPipeline_[(curCycle_+2)%2].cmd_=SLProcessor::CMD_MAC;
+    macPipeline_[(curCycle_+2)%2].cmd_=SLCode::CMD_MAC;
     macPipeline_[(curCycle_+2)%2].result_=(extA+extB).asUint;
   }
   else
@@ -157,23 +154,25 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
 
   uint32_t sumModeStateNext_=(sumModeState_<<1)+(sumModeState_>>3);
 
-  if(!((sumModeState_ == 1 && activeOp_ != SLProcessor::CMD_MAC) || (sumModeState_ == 2 && decEx.cmd_ != 99)))
+  if(!((sumModeState_ == 1 && activeOp_ != SLCode::CMD_MAC) || (sumModeState_ == 2 && decEx.cmd_ != SLCode::CMD_MAC_RES)))
     sumModeState_=sumModeStateNext_;
 
-  if(decEx.en_)
+  if(en)
   {
     switch(decEx.cmd_)
     {
-    case SLProcessor::CMD_ADD:
-      pipeline_[(curCycle_+2)%32]={(extA+extB).asUint,SLProcessor::CMD_ADD}; break;
-    case SLProcessor::CMD_SUB:
-      pipeline_[(curCycle_+2)%32]={(extA-extB).asUint,SLProcessor::CMD_SUB}; break;
-    case SLProcessor::CMD_MUL:
-      pipeline_[(curCycle_+2)%32]={(a*b).asUint,SLProcessor::CMD_MUL}; break;
-    case SLProcessor::CMD_DIV:
-      pipeline_[(curCycle_+32)%32]={(a/b).asUint,SLProcessor::CMD_DIV}; break;
-    case SLProcessor::CMD_MAC:
-      pipeline_[(curCycle_+1)%32]={(a*b).asUint,SLProcessor::CMD_MUL}; break;
+    case SLCode::CMD_MOV:
+      pipeline_[(curCycle_+1)%32]={(extB).asUint,SLCode::CMD_MOV}; break;
+    case SLCode::CMD_ADD:
+      pipeline_[(curCycle_+2)%32]={(extA+extB).asUint,SLCode::CMD_ADD}; break;
+    case SLCode::CMD_SUB:
+      pipeline_[(curCycle_+2)%32]={(extA-extB).asUint,SLCode::CMD_SUB}; break;
+    case SLCode::CMD_MUL:
+      pipeline_[(curCycle_+2)%32]={(a*b).asUint,SLCode::CMD_MUL}; break;
+    case SLCode::CMD_DIV:
+      pipeline_[(curCycle_+32)%32]={(a/b).asUint,SLCode::CMD_DIV}; break;
+    case SLCode::CMD_MAC:
+      pipeline_[(curCycle_+2)%32]={(a*b).asUint,SLCode::CMD_MUL}; break;//why +1 before
     default:
     }
   }

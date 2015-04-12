@@ -81,6 +81,29 @@ protected:
 };
 
 
+
+#define downto ,
+
+class BitData
+{
+public:
+  BitData() { data_=0; }
+  BitData(uint32_t data) { data_=data; }
+  BitData& operator=(uint32_t data) { data_=data; return *this; }
+  operator uint32_t() const { return data_; }
+  uint32_t operator()(uint32_t j,uint32_t i=32)
+  {
+    if(i == 32)
+      i=j;
+
+    return (data_>>i)&((1<<(i-j+1))-1);
+  }
+
+protected:
+  uint32_t data_;
+};
+
+
 class SLProcessor
 {
 public:
@@ -90,10 +113,9 @@ public:
   bool isRunning();
   void reset();
 
-  enum {CMP_GT,CMP_LE,CMP_EQ,CMP_NEQ};
-  enum {CMD_MOV=0,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_NEG,CMD_CMP};
-  enum {WBREG_NONE=0,WBREG_DATA0,WBREG_DATA1,WBREG_LOOP};
+  void update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue);
 
+protected:
   struct _CodeFetch
   {
     uint32_t data_;
@@ -111,19 +133,14 @@ public:
     uint32_t enREG_ : 1;
     uint32_t CMD_ : 3;
     uint32_t wbREG_ : 2;
-    uint32_t offset_ : 9;
     uint32_t cData_ : 10;
-    uint32_t cDataExt_ : 6;
-    uint32_t exCOND_ : 2;
-    //uint32_t incAD_ : 1;
-    //uint32_t incAD2_ : 1;
-    uint32_t auxData_ : 2;
+    uint32_t cDataExt_ : 5;
 
     uint32_t goto_ : 1;
     uint32_t goto_const_ : 1;
     uint32_t loop_ : 1;
     uint32_t load_ : 1;
-    uint32_t loadNumInstrs_ : 1;
+    uint32_t loadWords_ : 2;
     uint32_t cmp_ : 1;
     uint32_t neg_ : 1;
     uint32_t wait_ : 1;
@@ -131,6 +148,8 @@ public:
 
     uint32_t cmpMode_ : 2;
     uint32_t cmpNoXCy_ : 1;
+
+    uint32_t irsAddr_ : 16;
 
     uint32_t loopEndDetect_ : 1;
 
@@ -140,6 +159,8 @@ public:
     uint32_t jmpTargetPc_ : 16;
     uint32_t incAD0_ : 1;
     uint32_t incAD1_ : 1;
+
+    uint32_t stall_ : 1;
   };
 
   struct _MemAddr
@@ -170,6 +191,7 @@ public:
     uint32_t writeAddr_ : 16;
     uint32_t writeEn_ : 1;
     uint32_t writeExt_ : 1;
+    uint32_t writeDataSel_ : 1;
 
     uint32_t wbEn_ : 1;
     uint32_t wbReg_ : 2;
@@ -178,13 +200,16 @@ public:
     uint32_t cmpMode_ : 2;
     uint32_t cmpNoXCy_ : 1;
 
-    uint32_t en_ : 1;//unnecessary????
-
     uint32_t goto_ : 1;
+
+    uint32_t stall_ : 1;
+    uint32_t flushPipeline_ : 2;
   };
 
   struct _State
   {
+    enum {S_FETCH=3,S_DEC=2,S_DECEX=1,S_EXEC=0};
+
     uint32_t pc_ : 16;
     uint32_t addr_[2];//falling edge
     uint32_t irs_ : 16;
@@ -197,9 +222,16 @@ public:
     uint32_t loadState_ : 2;
 
     uint32_t resultPrefetch_ : 1;//fetch result data when ready and set this flag (also used for const loading)
-    uint32_t stageEnable_ : 5;
 
+    BitData en_;
 
+    struct _RegBlocking
+    {
+      //states
+      uint32_t loop_ : 3;
+      uint32_t dataX_[2];
+      uint32_t extAddr_[2];
+    } regBlocking_;
 
     //update info for some states
     uint32_t incAd0_ : 1;
@@ -224,61 +256,28 @@ public:
     _MUnit munit_;
     uint32_t intResult_ : 16;
     uint32_t condExec_ : 1;
-  };
-
-  struct _Ctrl
-  {
-    //stall dec1
-    uint32_t stallExternalDataWrite_ : 1;//from WB unit
-    uint32_t stallExternalAddrNotAvail_ : 1;
-    uint32_t stallLoopNotAvail_ : 1;
-
-    //stall dec2
-    uint32_t stallResultNotAvail_ : 1;
-    uint32_t stallUnitNotAvail_ : 1;
-    uint32_t stallMemAddrInWB_ : 1;
-
-    //stall
-    uint32_t stallExec_ : 1;
-    uint32_t stallDec_ : 1;
-    uint32_t stallDecEx_ : 1;
-    uint32_t flushPipeline_ : 3;
-
-    //states
-    uint32_t loopWrites_ : 3;
-    uint32_t dataWrites[2];
-    uint32_t extWriteAdIncCtrl_[2];
-  };
-
-  struct _ExternMemAccess
-  {
-    uint32_t en_ : 1;
-    uint32_t rw_ : 1;
-    uint32_t addr_ : 16;
-    uint32_t data_ : 32;
+    uint32_t stall_ : 1;
   };
 
   struct _StallCtrl
   {
-    uint32_t pcUpdate_ : 1;
-    uint32_t s1En_ : 1;//dec
-    uint32_t s2En_ : 1;//decEx
-    uint32_t s3En_ : 1;//exec
-    uint32_t stageEnNext_ : 5;
+    uint32_t stallFetch_ : 1;
+    uint32_t stallDec_ : 1;
+    uint32_t stallDecEx_ : 1;
+    uint32_t stallExec_ : 1;
+    BitData enNext_;
   };
 
   _CodeFetch codeFetch();
-  _Decode decodeInstr();
+  _Decode decodeInstr(uint32_t extMemStall,uint32_t loopActive,uint32_t (&addrNext)[2]) const;
   _MemFetch1 memFetch1(const _Decode &decComb,uint32_t (&addrNext)[2]) const;
   _MemFetch2 memFetch2() const;
   _DecodeEx decodeEx(const _Exec &execComb);
   _Exec execute(uint32_t extMemStall);
 
-  _Ctrl ctrl(const _Decode &decodeComb,const _DecodeEx &decodeExComb,const _Exec &execComb,uint32_t extMemStall);
-  _State state(const _Ctrl &ctrlComb,const _DecodeEx &decExComb,uint32_t loopActive);
-  _StallCtrl stallCtrl(uint32_t stallDec,uint32_t stallDecEx,uint32_t stallExec,uint32_t condExec,uint32_t flushPipeline);
-
-  void update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue);
+  _State::_RegBlocking blockCtrl(const _Decode &decodeComb) const;
+  _StallCtrl stallCtrl(uint32_t stallFetch,uint32_t stallDec,uint32_t stallDecEx,uint32_t stallExec,uint32_t condExec,uint32_t flushPipeline);
+  _State updateState(const _Decode &decComb,uint32_t stallDec,uint32_t loopActive,uint32_t setPcEnable,uint32_t pcValue) const;
 
   SLArithUnit arithUnint_;
 
@@ -288,9 +287,6 @@ public:
   _MemFetch1 mem1_;
   _MemFetch2 mem2_;
   _DecodeEx decEx_;
-  _Exec exec_;
-  _Ctrl ctrl_;
-  _State stateNext_;
 
   MemPort portF0_;
   MemPort portF1_;
@@ -299,27 +295,6 @@ public:
   MemPort &portCode_;
 
   uint32_t SharedAddrBase_;
-};
-
-#define downto ,
-
-class BitData
-{
-public:
-  BitData() { data_=0; }
-  BitData(uint32_t data) { data_=data; }
-  BitData& operator=(uint32_t data) { data_=data; return *this; }
-  operator uint32_t() const { return data_; }
-  uint32_t operator()(uint32_t j,uint32_t i=32)
-  {
-    if(i == 32)
-      i=j;
-
-    return (data_>>i)&((1<<(i-j+1))-1);
-  }
-
-protected:
-  uint32_t data_;
 };
 
 #endif /* SLPROCESSOR_H_ */
