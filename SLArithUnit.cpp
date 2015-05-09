@@ -6,6 +6,8 @@
  */
 
 #include "SLArithUnit.h"
+#include "SLCodeDef.h"
+#include "qfp32.h"  
 
 SLArithUnit::SLArithUnit()
 {
@@ -21,16 +23,17 @@ void SLArithUnit::reset()
   macPipeline_[1].cmd_=0xFF;
 
   curCycle_=0;
-  dataRegister_={0,0};
+  dataRegister_[0]=0;
+  dataRegister_[1]=0;
 
   sumModeState_=1;
   activeOp_=0;
   pendingOp_=0;
 }
 
-SLProcessor::_MUnit SLArithUnit::comb()
+_MUnit SLArithUnit::comb()
 {
-  SLProcessor::_MUnit munit;
+  _MUnit munit;
 
   munit.cmpEq_=0;
   munit.cmpLt_=0;
@@ -44,7 +47,7 @@ SLProcessor::_MUnit SLArithUnit::comb()
   {
     munit.sameUnitReady_=sumModeState_<=2;
     munit.complete_=sumModeState_==8;
-    munit.result_=macPipeline_[curCycle_%2];
+    munit.result_=macPipeline_[curCycle_%2].result_;
   }
   else if(activeOp_ != 0)
   {
@@ -65,7 +68,7 @@ SLProcessor::_MUnit SLArithUnit::comb()
   return munit;
 }
 
-void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::_MUnit &comb,uint32_t en)
+void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
 {
   _qfp32_t a,b;
   a.initFromRaw(decEx.a_);
@@ -116,7 +119,7 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
 
   //update data regs
   if(sumModeNext.enRegA_)
-    dataRegister_[0]=macPipeline_[curCycle_%2];
+    dataRegister_[0]=macPipeline_[curCycle_%2].result_;
 
   if(sumModeNext.clearRegA_)
     dataRegister_[0]=0;
@@ -130,7 +133,7 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
   }
 
   if(sumModeNext.muxC_ == 1 && sumModeNext.enRegB_)
-    dataRegister_[1]=macPipeline_[curCycle_%2];
+    dataRegister_[1]=macPipeline_[curCycle_%2].result_;
 
   if(sumModeNext.clearRegB_)
     dataRegister_[1]=0;
@@ -140,16 +143,16 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
 
   if(sumModeNext.muxA_ == 0)
   {
-    extA=dataRegister_[0];
-    extB=dataRegister_[1];
+    extA.asUint=dataRegister_[0];
+    extB.asUint=dataRegister_[1];
     macPipeline_[(curCycle_+2)%2].cmd_=SLCode::CMD_MAC;
     macPipeline_[(curCycle_+2)%2].result_=(extA+extB).asUint;
   }
   else
   {
     macPipeline_[(curCycle_+2)%2].cmd_=0xFF;
-    extA=a.asUint;
-    extB=b.asUint;
+    extA=a;
+    extB=b;
   }
 
   uint32_t sumModeStateNext_=(sumModeState_<<1)+(sumModeState_>>3);
@@ -162,18 +165,31 @@ void SLArithUnit::update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::
     switch(decEx.cmd_)
     {
     case SLCode::CMD_MOV:
-      pipeline_[(curCycle_+1)%32]={(extB).asUint,SLCode::CMD_MOV}; break;
+      pipeline_[(curCycle_+1)%32].result_=(b).asUint;
+      pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_MOV;
+      break;
     case SLCode::CMD_ADD:
-      pipeline_[(curCycle_+2)%32]={(extA+extB).asUint,SLCode::CMD_ADD}; break;
+      pipeline_[(curCycle_+2)%32].result_=(extA+extB).asUint;
+      pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_ADD;
+      break;
     case SLCode::CMD_SUB:
-      pipeline_[(curCycle_+2)%32]={(extA-extB).asUint,SLCode::CMD_SUB}; break;
+      pipeline_[(curCycle_+2)%32].result_=(extA-extB).asUint;
+      pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_SUB;
+      break;
     case SLCode::CMD_MUL:
-      pipeline_[(curCycle_+2)%32]={(a*b).asUint,SLCode::CMD_MUL}; break;
+      pipeline_[(curCycle_+2)%32].result_=(a*b).asUint;
+      pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_MUL;
+      break;
     case SLCode::CMD_DIV:
-      pipeline_[(curCycle_+32)%32]={(a/b).asUint,SLCode::CMD_DIV}; break;
+      pipeline_[(curCycle_+32)%32].result_=(a/b).asUint;
+      pipeline_[(curCycle_+32)%32].cmd_=SLCode::CMD_DIV;
+      break;
     case SLCode::CMD_MAC:
-      pipeline_[(curCycle_+2)%32]={(a*b).asUint,SLCode::CMD_MUL}; break;//why +1 before
+      pipeline_[(curCycle_+2)%32].result_=(a*b).asUint;
+      pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_MUL;
+      break;
     default:
+      ;
     }
   }
 

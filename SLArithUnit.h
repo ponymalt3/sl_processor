@@ -8,7 +8,7 @@
 #ifndef SLARITHUNIT_H_
 #define SLARITHUNIT_H_
 
-#include "SLProcessor.h"
+#include "SLProcessorStructs.h"
 
 class SLArithUnit
 {
@@ -17,8 +17,8 @@ public:
 
   void reset();
 
-  SLProcessor::_MUnit comb();
-  void update(const SLProcessor::_DecodeEx &decEx,const SLProcessor::_MUnit &comb,uint32_t en);
+  _MUnit comb();
+  void update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en);
 
 protected:
   struct _PendingOp
@@ -31,7 +31,7 @@ protected:
   _PendingOp macPipeline_[2];
   uint32_t curCycle_;
 
-  _qfp32_t dataRegister_[2];
+  uint32_t dataRegister_[2];
 
   struct _SumMode
   {
@@ -51,9 +51,5 @@ protected:
   uint32_t activeOp_;
   uint32_t pendingOp_;
 };
-
-
-
-
 
 #endif /* SLARITHUNIT_H_ */

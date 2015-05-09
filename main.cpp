@@ -5,8 +5,9 @@
  *      Author: malte
  */
 
-#include "RTAsm/RTParser.h"
-#include "RTAsm/Error.h"
+//#include "RTAsm/RTParser.h"
+//#include "RTAsm/Error.h"
+#include <assert.h>
 
 typedef const char* RTProg;
 #define RTASM(...) #__VA_ARGS__
@@ -218,7 +219,7 @@ RTProg testSyntax=RTASM(
     a=99;
   end
 );
-
+/*
 void assertRTProg(RTProg prog,uint32_t expectedErrors=0)
 {
   Stream s(prog);
@@ -227,17 +228,17 @@ void assertRTProg(RTProg prog,uint32_t expectedErrors=0)
   parser.parse(s);
 
   assert(Error::getNumErrors() == expectedErrors);
-}
+}*/
 
 int main()
 {
-  assertRTProg(test);
+  /*assertRTProg(test);
   assertRTProg(testExpr);
   assertRTProg(testAssign);
   assertRTProg(testDef);
   assertRTProg(testIf);
   assertRTProg(testLoop);
-  assertRTProg(testSyntax);
+  assertRTProg(testSyntax);*/
   //assertRTProg(testAssignFail,3);
   return 0;
 }
