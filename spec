@@ -1,3 +1,9 @@
+eagle show bot:
+DISPLAY -Top Bottom Vias Pads -tPlace bPlace -tOrigins bOrigins -tKeepout bKeepout -tRestrict bRestrict -tDocu bDocu
+
+show top
+DISPLAY Top -Bottom Vias Pads tPlace -bPlace tOrigins -bOrigins tKeepout -bKeepout tRestrict -bRestrict tDocu -bDocu
+
 0--------- OPIRS(3)
 1000------ MOVIRS1(1)
 1001------ MOVIRS2(1)
@@ -28,8 +34,9 @@
 1: MOV RESULT, DATAx, LOOP  [IRS] 		=> code/4 wbreg/2 OFFSET/9 INC/1
    MOV [IRS]                RESULT, LOOP	=> code/4 A/1 B/1 OFFSET/9
 
-2: MOV RESULT, DATAx, LOOP  [DATAx]  		=> code/12 WBREG/2 ADDR1/1 INC/1 (A/1,B/1,ADDR0/1)
+2: MOV RESULT, DATAx, LOOP  [DATAx], RESULT	=> code/12 WBREG/2 ADDR1/1 INC/1 (A/1,B/1,ADDR0/1)
    MOV [DATAx]              RESULT, LOOP 	=> code/12 ADDR1/1 A/1 B/1 INC/1 (ADDR0/1)
+   MOV [DATAx] [DATAx]				=> code/12 ADDR1/1 A/1 B/1 INC/1 (ADDR0/1)
  
 3: OP RESULT, [DATAx]  [IRS] 			=> code/1 ADDR0/1 A/1 OP/3 OFFSET/9 INC/1		
 

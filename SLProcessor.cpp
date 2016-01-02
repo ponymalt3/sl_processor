@@ -139,6 +139,8 @@ _Decode SLProcessor::decodeInstr(uint32_t extMemStall,uint32_t loopActive,uint32
 
   uint32_t incAD=0;
   uint32_t incAD2=0;
+  
+  uint32_t waitMemPort0_=0;
 
   decode.cData_=bdata(11 downto 2);
   decode.cDataExt_=(bdata(15 downto 12)<<2) + bdata(1 downto 0);
@@ -158,7 +160,7 @@ _Decode SLProcessor::decodeInstr(uint32_t extMemStall,uint32_t loopActive,uint32
 
   decode.cmpMode_=bdata(1 downto 0);
   decode.cmpNoXCy_=bdata(11);
-
+  
   decode.loopEndDetect_=0;
 
   if(bdata(15) == 0)//OPIRS
@@ -202,6 +204,7 @@ _Decode SLProcessor::decodeInstr(uint32_t extMemStall,uint32_t loopActive,uint32
       decode.CMD_=bdata(7 downto 5);
       incAD=bdata(4);
       incAD2=bdata(8);
+      waitMemPort0_=decode.muxA_;
       break;
 
     case 5: //CMP
@@ -220,11 +223,13 @@ _Decode SLProcessor::decodeInstr(uint32_t extMemStall,uint32_t loopActive,uint32
       case 1://MOVDATA2(1)
         decode.enREG_=1;
         incAD=bdata(4);
+        waitMemPort0_=decode.muxA_;
         break;
       case 2://MOVDATA2(2)
         decode.enMEM_=1;
         incAD=bdata(4);
         incAD2=bdata(4) & decode.muxA_;
+        waitMemPort0_=decode.muxA_;
         break;
 
       case 3://SIG
@@ -261,6 +266,10 @@ _Decode SLProcessor::decodeInstr(uint32_t extMemStall,uint32_t loopActive,uint32
 
   //check stall conditions
   uint32_t stallExtMemRead=0;
+  
+  if(state_.regBlocking_.dataX_[decode.muxAD0_]&2)
+    stallExtMemRead=waitMemPort0_;
+      
   if(decode.enMEM_)
   {
     if(state_.regBlocking_.dataX_[decode.muxAD1_]&2)//pending addr write

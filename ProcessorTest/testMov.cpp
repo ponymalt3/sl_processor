@@ -101,6 +101,36 @@ SUITE(TestMov)
     CHECK(proc.readMemory(11) == value.asUint);
   }
   
+  TEST(testMovCopy)
+  {
+    qfp32_t ad0=9;
+    qfp32_t ad1=12;
+    uint32_t code[]=
+    {
+      SLCode::Load::create(ad0.asUint),
+      SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
+      SLCode::Load::create(ad1.asUint),
+      SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES,0,0),
+      SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,0,1),
+      SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,0,1),
+      0xFFFF,
+      0xFFFF,
+      0xFFFF
+    };
+ 
+    LoadAndSimulateProcessor proc(code);
+    
+    qfp32_t value1=-0.125;
+    qfp32_t value2=value1*qfp32_t(3);
+    proc.writeMemory(9,value1.asUint);
+    proc.writeMemory(10,value2.asUint);
+    
+    proc.run(9);
+    
+    CHECK(proc.readMemory(12) == value1.asUint);
+    CHECK(proc.readMemory(13) == value2.asUint);
+  }
+  
   TEST(testMovAD0StallWhenAD0Written)
   {
     qfp32_t ad0=9;

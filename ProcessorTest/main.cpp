@@ -67,9 +67,6 @@ SUITE(TestLoad)
   }
 }
 
-#include "testMov.cpp"
-
-
 // run all tests
 int main(int argc, char **argv)
 {
