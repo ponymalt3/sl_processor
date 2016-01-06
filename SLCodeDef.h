@@ -11,10 +11,11 @@
 namespace SLCode
 {
   enum Operand {REG_AD0=0,REG_AD1,REG_LOOP,REG_RES,IRS,DEREF_AD0,DEREF_AD1};
-  enum Command {CMD_MOV=0,CMD_UNUSED,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES};
+  enum Command {CMD_MOV=0,CMD_CMP,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES};
   enum CmpMode {CMP_EQ=0,CMP_NEQ,CMP_GT,CMP_LE};
 
   enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_LOOP=1};
+  enum {WBREG_AD0=REG_AD0,WBREG_AD1=REG_AD1,WBREG_UNUSED=REG_LOOP,WBREG_NONE=3};
 
    //      MOV [IRS]                RESULT, LOOP  => code/4 A/1 B/1 OFFSET/9
   struct Mov
@@ -99,7 +100,7 @@ namespace SLCode
   {
     enum {Code=0xD000,Bits=4};
 
-    static uint32_t create(Operand a,uint32_t irsOffset,CmpMode mode,bool disableExecuteFor3Cycles=false)
+    static uint32_t create(uint32_t irsOffset,CmpMode mode,bool disableExecuteFor3Cycles=false)
     {
       //CMP RESULT  [IRS]        => code/4 MODE/2 NOX_CY/1
 
@@ -132,41 +133,37 @@ namespace SLCode
 
     static uint32_t constDataValue1(uint32_t value)
     {
-      return ((value&0x80000000)>>22)+((value&0x1FF00000)>>20);
+      return ((value&0x80000000)>>20)+((value&0x3FF80000)>>19);
     }
 
     static uint32_t constDataValue2(uint32_t value)
     {
-      return ((value&0x60000000)>>15)+((value&0x000FFF80)>>6);//bit0 == 0
+      return ((value&0x40000000)>>19)+((value&0x0007FF00)>>8);
     }
 
     static uint32_t constDataValue3(uint32_t value)
     {
-      return (value&0x0000007F)<<1;//bit0 == 0
+      return (value&0x000000FF);
     }
 
-    static uint32_t create(uint32_t value)
+    static uint32_t create(uint32_t constData)
     {
-      //LOAD RESULT CONST16, CONST32     => code/4 MODE/2 X/10
+      //LOAD RESULT CONST16, CONST32     => code/4 X/12
 
-      //1--11111 1111---- -------- --------
-      //12211111 11112222 22222222 2-------
-      //12211111 11112222 22222222 23333333
+      //1-111111 11111--- -------- --------
+      //12111111 11111222 22222222 --------
+      //12211111 11112222 22222222 33333333
 
-      uint32_t constData1=constDataValue1(value);
-      uint32_t constData2=constDataValue2(value);
-      uint32_t constData3=constDataValue3(value);
+      //uint32_t constData1=constDataValue1(value);
+      //uint32_t constData2=constDataValue2(value);
+      //uint32_t constData3=constDataValue3(value);
 
-      uint32_t mode=0;
-
-      if(constData2)
-        ++mode;
-
-      if(constData3)
-        ++mode;
-
-      return Code + (constData1<<2) + mode;
+      return Code + constData;
     }
+    
+    static uint32_t create1(uint32_t value) { return create(constDataValue1(value)); }
+    static uint32_t create2(uint32_t value) { return create(constDataValue2(value)); }
+    static uint32_t create3(uint32_t value) { return create(constDataValue3(value)); }
   };
 
   struct Neg

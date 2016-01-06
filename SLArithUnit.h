@@ -17,7 +17,7 @@ public:
 
   void reset();
 
-  _MUnit comb();
+  _MUnit comb(const _DecodeEx &decEx);
   void update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en);
 
 protected:
@@ -28,26 +28,8 @@ protected:
   };
 
   _PendingOp pipeline_[32];
-  _PendingOp macPipeline_[2];
   uint32_t curCycle_;
 
-  uint32_t dataRegister_[2];
-
-  struct _SumMode
-  {
-    uint32_t muxA_ : 1;//0 regular input; 1 internal reg
-    uint32_t muxB_ : 1;
-    uint32_t muxC_ : 1;//mux for mul into reg B
-    uint32_t enRegA_ : 1;//enable int reg
-    uint32_t enRegB_ : 1;
-    uint32_t clearRegA_ : 1;
-    uint32_t clearRegB_ : 1;
-    uint32_t enAdd_ : 1;//enable addition
-    uint32_t complete_ : 1;
-    uint32_t ready_ : 1;
-  };
-
-  uint32_t sumModeState_;
   uint32_t activeOp_;
   uint32_t pendingOp_;
 };

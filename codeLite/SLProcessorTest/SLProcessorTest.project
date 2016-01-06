@@ -25,6 +25,7 @@
     <File Name="../../ProcessorTest/main.cpp"/>
     <File Name="../../ProcessorTest/testMov.cpp"/>
     <File Name="../../ProcessorTest/testMovMemX.cpp"/>
+    <File Name="../../ProcessorTest/testLoad.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
@@ -40,9 +41,9 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
-        <IncludePath Value="$(UNIT_TEST_PP_SRC_DIR)/src"/>
+      <Compiler Options="-g;-std=c++11" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
+        <IncludePath Value="../../../../codeLiteWorkspace/LSControl/shared"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="$(UNIT_TEST_PP_SRC_DIR)/Debug"/>
@@ -76,7 +77,7 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
-      <Completion EnableCpp11="no">
+      <Completion EnableCpp11="no" EnableCpp14="no">
         <ClangCmpFlagsC/>
         <ClangCmpFlags/>
         <ClangPP/>
@@ -118,7 +119,7 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
-      <Completion EnableCpp11="no">
+      <Completion EnableCpp11="no" EnableCpp14="no">
         <ClangCmpFlagsC/>
         <ClangCmpFlags/>
         <ClangPP/>

@@ -1,77 +1,99 @@
-#include <unittest++/UnitTest++.h>
+#include <mtest.h>
 #include "SLProcessorTest.h"
 
-SUITE(TestLoad)
-{
-  TEST(Load0)
-  {
-    qfp32_t value=-24.5;
-    std::cout<<"value as uint: "<<std::hex<<(value.asUint)<<std::dec<<"\n";
-    uint32_t code[]=
-    {
-      SLCode::Load::create(value.asUint),
-      SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
-      0xFFFF,
-      0xFFFF,
-      0xFFFF
-    };
-    
-    LoadAndSimulateProcessor proc(code);
-    
-    proc.run(5);
-    
-    CHECK(proc.readMemory(10) == value.asUint);
-  }
+class TestCmp : public mtest::test
+{  
+};
 
-  TEST(Load1)
-  {
-    qfp32_t value=-36;
-    std::cout<<"value as uint: "<<std::hex<<(value.asUint)<<std::dec<<"\n";
-    uint32_t code[]=
-    {
-      SLCode::Load::create(value.asUint),
-      SLCode::Load::constDataValue2(value.asUint),
-      SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
-      0xFFFF,
-      0xFFFF,
-      0xFFFF
-    };
-    
-    LoadAndSimulateProcessor proc(code);
-    
-    proc.run(6);
-    
-    CHECK(proc.readMemory(10) == value.asUint);
-  }
+MTEST(TestCmp,testEqTrue)
+{
+  qfp32_t value=-24.5;
+  qfp32_t compare=value;
   
-  TEST(Load2)
+  uint32_t code[]=
   {
-    qfp32_t value=-360000.968438;
-    std::cout<<"value as uint: "<<std::hex<<(value.asUint)<<std::dec<<"\n";
-    uint32_t code[]=
-    {
-      SLCode::Load::create(value.asUint),
-      SLCode::Load::constDataValue3(value.asUint),
-      SLCode::Load::constDataValue2(value.asUint),
-      SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
-      0xFFFF,
-      0xFFFF,
-      0xFFFF
-    };
-    
-    LoadAndSimulateProcessor proc(code);
-    
-    proc.run(7);
-    
-    CHECK(proc.readMemory(10) == value.asUint);
-  }
+    SLCode::Load::create(SLCode::Load::constDataValue1(value.asUint)),
+    SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
+    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(10,0);
+  
+  proc.run(5);
+  
+  EXPECT(proc.readMemory(10) == value.asUint);
 }
 
-#include "testMov.cpp"
+MTEST(TestCmp,testEqFalse)
+{
+  qfp32_t value=-24.5;
+  qfp32_t compare=0;
+  
+  uint32_t code[]=
+  {
+    SLCode::Load::create(SLCode::Load::constDataValue1(value.asUint)),
+    SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
+    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(10,0);
+  
+  proc.run(5);
+  
+  EXPECT(proc.readMemory(10) == 0);
+}
 
+MTEST(TestCmp,testBlockAddrIncIfCondNotMet)
+{
+  qfp32_t value=1;
+  qfp32_t compare=30;
+  qfp32_t ad0=10;
+  
+  uint32_t code[]=
+  {
+    //load ad0
+    SLCode::Load::create(SLCode::Load::constDataValue1(ad0.asUint)),
+    SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
+    
+    //cmp
+    SLCode::Load::create(SLCode::Load::constDataValue1(value.asUint)),
+    SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
+    SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),
+    
+    //write different value
+    SLCode::Load::create(SLCode::Load::constDataValue1(compare.asUint)),
+    SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(11,0);
+  
+  proc.run(9);
+  
+  EXPECT(proc.readMemory(10) == compare.asUint);
+  EXPECT(proc.readMemory(11) == 0);//no write
+}
 
 // run all tests
 int main(int argc, char **argv)
 {
-	return UnitTest::RunAllTests();
+	mtest::runAllTests("TestCmp.*");
+  return 0;
 }
