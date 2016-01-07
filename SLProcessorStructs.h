@@ -173,6 +173,7 @@ struct _StallCtrl
 {
   uint32_t stallDecEx_ : 1;
   uint32_t stallExec_ : 1;
+  uint32_t flush_ : 1;
   BitData enNext_;
 };
 

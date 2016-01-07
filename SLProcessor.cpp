@@ -250,7 +250,7 @@ _Decode SLProcessor::decodeInstr() const
   decode.irsAddr_=state_.irs_+bdata(10 downto 2);//irsOffset
 
   //pre calculate jmp target
-  decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)*((decode.cData_&0x200)?1:-1);
+  decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)*((decode.cData_&0x200)?-1:1);
 
   //addr inc
   decode.incAD0_=incAD && (decode.muxAD1_ == 0 || incAD2);
@@ -322,6 +322,8 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _Exec &execComb,
   decodeEx.cmp_=decodeComb.cmp_;
   decodeEx.cmpMode_=decodeComb.cmpMode_;
   
+  decodeEx.goto_=decodeComb.goto_;
+  
   decodeEx.stall_=0;
 
   //stall because of pending write to address reg
@@ -378,12 +380,14 @@ _StallCtrl SLProcessor::control(uint32_t stallDecEx,uint32_t stallExec,uint32_t 
     enNext&=~(1<<_State::S_EXEC);//disable exec
   }
   
-  if(enable_(_State::S_EXEC) && flushPipeline)
+  flushPipeline&=enable_(_State::S_EXEC);
+  
+  if(flushPipeline)
   {
-    enNext=0;
+    enNext=1<<_State::S_FETCH;
   }
   
-  return {stallDecEx,stallExec,enNext};
+  return {stallDecEx,stallExec,flushPipeline,enNext};
 }
 
 _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_t setPcEnable,uint32_t pcValue) const
@@ -441,7 +445,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
   exec.munit_=arithUnint_.comb(decEx_);
   
   //fragmented load
-  if(decEx_.load_)
+  if(enable_(_State::S_EXEC) && decEx_.load_)
   {
     switch(state_.loadState_)
     {
@@ -478,7 +482,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
 
   exec.execNext_=1;
 
-  if(decEx_.cmp_)
+  if(enable_(_State::S_EXEC) && decEx_.cmp_)
   {
     switch(decEx_.cmpMode_)
     {
@@ -486,8 +490,8 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
       exec.execNext_=exec.munit_.cmpEq_; break;
     case SLCode::CMP_NEQ:
       exec.execNext_=not exec.munit_.cmpEq_; break;
-    case SLCode::CMP_GT:
-      exec.execNext_=not exec.munit_.cmpLt_; break;
+    case SLCode::CMP_LT:
+      exec.execNext_=exec.munit_.cmpLt_; break;
     case SLCode::CMP_LE:
       exec.execNext_=exec.munit_.cmpLt_ | exec.munit_.cmpEq_; break;
     }
@@ -541,7 +545,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   portR1_.update();
   
   //************************************ at rising edge *******************************************
-  if(enable_(_State::S_DECEX) && execNext.execNext_ && !stall.stallDecEx_)
+  if(enable_(_State::S_DECEX) && execNext.execNext_ && !stall.stallDecEx_ && !execNext.flush_)
   {
     stateNext.addr_[0]=state_.addr_[0]+stateNext.incAd0_;
     stateNext.addr_[1]=state_.addr_[1]+stateNext.incAd1_;

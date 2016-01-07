@@ -84,10 +84,18 @@ void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
   {
     switch(decEx.cmd_)
     {
-    //case SLCode::CMD_MOV:
+    case SLCode::CMD_MOV:
+      if(pendingOp_ == SLCode::CMD_CMP)
+      {
+        pendingOp_=0;
+      }
+      else
+      {
+        activeOp_=0;
+      }
     //  pipeline_[(curCycle_+1)%32].result_=(b).asUint;
     //  pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_MOV;
-    //  break;
+      break;
     case SLCode::CMD_ADD:
       pipeline_[(curCycle_+2)%32].result_=(extA+extB).asUint;
       pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_ADD;
