@@ -17,6 +17,7 @@ public:
 
   void reset();
 
+  void addOperation(const _DecodeEx &decEx);
   _MUnit comb(const _DecodeEx &decEx);
   void update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en);
 
@@ -30,6 +31,7 @@ protected:
   _PendingOp pipeline_[32];
   uint32_t curCycle_;
 
+  bool newOpAdded_;
   uint32_t activeOp_;
   uint32_t pendingOp_;
 };

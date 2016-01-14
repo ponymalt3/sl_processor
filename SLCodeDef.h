@@ -24,7 +24,7 @@ namespace SLCode
     enum {Code2=0xF000,Bits2=9};//MOVDATA1
     enum {Code3=0xF080,Bits3=10};//MOVDATA2(2)
 
-    static uint32_t create(Operand a,Operand b,uint32_t irsOffset,bool incAddr)
+    static uint32_t create(Operand a,Operand b,uint32_t irsOffset=0,bool incAddr=false)
     {
       uint32_t offset=irsOffset&0x1FF;
       uint32_t incAD=incAddr;
@@ -77,8 +77,8 @@ namespace SLCode
       //OP RESULT, [DATAx]  [IRS]       => code/1 ADDR0/1 A/1 OP/3 OFFSET/9 INC/1
       //OP RESULT, [DATAx]  [DATAx]      => code/8 ADDR0/1 A/1 ADDR1/1 OP/3 INC/2 (B/1)
 
-      uint32_t muxAD0=(a==REG_AD0)?0:1;
-      uint32_t muxAD1=(b==REG_AD0)?0:1;
+      uint32_t muxAD0=(a==DEREF_AD0)?0:1;
+      uint32_t muxAD1=(b==DEREF_AD0)?0:1;
       uint32_t muxA=(a==REG_RES)?MUX1_RESULT:MUX1_MEM;
       uint32_t muxB=MUX2_MEM;
       uint32_t incAD=incAddr;

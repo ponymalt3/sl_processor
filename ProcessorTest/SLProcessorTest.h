@@ -32,6 +32,11 @@ public:
     }
   }
   
+  void writeMemory(qfp32 addr,uint32_t value)
+  {
+    writeMemory((int32_t)addr,value);
+  }
+  
   void writeMemory(uint32_t addr,uint32_t value)
   {
     if(addr >= localMem_.getSize())
@@ -44,6 +49,11 @@ public:
       localPort_.write(addr,value);
       localPort_.update();
     }
+  }
+  
+  uint32_t readMemory(qfp32 addr)
+  {
+    return readMemory((int32_t)addr);
   }
   
   uint32_t readMemory(uint32_t addr)

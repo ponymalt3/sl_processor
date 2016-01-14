@@ -251,10 +251,13 @@ _Decode SLProcessor::decodeInstr() const
 
   //pre calculate jmp target
   decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)*((decode.cData_&0x200)?-1:1);
+  
+  
+  incAD2=incAD2 || (!bdata(15) && incAD);
 
   //addr inc
-  decode.incAD0_=incAD && (decode.muxAD1_ == 0 || incAD2);
-  decode.incAD1_=incAD && (decode.muxAD1_ == 1 || incAD2);
+  decode.incAD0_=(incAD && (decode.muxAD1_ == 0)) || (incAD2 && (decode.muxAD0_ == 0));
+  decode.incAD1_=(incAD && (decode.muxAD1_ == 1)) || (incAD2 && (decode.muxAD0_ == 1)); 
 
   return decode;
 }
@@ -293,7 +296,7 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _Exec &execComb,
 
   decodeEx.result_=execComb.munit_.result_;
   
-  decodeEx.mux0_=decode_.muxA_;
+  decodeEx.mux0_=decodeComb.muxA_;
 
   //if(decode_.muxA_ == SLCode::MUX1_MEM)//must be zero by default => otherwise result prefetch will NOT work
     decodeEx.mem0_=mem2.readData_[0];
@@ -393,6 +396,8 @@ _StallCtrl SLProcessor::control(uint32_t stallDecEx,uint32_t stallExec,uint32_t 
 _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_t setPcEnable,uint32_t pcValue) const
 {
   _State stateNext;
+  
+  stateNext.stallExec1d_=0;
 
   stateNext.irs_=state_.irs_;
   
@@ -545,7 +550,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   portR1_.update();
   
   //************************************ at rising edge *******************************************
-  if(enable_(_State::S_DECEX) && execNext.execNext_ && !stall.stallDecEx_ && !execNext.flush_)
+  if(enable_(_State::S_DECEX) && execNext.execNext_ && !stall.stallDecEx_ && !stall.flush_)
   {
     stateNext.addr_[0]=state_.addr_[0]+stateNext.incAd0_;
     stateNext.addr_[1]=state_.addr_[1]+stateNext.incAd1_;
@@ -579,7 +584,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   }
 
   //update math unit
-  arithUnint_.update(decExNext,execNext.munit_,enable_(_State::S_DECEX) && !stall.stallDecEx_);
+  arithUnint_.update(decEx_,execNext.munit_,enable_(_State::S_EXEC) && !state_.stallExec1d_);// && !stall.stallExec_);
 
   if(!stall.stallDecEx_)
   {
@@ -591,6 +596,8 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   {
     stateNext.pc_=state_.pc_;
   }
+  
+  stateNext.stallExec1d_=stall.stallExec_;
   
   state_=stateNext;
   enable_=stall.enNext_;

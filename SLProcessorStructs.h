@@ -140,6 +140,8 @@ struct _State
 
   BitData enable_;
   
+  uint32_t stallExec1d_ : 1;
+  
   uint32_t result_;
   uint32_t resultPrefetch_ : 1;//fetch result data when ready and set this flag (also used for const loading)
 

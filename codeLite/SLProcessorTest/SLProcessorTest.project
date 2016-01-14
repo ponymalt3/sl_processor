@@ -27,6 +27,8 @@
     <File Name="../../ProcessorTest/testMovMemX.cpp"/>
     <File Name="../../ProcessorTest/testLoad.cpp"/>
     <File Name="../../ProcessorTest/testCmp.cpp"/>
+    <File Name="../../ProcessorTest/testGoto.cpp"/>
+    <File Name="../../ProcessorTest/testOps.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
