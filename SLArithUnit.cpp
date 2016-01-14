@@ -83,7 +83,7 @@ _MUnit SLArithUnit::comb(const _DecodeEx &decEx)
   munit.cmd_=activeOp_;
   munit.result_=0xABCDEF89;
 
-  if(activeOp_ != 0 && pipeline_[curCycle_].cmd_ != 0xFF)
+  if(pipeline_[curCycle_].cmd_ != 0xFF)//activeOp_ != 0 && 
   {
     munit.result_=pipeline_[curCycle_].result_;
     munit.complete_=1;
@@ -97,6 +97,8 @@ _MUnit SLArithUnit::comb(const _DecodeEx &decEx)
       munit.cmpEq_=munit.result_ == 0;
       munit.cmpLt_=munit.result_ >= 0x80000000;//negative b > a
       munit.result_=0xAD48272F;
+      munit.complete_=0;
+      munit.idle_=1;
     }
     
     if(pipeline_[curCycle_].cmd_ == SLCode::CMD_MOV)
@@ -110,7 +112,7 @@ _MUnit SLArithUnit::comb(const _DecodeEx &decEx)
 
 void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
 {
-    _qfp32_t a,b;
+  _qfp32_t a,b;
   a.asUint=decEx.a_;
   b.asUint=decEx.b_;
   
