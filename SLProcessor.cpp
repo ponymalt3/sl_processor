@@ -327,6 +327,8 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _Exec &execComb,
   
   decodeEx.goto_=decodeComb.goto_;
   
+  decodeEx.neg_=decodeComb.neg_;
+  
   decodeEx.stall_=0;
 
   //stall because of pending write to address reg
@@ -461,6 +463,13 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
     
     exec.munit_.complete_=1;
   }
+  
+  if(enable_(_State::S_EXEC) && decEx_.neg_)
+  {
+    exec.munit_.result_=state_.result_^0x80000000;
+    exec.munit_.complete_=1;
+  }
+    
 
   uint32_t data=state_.result_;//decEx_.b_;
 

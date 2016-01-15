@@ -29,6 +29,7 @@
     <File Name="../../ProcessorTest/testCmp.cpp"/>
     <File Name="../../ProcessorTest/testGoto.cpp"/>
     <File Name="../../ProcessorTest/testOps.cpp"/>
+    <File Name="../../ProcessorTest/testNeg.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

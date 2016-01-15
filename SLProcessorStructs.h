@@ -121,6 +121,8 @@ struct _DecodeEx
 
   uint32_t goto_ : 1;
   
+  uint32_t neg_ : 1;
+  
   uint32_t load_ : 1;
   uint32_t loadData_ : 12;
 
