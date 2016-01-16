@@ -70,11 +70,31 @@ public:
 
   void run(uint32_t cycles)
   {
+    reset();
+    execute(cycles);
+  }
+  
+  void reset()
+  {
     processor_.reset();
-//    processor.update(0,1,0);
-
+  }
+  
+  void execute(uint32_t cycles)
+  {
     for(uint32_t i=0;i<cycles;++i)
       processor_.update(0,0,0);
+  }
+  
+  void executeWithMemExtStall(uint32_t cycles)
+  {
+    for(uint32_t i=0;i<cycles;++i)
+      processor_.update(1,0,0);
+  }
+  
+  void executeWithSetPc(uint32_t pcValue,uint32_t cycles=1)
+  {
+    for(uint32_t i=0;i<cycles;++i)
+      processor_.update(0,1,pcValue);
   }
     
 protected:

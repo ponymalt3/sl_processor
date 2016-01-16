@@ -24,12 +24,13 @@
     <File Name="../../ProcessorTest/SLProcessorTest.h"/>
     <File Name="../../ProcessorTest/main.cpp"/>
     <File Name="../../ProcessorTest/testMov.cpp"/>
-    <File Name="../../ProcessorTest/testMovMemX.cpp"/>
     <File Name="../../ProcessorTest/testLoad.cpp"/>
     <File Name="../../ProcessorTest/testCmp.cpp"/>
     <File Name="../../ProcessorTest/testGoto.cpp"/>
     <File Name="../../ProcessorTest/testOps.cpp"/>
     <File Name="../../ProcessorTest/testNeg.cpp"/>
+    <File Name="../../ProcessorTest/testMemXMov.cpp"/>
+    <File Name="../../ProcessorTest/testMemXOp.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

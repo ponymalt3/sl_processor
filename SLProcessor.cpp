@@ -284,9 +284,9 @@ _MemFetch2 SLProcessor::memFetch2(const _Decode &decComb) const
 
   memFetch.writeAD_=addr1;
 
-  memFetch.readData_[0]=portR0_.read(addr0);
-  memFetch.readData_[1]=portR1_.read(addr1);
-
+  memFetch.readData_[0]=portR0_.read(addr0%SharedAddrBase_);
+  memFetch.readData_[1]=portR1_.read(addr1%SharedAddrBase_);
+  
   return memFetch;
 }
 
