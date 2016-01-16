@@ -375,7 +375,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpA)
     
     //should stall one cycle
     
-    SLCode::Op::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,SLCode::CMD_SUB,0,false,true),
+    SLCode::Op::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,SLCode::CMD_SUB,0,true,false),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
 
@@ -414,7 +414,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpB)
     
     //should stall one cycle
     
-    SLCode::Op::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,SLCode::CMD_SUB,0,true,false),
+    SLCode::Op::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,SLCode::CMD_SUB,0,false,true),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
 
@@ -475,7 +475,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
   EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
 }
 
-MTEST(TestOp,testOpWithOperandsResultAndM)
+MTEST(TestOp,testOpWithOperandsResultAndMem)
 {
   qfp32_t ad0=10;
   qfp32_t ad1=20;

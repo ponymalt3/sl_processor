@@ -84,6 +84,15 @@ namespace SLCode
       uint32_t incAD=incAddr;
       uint32_t incAD2=incAddr2;
       uint32_t offset=irsOffset&0x1FF;
+      
+      //fix bug
+      if(muxA == MUX1_MEM && b != IRS)
+      {
+        //if both operands are mem then swap address increment signals
+        uint32_t t=incAD;
+        incAD=incAD2;
+        incAD2=t;
+      }
 
       if(b == IRS)
       {
