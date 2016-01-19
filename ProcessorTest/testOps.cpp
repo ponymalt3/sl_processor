@@ -475,45 +475,6 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
   EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
 }
 
-MTEST(TestOp,testOpWithOperandsResultAndMem)
-{
-  qfp32_t ad0=10;
-  qfp32_t ad1=20;
-  qfp32_t value=-24.5;
-  qfp32_t value2=7;
-  
-  uint32_t code[]=
-  {
-    //load ad0
-    SLCode::Load::create1(ad0.asUint),
-    SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
-    //load ad1
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
-    
-    //should stall one cycle
-    
-    SLCode::Op::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,SLCode::CMD_SUB,0,false,true),
-    SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
-    SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
-
-    0xFFFF,
-    0xFFFF,
-    0xFFFF
-  };
-  
-  LoadAndSimulateProcessor proc(code);
-  
-  proc.writeMemory(ad0,value2.asUint);
-  proc.writeMemory(ad1,value.asUint);
-  proc.writeMemory(ad1+1,0);
-  
-  proc.run(11);
-  
-  EXPECT(proc.readMemory(ad0) == (value-value2).asUint);
-  EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
-}
-
 
 /////////////////// OPERATIONS //////////////////////
 MTEST(TestOp,testOpAddition)

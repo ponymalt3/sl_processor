@@ -182,7 +182,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_stalls_while_external_write_is_in_pr
   proc.writeMemory(ad1,0);
   proc.writeMemory(ad1+1,0);
   
-  proc.run(12);
+  proc.run(13);
   
   EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
 }
@@ -225,7 +225,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_stalls_while_external_mem_is_stalled
   
   proc.writeMemory(ad1,value2.asUint);
   
-  proc.execute(3);  
+  proc.execute(4);  
   
   EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
 }

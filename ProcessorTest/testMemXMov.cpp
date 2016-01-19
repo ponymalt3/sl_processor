@@ -92,7 +92,7 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_with_inc_works)
   proc.writeMemory(ad1,value.asUint);
   proc.writeMemory(ad1+1,0);
   
-  proc.run(9);//include one cycle stall
+  proc.run(9);
   
   EXPECT(proc.readMemory(5) == value.asUint);
   EXPECT(proc.readMemory(ad1+1) == value.asUint);
@@ -145,7 +145,7 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_i
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES,0,true),
     //stall 1 cycle
     SLCode::Mov::create(SLCode::REG_RES,SLCode::DEREF_AD1),
-    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES),
+    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,5),
     
     0xFFFF,
     0xFFFF,
@@ -158,7 +158,7 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_i
   proc.writeMemory(ad1,0);
   proc.writeMemory(ad1+1,value2.asUint);
   
-  proc.run(9);
+  proc.run(10);
   
   EXPECT(proc.readMemory(ad1) == value.asUint);
   EXPECT(proc.readMemory(5) == value2.asUint);
@@ -194,7 +194,7 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works_while_external_mem_is_s
   
   proc.writeMemory(ad1,value.asUint);
   
-  proc.execute(2);  
+  proc.execute(3);  
   
   EXPECT(proc.readMemory(5) == value.asUint);
 }

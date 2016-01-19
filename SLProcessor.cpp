@@ -340,19 +340,19 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _Exec &execComb,
     }
     
     //FIX EXTENDED STALLING: correct addr must always specified if external memory is addressed
-    if(decodeComb.enADr1_ && (decodeComb.muxAD1_ == decEx_.wbReg_))// || (decodeComb.memEx_ && decEx_.wbReg_ == SLCode::WBREG_AD1)))//read port 1
+    if(decodeComb.enADr1_ && (decodeComb.muxAD1_ == decEx_.wbReg_))
     {
       decodeEx.stall_=1;
     }
     
-    if(decodeComb.enMEM_ && (decodeComb.muxAD1_ == decEx_.wbReg_))//  || (decodeComb.memEx_ && decEx_.wbReg_ == SLCode::WBREG_AD1)))//write (addr from port 1)
+    if(decodeComb.enMEM_ && (decodeComb.muxAD1_ == decEx_.wbReg_))
     {
       decodeEx.stall_=1;
     }
   }
   
   //ext write in progress
-  if(decodeComb.enMEM_ && decodeComb.memEx_ && ((decEx_.writeExt_ && enable_(_State::S_EXEC)) || extMemStall))
+  if(decodeComb.enADr1_ && decodeComb.memEx_ && ((decEx_.writeEn_ && decEx_.writeExt_ && enable_(_State::S_EXEC)) || extMemStall))
   {
     decodeEx.stall_=1;
   }
