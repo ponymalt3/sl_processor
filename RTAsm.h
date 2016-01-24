@@ -11,6 +11,12 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "RTParser.h"
+
+typedef const char* RTProg;
+#define RTASM(...) #__VA_ARGS__
+
+/*
 uint32_t min(uint32_t a,uint32_t b)
 {
   return a<b?a:b;
@@ -29,19 +35,6 @@ uint32_t log2(uint32_t value)
 
   return result;
 }
-
-/*
- * 1    1w
- * 2    1w
- * 4    1w
- * 8    1w
- * 16   1w
- * 32   1w
- * 64   2w
- * 128  4w
- * 256  8w
- * 512  16w
- */
 
 template<uint32_t NumLevel>
 class BuddyAlloc
@@ -197,7 +190,7 @@ protected:
   uint32_t minBlockSizeLg2_;
   Level level_[NumLevel+1];
   uint32_t map_[BitMapSize];
-};
+};*/
 
 /*
 template<uint32_t NumBlocks>

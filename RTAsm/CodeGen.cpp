@@ -11,7 +11,7 @@
 #include "Error.h"
 #include "Operand.h"
 
-CodeGen::Label::Label(CodeGen &codeGen):codeGen_(codeGen)
+CodeGen::Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
   labelRef_=codeGen_.createLabel();
   codeAddr_=codeGen_.getCurCodeAddr();
@@ -25,7 +25,7 @@ CodeGen::Label::~Label()
 
 void CodeGen::Label::setLabel()
 {
-  Error::expect(labelRef_ != NoRef) << "invalid label" << Error::FATAL;
+  Error::expect(labelRef_ != NoRef) << "invalid label" << ErrorHandler::FATAL;
   codeGen_.updateLabel(*this);
 }
 
@@ -73,7 +73,8 @@ void CodeGen::_Instr::patchIrsOffset(uint32_t irsOffset)
 
 void CodeGen::_Instr::patchConstant(uint32_t value,bool patch2ndWord)
 {
-  Error::expect(value < 512) << "load addr out of range " << (value);
+  //maybe static error singleton again
+  //Error::expect(value < 512) << "load addr out of range " << (value);
 
   if(patch2ndWord)
     return;
@@ -86,13 +87,13 @@ void CodeGen::_Instr::patchGotoTarget(int32_t target)
   bool backward=target<0;
 
   target=backward?-target:target;
-  Error::expect(target < 512) << "jump target out of range " << (target);
+  //Error::expect(target < 512) << "jump target out of range " << (target);
 
   code_=(code_&0xFC00)+(target&0x01FF);
   code_+=0x0200*backward;
 }
 
-CodeGen::CodeGen(Stream &stream): symbols_(stream),stream_(stream)
+CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),symbols_(stream),stream_(stream)
 {
   usedRefs_=0;
   loopDepth_=0;
@@ -109,7 +110,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   _Operand b=resolveOperand(opb);
 
   assert(!(a.isResult() && b.isResult()));
-  Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << Error::FATAL;
+  Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << ErrorHandler::FATAL;
 
   bool aIsResult=a.isResult() || a.type_ == _Operand::TY_VALUE || a.isInternalReg();
   bool bIsResult=b.isResult() || b.type_ == _Operand::TY_VALUE || b.isInternalReg();
@@ -324,7 +325,7 @@ void CodeGen::addReference(const Stream::String &str,uint32_t irsOffset)
 
 void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel)
 {
-  Error::expect(loopDepth_ < MaxLoopDepth) << "FATAL loop frames run out of space" << Error::FATAL;
+  Error::expect(loopDepth_ < MaxLoopDepth) << "FATAL loop frames run out of space" << ErrorHandler::FATAL;
 
   _Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
   _Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
@@ -374,7 +375,7 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
     if(createSymIfNotExists && symRef == SymbolMap::InvalidLink)
       symRef=symbols_.createSymbol(name,op.index_);
 
-    Error::expect(symRef != SymbolMap::InvalidLink) << "symbol " << name << " not found" << Error::FATAL;
+    Error::expect(symRef != SymbolMap::InvalidLink) << "symbol " << name << " not found" << ErrorHandler::FATAL;
 
     SymbolMap::_Symbol &symInf=symbols_[symRef];
 
@@ -389,7 +390,7 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 
   if(op.type_ == _Operand::TY_INDEX)
   {
-    Error::expect(loopDepth_ != 0 && op.loopIndex_ < loopDepth_) << "using loop index '" << ('i'+op.loopIndex_) << " outside loop" << Error::FATAL;
+    Error::expect(loopDepth_ != 0 && op.loopIndex_ < loopDepth_) << "using loop index '" << ('i'+op.loopIndex_) << " outside loop" << ErrorHandler::FATAL;
 
     uint32_t loop=loopDepth_-op.loopIndex_-1;
 
@@ -411,7 +412,7 @@ uint32_t CodeGen::createLabel()
 {
   const uint32_t maxNumLabels=sizeof(labels_)/sizeof(labels_[0]);
 
-  Error::expect(lastFreeLabelPos_ < maxNumLabels) << "label buffer too small" << Error::FATAL;
+  Error::expect(lastFreeLabelPos_ < maxNumLabels) << "label buffer too small" << ErrorHandler::FATAL;
 
   uint32_t result=lastFreeLabelPos_;
 
@@ -460,7 +461,7 @@ void CodeGen::changeStorageSize(const TmpStorage &storage,uint32_t size)
 
 void CodeGen::writeCode(uint32_t code,uint32_t ref)
 {
-  Error::expect(codeAddr_ < sizeof(instrs_)/sizeof(instrs_[0])) << "code buffer full" << Error::FATAL;
+  Error::expect(codeAddr_ < sizeof(instrs_)/sizeof(instrs_[0])) << "code buffer full" << ErrorHandler::FATAL;
 
   instrs_[codeAddr_].code_=code;
   instrs_[codeAddr_].symRef_=ref;

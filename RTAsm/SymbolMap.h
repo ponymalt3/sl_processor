@@ -10,8 +10,9 @@
 
 #include <stdint.h>
 #include "Stream.h"
+#include "Error.h"
 
-class SymbolMap
+class SymbolMap : public Error
 {
 public:
   enum {InvalidLink=0xFFFF};

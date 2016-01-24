@@ -6,7 +6,7 @@
  */
 
 #include "SymbolMap.h"
-#include "Error.h"
+#include "ErrorHandler.h"
 
 SymbolMap::_Symbol::_Symbol()
 {
@@ -39,7 +39,7 @@ void SymbolMap::_Symbol::changeArraySize(uint32_t size)
     allocatedAddr_=size;
 }
 
-SymbolMap::SymbolMap(Stream &stream):stream_(stream)
+SymbolMap::SymbolMap(Stream &stream):Error(stream.getErrorHandler()), stream_(stream)
 {
   symCount_=0;
 
@@ -109,12 +109,13 @@ uint32_t SymbolMap::createReference(const Stream::String &str,uint32_t irsOffset
 
 SymbolMap::_Symbol& SymbolMap::operator[](uint32_t i)
 {
-  Error::expect(i < symCount_) << stream_ << "symbol reference out of range" << (i) << Error::FATAL;
+  Error::expect(i < symCount_) << stream_ << "symbol reference out of range" << (i) << ErrorHandler::FATAL;
   return symbols_[i];
 }
+
 uint32_t SymbolMap::insertSymbol(const _Symbol &sym,uint32_t hashIndex,uint32_t size)
 {
-  Error::expect(symCount_ < (sizeof(symbols_)/sizeof(symbols_[0]))) << stream_ << "no more symbol storage available" << Error::FATAL;
+  Error::expect(symCount_ < (sizeof(symbols_)/sizeof(symbols_[0]))) << stream_ << "no more symbol storage available" << ErrorHandler::FATAL;
 
   _Symbol &newSym=symbols_[symCount_];
 

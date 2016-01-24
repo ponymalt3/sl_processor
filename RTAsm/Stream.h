@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 //#include "Token.h"
+#include "Error.h"
 
 struct qfp32
 {
@@ -19,8 +20,9 @@ struct qfp32
 };
 
 class Token;
+class RTProg;
 
-class Stream
+class Stream : public Error
 {
 public:
   enum {InvalidMark=0xFFFFFFFF};
@@ -48,7 +50,7 @@ public:
     uint16_t length_;
   };
 
-  Stream(const char *code);
+  Stream(RTProg &rtProg);//const char *code);
 
   char peek();
   char read();
@@ -70,7 +72,7 @@ public:
 protected:
   static uint32_t log2(int32_t value);
 
-  const char *asmText_;
+  const char *asmText_;  
   uint32_t pos_;
   uint32_t line_;
   uint32_t length_;

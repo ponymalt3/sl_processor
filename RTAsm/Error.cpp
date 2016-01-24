@@ -4,24 +4,22 @@
  *  Created on: Mar 7, 2015
  *      Author: malte
  */
-
+ 
 #include "Error.h"
+#include "ErrorHandler.h"
 #include <assert.h>
 #include <iostream>
 
-Error Error::instance_;
-
-Error& Error::expect(bool expr)
+ErrorHandler::ErrorHandler()
 {
-  if(instance_.newLinePending_)
-    std::cout<<"\n";
-
-  instance_.newLinePending_=false;
-  instance_.isFault_=!expr;
-  return instance_;
+  isFault_=false;
+  linePrinted_=false;
+  newLinePending_=false;
+  line_=0;
+  errors_=0;
 }
 
-Error& Error::operator<<(const char *str)
+ErrorHandler& ErrorHandler::operator<<(const char *str)
 {
   if(!isFault_)
     return *this;
@@ -31,7 +29,7 @@ Error& Error::operator<<(const char *str)
   return *this;
 }
 
-Error& Error::operator<<(const Stream::String &str)
+ErrorHandler& ErrorHandler::operator<<(const Stream::String &str)
 {
   if(!isFault_)
     return *this;
@@ -45,7 +43,7 @@ Error& Error::operator<<(const Stream::String &str)
   return *this;
 }
 
-Error& Error::operator<<(uint32_t value)
+ErrorHandler& ErrorHandler::operator<<(uint32_t value)
 {
   if(!isFault_)
     return *this;
@@ -55,36 +53,25 @@ Error& Error::operator<<(uint32_t value)
   return *this;
 }
 
-Error& Error::operator<<(const Stream &stream)
+ErrorHandler& ErrorHandler::operator<<(const Stream &stream)
 {
   line_=stream.getCurrentLine();
   linePrinted_=false;
   return *this;
 }
 
-Error& Error::operator<<(Type type)
+ErrorHandler& ErrorHandler::operator<<(Type type)
 {
   if(type == FATAL)
-    assert(isFault_ == false);
+  {
+    if(isFault_)
+      throw std::exception();
+  }
 
   return *this;
 }
 
-uint32_t Error::getNumErrors()
-{
-  return instance_.errors_;
-}
-
-Error::Error()
-{
-  isFault_=false;
-  linePrinted_=false;
-  newLinePending_=false;
-  line_=0;
-  errors_=0;
-}
-
-void Error::printHeader()
+void ErrorHandler::printHeader()
 {
   if(!linePrinted_)
     std::cout<<"at "<<(line_)<<":\n";
@@ -92,4 +79,26 @@ void Error::printHeader()
   linePrinted_=true;
   newLinePending_=true;
 }
+
+
+
+Error::Error(ErrorHandler &handler):handler_(handler)
+{
+}
+
+ErrorHandler& Error::expect(bool expr)
+{
+  if(handler_.newLinePending_)
+    std::cout<<"\n";
+
+  handler_.newLinePending_=false;
+  handler_.isFault_=!expr;
+  return handler_;
+}
+
+uint32_t Error::getNumErrors()
+{
+  return handler_.errors_;
+}
+
 

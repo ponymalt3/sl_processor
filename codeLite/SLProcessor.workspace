@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="SLProcessor" Database="">
   <Project Name="SLProcessor" Path="SLProcessor/SLProcessor.project" Active="No"/>
-  <Project Name="SLProcessorTest" Path="SLProcessorTest/SLProcessorTest.project" Active="Yes"/>
-  <Project Name="RTAsmTest" Path="RTAsmTest/RTAsmTest.project" Active="No"/>
+  <Project Name="SLProcessorTest" Path="SLProcessorTest/SLProcessorTest.project" Active="No"/>
+  <Project Name="RTAsmTest" Path="RTAsmTest/RTAsmTest.project" Active="Yes"/>
   <Project Name="wxTest" Path="wxTest/wxTest.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">

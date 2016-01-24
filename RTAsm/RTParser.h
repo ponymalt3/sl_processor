@@ -72,7 +72,7 @@ protected:
   _T *sp_;
 };
 
-class RTParser
+class RTParser : Error
 {
 public:
   enum {UnaryMinus=1};

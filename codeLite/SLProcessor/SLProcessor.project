@@ -37,6 +37,8 @@
       <File Name="../../RTAsm/SymbolMap.cpp"/>
       <File Name="../../RTAsm/SymbolMap.h"/>
       <File Name="../../RTAsm/Token.h"/>
+      <File Name="../../RTAsm/RTProg.h"/>
+      <File Name="../../RTAsm/ErrorHandler.h"/>
     </VirtualDirectory>
     <File Name="../../SLArithUnit.cpp"/>
     <File Name="../../SLArithUnit.h"/>

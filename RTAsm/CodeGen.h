@@ -11,11 +11,12 @@
 #include <stdint.h>
 
 #include "Error.h"
+#include "ErrorHandler.h"
 #include "BuddyAlloc.h"
 #include "Operand.h"
 #include "SymbolMap.h"
 
-class CodeGen
+class CodeGen : public Error
 {
 public:
   enum {CMP_MODE_GT=0,CMP_MODE_LE=3,CMP_MODE_EQ=1,CMP_MODE_NEQ=2,CMP_MODE_SWAP_FLAG=0x8000};
@@ -23,7 +24,7 @@ public:
   enum {MaxLoopDepth=6,LoopStorageIndex=0,NoLoopFrame=-1};
   enum {NoRef=0xFFFF,NoLabel=NoRef};
 
-  class Label
+  class Label : public Error
   {
   public:
     friend class CodeGen;
@@ -99,7 +100,7 @@ public:
     BuddyAlloc<9> allocator(0,size);
     allocator.allocate(numParams);//reserve space for parameter
 
-    Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << Error::FATAL;
+    Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << ErrorHandler::FATAL;
 
     for(uint32_t i=0;i<codeAddr_;++i)
     {

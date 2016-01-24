@@ -10,6 +10,7 @@
 #include "Error.h"
 #include "Token.h"
 #include <algorithm>
+#include "RTProg.h"
 
 Stream::String::String(const char *base,uint32_t offset,uint32_t length)
 {
@@ -55,14 +56,14 @@ uint32_t Stream::String::hash() const
 }
 
 
-Stream::Stream(const char *code)
+Stream::Stream(RTProg &rtProg):Error(rtProg.getErrorHandler())
 {
-  asmText_=code;
+  asmText_=rtProg.getCode();//code;
   pos_=0;
   line_=0;
 
   length_=0;
-  while(code[length_] != '\0') ++length_;
+  while(asmText_[length_] != '\0') ++length_;
 
   markPos_=InvalidMark;
   markLine_=line_;

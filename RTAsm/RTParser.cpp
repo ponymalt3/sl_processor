@@ -9,7 +9,7 @@
 #include "Token.h"
 
 
-RTParser::RTParser(CodeGen &codeGen) : codeGen_(codeGen)
+RTParser::RTParser(CodeGen &codeGen) : Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
 }
 
