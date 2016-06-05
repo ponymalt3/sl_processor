@@ -9,13 +9,13 @@
 #define BUDDYALLOC_H_
 
 #include <algorithm>
+#include <iostream>
 
 template<uint32_t NumLevel>
 class BuddyAlloc
 {
 public:
   /*
-   * 1    1w
    * 2    1w
    * 4    1w
    * 8    1w
@@ -26,11 +26,11 @@ public:
    * 256  8w
    * 512  16w
    */
-  enum {BitMapSize=(NumLevel<=4)?5+(1<<(NumLevel-5)):1+NumLevel};
+  enum {BitMapSize=(NumLevel>5)?3+(1<<(NumLevel-4)):NumLevel};
 
   BuddyAlloc(uint32_t base,uint32_t size);
   uint32_t allocate(uint32_t size);
-  void release(uint32_t addr);
+  void release(uint32_t addr,uint32_t size);
 
 protected:
   class Level
@@ -48,9 +48,9 @@ protected:
     void updateFreePos(uint32_t startFromPos);
 
     void clearBit(uint32_t pos) { map_[pos>>5]&=~(1<<(pos&0x1F)); }
-    uint32_t getBit(uint32_t pos) { return (map_[pos>>5]>>(pos&0x1F))&1; }
+    uint32_t getBit(uint32_t pos) const { return (map_[pos>>5]>>(pos&0x1F))&1; }
     void toggleBit(uint32_t pos) { map_[pos>>5]^=1<<(pos&0x1F); }
-
+    
   protected:
     uint16_t freePos_;
     uint16_t size_;
@@ -58,12 +58,13 @@ protected:
   };
 
   static uint32_t log2(uint32_t value);
-
+  
   uint32_t base_;
   uint32_t minBlockSize_;
   uint32_t minBlockSizeLg2_;
-  Level level_[NumLevel+1];
+  Level level_[NumLevel];
   uint32_t map_[BitMapSize];
+  bool topBlockFree_;
 };
 
 template<uint32_t NumLevel>
@@ -74,11 +75,13 @@ BuddyAlloc<NumLevel>::BuddyAlloc(uint32_t base,uint32_t size)
   minBlockSizeLg2_=log2(minBlockSize_);
 
   uint32_t mapOffset=0;
-  for(uint32_t i=0;i<NumLevel+1;++i)
+  for(uint32_t i=1;i<NumLevel+1;++i)
   {
     level_[NumLevel-i].init(1<<i,map_+mapOffset);
     mapOffset+=((1<<i)+31)/32;
   }
+  
+  topBlockFree_=true;
 }
 
 template<uint32_t NumLevel>
@@ -92,8 +95,20 @@ uint32_t BuddyAlloc<NumLevel>::allocate(uint32_t size)
   uint32_t curLevel=index;
   while(!level_[curLevel].avail())
   {
-    if(++curLevel > NumLevel)
-      return -1;
+    if(++curLevel >= NumLevel)
+    {
+      if(topBlockFree_ == false)
+      {
+        return -1;
+      }
+      
+      //set available blocks
+      level_[NumLevel-1].release(0);
+      level_[NumLevel-1].release(1);
+      curLevel=NumLevel-1;
+      topBlockFree_=false;
+      break;
+    }
   }
 
   //split blocks
@@ -110,22 +125,24 @@ uint32_t BuddyAlloc<NumLevel>::allocate(uint32_t size)
 
 
 template<uint32_t NumLevel>
-void BuddyAlloc<NumLevel>::release(uint32_t addr)
+void BuddyAlloc<NumLevel>::release(uint32_t addr,uint32_t size)
 {
-  int32_t curLevel=NumLevel;
-  while(curLevel >= 0)
-  {
-    uint32_t pos=addr>>(curLevel+minBlockSizeLg2_);
+  if(size < minBlockSize_)
+    size=minBlockSize_;
+    
+  int32_t curLevel=log2(size);
+  uint32_t pos=addr>>(curLevel+minBlockSizeLg2_);
 
-    if(level_[curLevel].getBit(pos) == 0)//used
-    {
-      //combine
-      while(curLevel <= NumLevel && !level_[curLevel].releaseAndCombine(pos))
-      {
-        pos>>=1;
-        ++curLevel;
-      }
-    }
+  //combine
+  while(curLevel < NumLevel && level_[curLevel].releaseAndCombine(pos))
+  {
+    pos>>=1;
+    ++curLevel;
+  }
+  
+  if(curLevel == NumLevel)
+  {
+    topBlockFree_=true;
   }
 }
 
@@ -156,7 +173,7 @@ bool BuddyAlloc<NumLevel>::Level::releaseAndCombine(uint32_t pos)
   {
     clearBit(pos^1);
 
-    if((pos&(~1)) <= (freePos_+1))
+    if((pos&(~1)) <= freePos_)
       updateFreePos(pos&(~1));
 
     return true;
@@ -180,29 +197,59 @@ void BuddyAlloc<NumLevel>::Level::updateFreePos(uint32_t startFromPos)
 {
   uint32_t mapIndex=startFromPos>>5;
 
-  while(mapIndex < size_)
+  while(mapIndex < ((size_+31)/32))
   {
     if(map_[mapIndex] != 0)
     {
       uint32_t lsb=map_[mapIndex]&(~(map_[mapIndex]-1));
-      freePos_=log2(lsb);
-      break;
+      freePos_=mapIndex*32+log2(lsb);
+      return;
     }
+    
+    ++mapIndex;
   }
+  
+  freePos_=size_;
 }
 
 template<uint32_t NumLevel>
 uint32_t BuddyAlloc<NumLevel>::log2(uint32_t value)
 {
+  uint32_t origValue=value;
+  
   uint32_t result=0;
-
-  result+=(value&0xFFFF0000)?16:0;
-  result+=(value&0xFF00FF00)?8:0;
-  result+=(value&0xF0F0F0F0)?4:0;
-  result+=(value&0xCCCCCCCC)?2:0;
-  result+=(value&0xAAAAAAAA)?1:0;
-
-  return result;
+  
+  if(value&0xFFFF0000)
+  {
+    result+=16;
+    value>>=16;
+  }
+  
+  if(value&0x0000FF00)
+  {
+    result+=8;
+    value>>=8;
+  }
+  
+  if(value&0x000000F0)
+  {
+    result+=4;
+    value>>=4;
+  }
+  
+  if(value&0x0000000C)
+  {
+    result+=2;
+    value>>=2;
+  }
+  
+  if(value&0x0000002)
+  {
+    result+=1;
+    value>>=1;
+  }
+  
+  return result + ((origValue != (1<<result))?1:0);//round up
 }
 
 #endif /* BUDDYALLOC_H_ */
