@@ -179,30 +179,27 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
   //load constant into result
   if(b.type_ == _Operand::TY_VALUE || b.isArrayBaseAddr())
   {
-    qfp32 value=b.value_;
-    uint32_t constData=(value.sign_<<9)+(value.mant_>>20);
+    //qfp32 value=b.value_;
+    uint32_t constData=b.value_.toUint32();
 
     uint32_t symRef=NoRef;
 
     if(b.isArrayBaseAddr())
       symRef=b.mapIndex_;
 
-    if(value.exp_ == 0 && (value.mant_&0xFFFFF) == 0)
+    //write first part of
+    writeCode(SLCode::Load::create1(constData),symRef);
+    
+    if(SLCode::Load::constDataValue2(constData) != 0)
     {
-      writeCode(0+constData,symRef);
+      writeCode(SLCode::Load::create2(constData),symRef);
     }
-    else if((value.mant_&0x0003F) == 0)
+    
+    if(SLCode::Load::constDataValue3(constData) != 0)
     {
-      writeCode(0+(1<<10)+constData,symRef);
-      writeCode((value.exp_<<12)+((value.mant_>>8)&0xFFF));
+      writeCode(SLCode::Load::create3(constData),symRef);
     }
-    else
-    {
-      writeCode(0+(2<<10)+constData,symRef);
-      writeCode((value.exp_<<12)+((value.mant_>>8)&0xFFF));
-      writeCode(value.mant_&0xFF);
-    }
-
+   
     if(a.isResult())
       return;
 
@@ -210,22 +207,26 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
   }
 
   bool addrInc=(aIsMem && a.addrInc_) || (bIsMem && b.addrInc_);
+  
+  uint32_t symRef=SymbolMap::InvalidLink;
+  uint32_t irsOffset=0;
 
   if(aIsIRS || bIsIRS)
   {
-    uint32_t symRef=SymbolMap::InvalidLink;
-
     if(aIsIRS)
+    {
       symRef=a.mapIndex_;
+      irsOffset=a.arrayOffset_;
+    }
     else
+    {
       symRef=b.mapIndex_;
-
-    writeCode(0,symRef);
+      irsOffset=b.arrayOffset_;
+    }
   }
-  else
-  {
-    writeCode(0);
-  }
+  
+  //mov result to irs
+  writeCode(SLCode::Mov::create(translateOperand(a),translateOperand(b),irsOffset,addrInc),symRef);
 }
 
 void CodeGen::instrNeg(const _Operand &opa)
@@ -401,6 +402,30 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
   }
 
   return op;
+}
+
+SLCode::Operand CodeGen::translateOperand(_Operand op)
+{
+  switch(op.type_)
+  {
+    case _Operand::TY_RESULT: return SLCode::Operand::REG_RES;
+    case _Operand::TY_IR_ADDR0: return SLCode::Operand::REG_AD0;
+    case _Operand::TY_IR_ADDR1: return SLCode::Operand::REG_AD1;
+    case _Operand::TY_RESOLVED_SYM: return SLCode::Operand::IRS;
+    case _Operand::TY_MEM:
+      if(op.regaIndex_ == _Operand::IR_ADR0)
+      {
+        return SLCode::Operand::DEREF_AD0;
+      }
+      else
+      {
+        return SLCode::Operand::DEREF_AD1;
+      }
+    default:
+      Error::expect(false) << "internal error: no operand translation found!" << ErrorHandler::FATAL;
+  }
+  
+  return SLCode::Operand::INVALID_OP;
 }
 
 uint32_t CodeGen::allocateTmpStorage()
