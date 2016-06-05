@@ -17,6 +17,8 @@ struct qfp32
   uint32_t mant_ : 29;
   uint32_t exp_ : 2;
   uint32_t sign_ : 1;
+  
+  uint32_t toUint32() const { return *reinterpret_cast<const uint32_t*>(this); }
 };
 
 class Token;
