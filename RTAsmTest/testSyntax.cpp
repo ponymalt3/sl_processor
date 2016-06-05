@@ -260,3 +260,13 @@ MTEST(testSyntax,test_empty_branch)
   RTProgTester tester(testSyntax);
   EXPECT(tester.parse().getNumErrors() == 0);    
 }
+
+MTEST(testSyntax,test_that_comment_at_the_end_works)
+{
+  RTProg testComment=RTASM(
+    b=2;%test%
+  );
+  
+  RTProgTester tester(testComment);
+  EXPECT(tester.parse().getNumErrors() == 0);  
+}  

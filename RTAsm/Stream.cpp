@@ -93,6 +93,14 @@ Stream& Stream::skipWhiteSpaces()
   {
     char ch=asmText_[pos_];
 
+    
+    //remove comments
+    while(asmText_[pos_] == '%')
+    {
+      ++pos_;
+      while(pos_ < length_ && asmText_[pos_++] != '%');
+    }
+    
     if(ch ==' ' || ch == '\n')
     {
       ++pos_;
