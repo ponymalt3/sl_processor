@@ -378,7 +378,7 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
     uint32_t symRef=symbols_.findSymbol(name);
 
     if(createSymIfNotExists && symRef == SymbolMap::InvalidLink)
-      symRef=symbols_.createSymbol(name,op.index_);
+      symRef=symbols_.createSymbol(name,0);//single element
 
     Error::expect(symRef != SymbolMap::InvalidLink) << "symbol " << name << " not found" << ErrorHandler::FATAL;
 
@@ -388,8 +388,12 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
       return _Operand(symInf.constValue_);
 
     if(symInf.flagAllocated_)//is a reference
-      return _Operand::createSymAccess(symInf.allocatedAddr_,0);
-
+      return _Operand::createSymAccess(symRef,0);
+      
+    if(symInf.flagIsArray_)//is a array
+      return _Operand::createSymAccess(symRef,op.index_);
+      
+    //normal variable      
     return _Operand::createSymAccess(symRef,0);
   }
 
