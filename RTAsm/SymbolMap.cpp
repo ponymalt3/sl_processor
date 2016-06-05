@@ -101,7 +101,7 @@ uint32_t SymbolMap::createReference(const Stream::String &str,uint32_t irsOffset
   uint32_t hash=str.hash();
 
   uint32_t i=findSymbol(str,hash);
-  Error::expect(i == InvalidLink) << stream_ << "const " << str << " already defined at ";// << Error::LineNumber(stream_,symbols_[i].strOffset_);
+  Error::expect(i == InvalidLink) << stream_ << "symbol " << str << " already defined at ";// << Error::LineNumber(stream_,symbols_[i].strOffset_);
 
   _Symbol newSym=_Symbol(str);
    newSym.flagAllocated_=1;

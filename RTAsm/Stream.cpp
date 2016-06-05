@@ -93,7 +93,6 @@ Stream& Stream::skipWhiteSpaces()
   while(!empty())
   {
     char ch=asmText_[pos_];
-
     
     //remove comments
     while(asmText_[pos_] == '%')
