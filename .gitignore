@@ -1,5 +1,16 @@
 #Ignore everything
-Debug/*
+**/*Debug*/**
+**/*Release*/**
+
+*.txt
+*.mk
+*.list
+*.db
+**/.build*/**
+**/.codelite*/**
+**/Makefile
+*.prefs
+
 
 #Whitelist subdirectories
 #*.project
