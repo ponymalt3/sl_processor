@@ -16,6 +16,8 @@
 #include "Operand.h"
 #include "SymbolMap.h"
 
+#include "../SLCodeDef.h"
+
 class CodeGen : public Error
 {
 public:
@@ -167,9 +169,26 @@ protected:
 
   struct _Instr
   {
-    bool isGoto() const { return true; }
-    bool isIrsInstr() const { return true; }
-    bool isLoadAddr() const { return true; }//is load const
+    bool isGoto() const
+    {
+      return (code_^SLCode::Goto::Code)>>(16-SLCode::Goto::Bits) == 0;
+    }
+    
+    bool isIrsInstr() const
+    {
+      bool isIrs=false;
+      
+      isIrs=isIrs || (code_^SLCode::Mov::Code1)>>(16-SLCode::Mov::Bits1) == 0;//mov
+      isIrs=isIrs || (code_^SLCode::Op::Code1)>>(16-SLCode::Op::Bits1) == 0;//ops
+      isIrs=isIrs || (code_^SLCode::Cmp::Code)>>(16-SLCode::Cmp::Bits) == 0;//cmp
+      
+      return isIrs;
+    }
+    
+    bool isLoadAddr() const
+    {
+      return (code_^SLCode::Load::Code)>>(16-SLCode::Load::Bits) == 0;
+    }
 
     void patchIrsOffset(uint32_t irsOffset);
     void patchConstant(uint32_t value,bool patch2ndWord);
