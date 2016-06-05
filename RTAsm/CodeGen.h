@@ -106,27 +106,22 @@ public:
     {
       if(instrs_[i].isIrsInstr())
       {
-        const SymbolMap::_Symbol &symInf=symbols_[instrs_[i].symRef_];
+        SymbolMap::_Symbol &symInf=symbols_[instrs_[i].symRef_];
 
         //alloc storage if not already
         if(!symInf.flagAllocated_)
         {
-          uint32_t allocSize=symInf.allocatedAddr_;
-
-          if(!symInf.flagUseAddrAsArraySize_)
-            allocSize=1;
-
           symInf.flagAllocated_=1;
-          symInf.allocatedAddr_=allocator.allocate(allocSize);
+          symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_);
         }
 
         instrs_[i].patchIrsOffset(symInf.allocatedAddr_);
 
         //release storage
-        if(symInf.lastAccess_ == i && symInf.flagAllocated_)
+        if(symInf.lastAccess_ == i && symInf.flagAllocated_ && !symInf.flagStayAllocated_)
         {
           symInf.flagAllocated_=0;
-          allocator.release(symInf.allocatedAddr_);
+          allocator.release(symInf.allocatedAddr_,symInf.allocatedSize_);
         }
       }
     }

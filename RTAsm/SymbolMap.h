@@ -28,7 +28,9 @@ public:
     uint16_t strLength_ : 8;
     uint16_t flagAllocated_ : 1;
     uint16_t flagConst_ : 1;
-    uint16_t flagUseAddrAsArraySize_ : 1;
+    uint16_t flagIsArray_ : 1;
+    uint16_t flagStayAllocated_ : 1;//memory cant be released (cause there might be references)
+    uint16_t allocatedSize_;
     uint16_t link_;
     union
     {

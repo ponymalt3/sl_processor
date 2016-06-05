@@ -14,7 +14,9 @@ SymbolMap::_Symbol::_Symbol()
   strLength_=0;
   flagAllocated_=0;
   flagConst_=0;
-  flagUseAddrAsArraySize_=0;
+  flagIsArray_=0;
+  flagStayAllocated_=0;
+  allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
   link_=InvalidLink;
@@ -26,7 +28,9 @@ SymbolMap::_Symbol::_Symbol(const Stream::String &str)
   strLength_=str.getLength();
   flagAllocated_=0;
   flagConst_=0;
-  flagUseAddrAsArraySize_=0;
+  flagIsArray_=0;
+  flagStayAllocated_=0;
+  allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
   link_=InvalidLink;
@@ -34,9 +38,8 @@ SymbolMap::_Symbol::_Symbol(const Stream::String &str)
 
 void SymbolMap::_Symbol::changeArraySize(uint32_t size)
 {
-  flagUseAddrAsArraySize_=size!=1;
-  if(flagUseAddrAsArraySize_)
-    allocatedAddr_=size;
+  flagIsArray_=size!=0;
+  allocatedSize_=size==0?1:size;
 }
 
 SymbolMap::SymbolMap(Stream &stream):Error(stream.getErrorHandler()), stream_(stream)
@@ -125,10 +128,16 @@ uint32_t SymbolMap::insertSymbol(const _Symbol &sym,uint32_t hashIndex,uint32_t 
   newSym.link_=hashTable_[hashIndex];
   hashTable_[hashIndex]=symCount_;
 
-  if(size > 1)
+  if(size > 0)
   {
-    newSym.flagUseAddrAsArraySize_=1;
-    newSym.allocatedAddr_=size;
+    //is array
+    newSym.flagIsArray_=1;
+    newSym.allocatedSize_=size;
+  }
+  else
+  {
+    //single element
+    newSym.allocatedSize_=1;
   }
 
   return symCount_++;
