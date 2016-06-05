@@ -90,10 +90,10 @@ uint32_t SymbolMap::createConst(const Stream::String &str,qfp32 value)
   Error::expect(i == InvalidLink) << stream_ << "const "<< str << " already defined";
 
   _Symbol newSym=_Symbol(str);
-   newSym.constValue_=value;
-   newSym.flagConst_=1;
+  newSym.constValue_=value;
+  newSym.flagConst_=1;
 
-   return insertSymbol(newSym,hash);
+  return insertSymbol(newSym,hash);
 }
 
 uint32_t SymbolMap::createReference(const Stream::String &str,uint32_t irsOffset)
