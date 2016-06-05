@@ -159,6 +159,11 @@ qfp32 Stream::readQfp32()
   }
 
   uint32_t bitsInt=log2(intPart);
+  
+  if((1<<bitsInt) > intPart)
+  {
+    --bitsInt;
+  }
 
   value.exp_=(bitsInt+3)/8;
   value.mant_=intPart<<((3-value.exp_)*8);
@@ -246,8 +251,9 @@ Token Stream::readToken()
     }
 
     Error::expect(read() == ']') << (*this) << "missing ']'";
+    
 
-    return Token(createStringFromToken(rega.getOffset(),rega.getLength()),Token::TOK_MEM,rega.getOffset(),addrInc);
+    return Token(createStringFromToken(rega.getOffset(),rega.getLength()),Token::TOK_MEM,rega.getIndex(),addrInc);
   }
 
   Stream::String sym=readSymbol();
