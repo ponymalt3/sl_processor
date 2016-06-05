@@ -130,12 +130,31 @@ public:
       }
     }
   }
+  
+  uint16_t getCodeAt(uint32_t addr)
+  {
+    return instrs_[addr].code_;
+  }
+  
+  SymbolMap::_Symbol findSymbol(const Stream::String &symbol)
+  {
+    uint32_t sym=symbols_.findSymbol(symbol);
+    
+    if(sym == SymbolMap::InvalidLink)
+    {
+      return SymbolMap::_Symbol();
+    }
+    
+    return symbols_[sym];
+  }
 
 protected:
   void loadOperandIntoResult(const _Operand &op);
   uint32_t getOperandSymbolRef(const _Operand &a);
 
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
+  
+  SLCode::Operand translateOperand(_Operand op);
 
   uint32_t allocateTmpStorage();
   void changeStorageSize(const TmpStorage &storage,uint32_t size);
