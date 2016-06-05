@@ -145,6 +145,14 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
 
 void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
 {
+  //optimize hint
+  //try to implement mov AD0,AD1,... [IRS]
+  
+  if(opa.isResult() && opb.isResult())
+  {
+    return;
+  }
+  
   _Operand a=resolveOperand(opa,true);
   _Operand b=resolveOperand(opb);
 
