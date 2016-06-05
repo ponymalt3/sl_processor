@@ -320,7 +320,7 @@ bool RTParser::parseStatement(Stream &stream)
 
     _Operand op;
     if(token.getType() == Token::TOK_REGA)
-      op=_Operand::createInternalReg(token.getIndex()?_Operand::TY_IR_ADDR0:_Operand::TY_IR_ADDR1);
+      op=_Operand::createInternalReg(token.getIndex()?_Operand::TY_IR_ADDR1:_Operand::TY_IR_ADDR0);
     if(token.getType() == Token::TOK_MEM)
       op=_Operand::createMemAccess(token.getIndex(),token.getAddrInc());
     if(token.getType() == Token::TOK_NAME)
