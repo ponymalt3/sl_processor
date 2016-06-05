@@ -80,6 +80,7 @@ char Stream::peek()
 
   return asmText_[pos_];
 }
+
 char Stream::read()
 {
   char ch=peek();
@@ -159,8 +160,8 @@ qfp32 Stream::readQfp32()
 
   uint32_t bitsInt=log2(intPart);
 
-  value.mant_=intPart;
   value.exp_=(bitsInt+3)/8;
+  value.mant_=intPart<<((3-value.exp_)*8);
 
   uint32_t fracPart=0;
   if(peek() == '.')
