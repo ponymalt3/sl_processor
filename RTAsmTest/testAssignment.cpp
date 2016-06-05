@@ -111,26 +111,28 @@ MTEST(testAssignment,test_that_def_const_assigned_to_array_works)
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);  
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 1);
+  EXPECT(tester.getIRSAddrOfSymbol("array") == 0);
   
   tester.loadCode();
   tester.execute();
   
   qfp32_t expect=7;  
-  EXPECT(tester.getProcessor().readMemory(1+2) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(0+2) == expect.asUint);  
 }
 
 MTEST(testAssignment,test_that_ref_assigned_to_array_works)
 {
   RTProg testAssign=RTASM(
-    def x 1;
+    ref x 1;
     decl array 5;
     array(2)=x;
   );
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 2);
+  
+  uint32_t addr=tester.getIRSAddrOfSymbol("array");
+  EXPECT(addr == 8);
   
   qfp32_t expect=7; 
   tester.getProcessor().writeMemory(1,expect.asUint);
@@ -138,13 +140,13 @@ MTEST(testAssignment,test_that_ref_assigned_to_array_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(2+2) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(addr+2) == expect.asUint);  
 }
 
 MTEST(testAssignment,test_that_array_assigned_to_ref_works)
 {
   RTProg testAssign=RTASM(
-    def x 1;
+    ref x 1;
     decl array 5;
     array(4)=15;
     x=array(4);
@@ -152,7 +154,7 @@ MTEST(testAssignment,test_that_array_assigned_to_ref_works)
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 2);
+  EXPECT(tester.getIRSAddrOfSymbol("array") == 8);
   
   tester.getProcessor().writeMemory(1,qfp32_t(7).asUint);
   
@@ -165,42 +167,23 @@ MTEST(testAssignment,test_that_array_assigned_to_ref_works)
 MTEST(testAssignment,test_that_array_assigned_to_var_works)
 {
   RTProg testAssign=RTASM(
-    decl array 5;
+    decl array 4;
     a=0;
     array(0)=15;
-    x=array(4);
-  );
-  
-  RTProgTester tester(testAssign);
-  EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 2);
-  
-  tester.getProcessor().writeMemory(1,qfp32_t(7).asUint);
-  
-  tester.loadCode();
-  tester.execute();
-  
-  EXPECT(tester.getProcessor().readMemory(2+2) == qfp32_t(15).asUint);  
-}
-
-MTEST(testAssignment,test_that_const_assigned_to_addr_and_deref_addr_works)
-{
-  RTProg testAssign=RTASM(
-    ad=10;
-    [ad0]=17;
+    a=array(0);
   );
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
   
+  EXPECT(tester.getIRSAddrOfSymbol("a") == 0);
+  EXPECT(tester.getIRSAddrOfSymbol("array") == 4);
+  
   tester.loadCode();
   tester.execute();
   
-  qfp32_t expect=17;  
-  EXPECT(tester.getProcessor().readMemory(10) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(15).asUint);  
 }
-
-
 
 
 /*
