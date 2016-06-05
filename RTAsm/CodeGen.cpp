@@ -176,7 +176,7 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
   //mov [DATAx], RESULT
   //mov [DATAx], LOOP
 
-  if((aIsIRS && bIsIRS) || (aIsIRS && bIsMem) || (aIsMem && bIsIRS) || (aIsMem && bIsMem))
+  if((aIsIRS && bIsIRS) || (aIsIRS && bIsMem) || (aIsMem && bIsIRS) || (aIsMem && bIsMem) || a.isInternalReg())
   {
     instrMov(_Operand::createResult(),b);
     b=_Operand::createResult();
