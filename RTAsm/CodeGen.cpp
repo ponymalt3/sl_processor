@@ -67,8 +67,8 @@ CodeGen::_LoopFrame::_LoopFrame(const Label *labCont,const Label *labBreak)
 
 void CodeGen::_Instr::patchIrsOffset(uint32_t irsOffset)
 {
-  uint32_t irsValue=code_&0x01FF;
-  code_=(code_&0xFE00)+((irsValue+irsOffset)&0x01FF);
+  //array index already addressed => add irsOffset
+  code_=SLCode::IRS::patchOffset(code_,SLCode::IRS::getOffset(code_)+irsOffset);
 }
 
 void CodeGen::_Instr::patchConstant(uint32_t value,bool patch2ndWord)
@@ -79,18 +79,14 @@ void CodeGen::_Instr::patchConstant(uint32_t value,bool patch2ndWord)
   if(patch2ndWord)
     return;
 
-  code_=(code_&0xFC00)+value;
+  code_=SLCode::Load::create1(value);
 }
 
 void CodeGen::_Instr::patchGotoTarget(int32_t target)
 {
-  bool backward=target<0;
-
-  target=backward?-target:target;
+  code_=SLCode::Goto::create(target,false);
   //Error::expect(target < 512) << "jump target out of range " << (target);
 
-  code_=(code_&0xFC00)+(target&0x01FF);
-  code_+=0x0200*backward;
 }
 
 CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),symbols_(stream),stream_(stream)

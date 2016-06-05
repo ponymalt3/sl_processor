@@ -16,6 +16,20 @@ namespace SLCode
 
   enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_LOOP=1};
   enum {WBREG_AD0=REG_AD0,WBREG_AD1=REG_AD1,WBREG_UNUSED=REG_LOOP,WBREG_NONE=3};
+  
+  struct IRS
+  {
+    static uint16_t getOffset(uint16_t instr)
+    {
+      return (instr>>2)&0x1FF;
+    }
+  
+    static uint16_t patchOffset(uint16_t instr,uint16_t offset)
+    {
+      uint16_t patchedInstr=(instr&0xF803) + ((offset&0x1FF)<<2);
+      return patchedInstr;
+    }
+  };
 
    //      MOV [IRS]                RESULT, LOOP  => code/4 A/1 B/1 OFFSET/9
   struct Mov
