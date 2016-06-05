@@ -11,7 +11,6 @@
 #include <list>
 #include <iostream>
 
-#include "qfp32.h"
 #include "SLArithUnit.h"
 #include "SLProcessorStructs.h"
 
@@ -95,6 +94,8 @@ public:
   void reset();
 
   void update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue);
+  
+  uint32_t getExecutedAddr();
 
 protected:
   _CodeFetch codeFetch();
@@ -125,6 +126,7 @@ protected:
   Memory::Port portCode_;
 
   uint32_t SharedAddrBase_;
+  uint32_t executedAddr_;
 };
 
 #endif /* SLPROCESSOR_H_ */

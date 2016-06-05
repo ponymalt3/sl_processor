@@ -2,6 +2,7 @@
 #include "SLArithUnit.h"
 #include <cstring>
 #include "SLCodeDef.h"
+#include "qfp32.h"
 
 uint32_t simClockEnable(uint32_t oldValue,uint32_t newValue,uint32_t clkEnMask,uint32_t bitsUsed)
 {
@@ -96,8 +97,15 @@ bool SLProcessor::isRunning()
   return true;
 }
 
+uint32_t SLProcessor::getExecutedAddr()
+{
+  return executedAddr_;
+}
+
 void SLProcessor::reset()
 {
+  executedAddr_=0xFFFFFFFF;
+  
   arithUnint_.reset();
 
   std::memset(&state_,0,sizeof(state_));
@@ -597,6 +605,9 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
 
   if(!stall.stallDecEx_)
   {
+    //retired instr
+    executedAddr_=decode_.curPc_;
+    
     code_=codeNext;
     decode_=decodeNext;
     decEx_=decExNext;
