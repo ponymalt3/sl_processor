@@ -32,6 +32,7 @@
     <File Name="../../RTAsmTest/main.cpp"/>
     <File Name="../../RTAsmTest/RTAsmTest.h"/>
     <File Name="../../RTAsmTest/testSyntax.cpp"/>
+    <File Name="../../RTAsmTest/testAssignment.cpp"/>
     <File Name="../../RTAsmTest/testBuddyAlloc.cpp"/>
     <File Name="../../RTAsmTest/testAssignADx.cpp"/>
   </VirtualDirectory>
