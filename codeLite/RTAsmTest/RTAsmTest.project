@@ -31,6 +31,7 @@
   <VirtualDirectory Name="src">
     <File Name="../../RTAsmTest/main.cpp"/>
     <File Name="../../RTAsmTest/RTAsmTest.h"/>
+    <File Name="../../RTAsmTest/testSyntax.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
