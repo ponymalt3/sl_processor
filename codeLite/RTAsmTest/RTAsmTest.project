@@ -33,12 +33,16 @@
     <File Name="../../RTAsmTest/RTAsmTest.h"/>
     <File Name="../../RTAsmTest/testSyntax.cpp"/>
     <File Name="../../RTAsmTest/testBuddyAlloc.cpp"/>
+    <File Name="../../RTAsmTest/testAssignADx.cpp"/>
   </VirtualDirectory>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
         <IncludePath Value="."/>
         <IncludePath Value="/home/malte/workspace/SLProcessor"/>
+        <IncludePath Value="/home/malte/workspace/TestVHDL"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>
@@ -47,8 +51,8 @@
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="GCC ( 4.9 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-std=c++11" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
-        <IncludePath Value="../../../../codeLiteWorkspace/LSControl/shared"/>
         <IncludePath Value="."/>
+        <IncludePath Value="../../../../codeLiteWorkspace/LSControl/shared"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="$(WorkspacePath)/SLProcessor/Debug"/>

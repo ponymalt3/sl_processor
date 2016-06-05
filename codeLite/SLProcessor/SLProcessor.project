@@ -19,34 +19,6 @@
   </Plugins>
   <Description/>
   <Dependencies/>
-  <VirtualDirectory Name="src">
-    <File Name="../../main.cpp"/>
-    <File Name="../../SLProcessor.h"/>
-    <VirtualDirectory Name="RTAsm">
-      <File Name="../../RTAsm/BuddyAlloc.h"/>
-      <File Name="../../RTAsm/CodeGen.cpp"/>
-      <File Name="../../RTAsm/CodeGen.h"/>
-      <File Name="../../RTAsm/Error.cpp"/>
-      <File Name="../../RTAsm/Error.h"/>
-      <File Name="../../RTAsm/Operand.h"/>
-      <File Name="../../RTAsm.h"/>
-      <File Name="../../RTAsm/RTParser.cpp"/>
-      <File Name="../../RTAsm/RTParser.h"/>
-      <File Name="../../RTAsm/Stream.cpp"/>
-      <File Name="../../RTAsm/Stream.h"/>
-      <File Name="../../RTAsm/SymbolMap.cpp"/>
-      <File Name="../../RTAsm/SymbolMap.h"/>
-      <File Name="../../RTAsm/Token.h"/>
-      <File Name="../../RTAsm/RTProg.h"/>
-      <File Name="../../RTAsm/ErrorHandler.h"/>
-    </VirtualDirectory>
-    <File Name="../../SLArithUnit.cpp"/>
-    <File Name="../../SLArithUnit.h"/>
-    <File Name="../../SLCodeDef.h"/>
-    <File Name="../../SLProcessorStructs.h"/>
-    <File Name="../../SLProcessor.cpp"/>
-  </VirtualDirectory>
-  <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>
   <Settings Type="Static Library">
     <GlobalSettings>
@@ -137,4 +109,30 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <VirtualDirectory Name="src">
+    <File Name="../../SLArithUnit.cpp"/>
+    <File Name="../../SLArithUnit.h"/>
+    <File Name="../../SLCodeDef.h"/>
+    <File Name="../../SLProcessor.cpp"/>
+    <File Name="../../SLProcessor.h"/>
+    <File Name="../../SLProcessorStructs.h"/>
+    <VirtualDirectory Name="RTAsm">
+      <File Name="../../RTAsm/BuddyAlloc.h"/>
+      <File Name="../../RTAsm/CodeGen.cpp"/>
+      <File Name="../../RTAsm/CodeGen.h"/>
+      <File Name="../../RTAsm/Error.cpp"/>
+      <File Name="../../RTAsm/Error.h"/>
+      <File Name="../../RTAsm/ErrorHandler.h"/>
+      <File Name="../../RTAsm/Operand.h"/>
+      <File Name="../../RTAsm/RTParser.cpp"/>
+      <File Name="../../RTAsm/RTParser.h"/>
+      <File Name="../../RTAsm/RTProg.h"/>
+      <File Name="../../RTAsm/Stream.cpp"/>
+      <File Name="../../RTAsm/Stream.h"/>
+      <File Name="../../RTAsm/SymbolMap.cpp"/>
+      <File Name="../../RTAsm/Token.h"/>
+      <File Name="../../RTAsm/SymbolMap.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
 </CodeLite_Project>
