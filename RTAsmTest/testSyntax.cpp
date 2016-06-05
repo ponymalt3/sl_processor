@@ -105,7 +105,7 @@ MTEST(testSyntax,test_assign)
   EXPECT(tester.parse().getNumErrors() == 0);    
 }
 
-MTEST(testSyntax,test_assignexpect_fail)
+MTEST(testSyntax,test_assign_expect_fail)
 {
   RTProg testAssignFail=RTASM(
     def a 23;
