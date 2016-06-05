@@ -62,7 +62,7 @@ uint32_t SymbolMap::createSymbol(const Stream::String &str,uint32_t size)
   uint32_t i=findSymbol(str,hash);
   Error::expect(i == InvalidLink) << stream_ << "symbol " << str << " already defined at ";//<< Error::LineNumber(stream_,symbols_[i].strOffset_);
 
-  return insertSymbol(_Symbol(str),hash);
+  return insertSymbol(_Symbol(str),hash,size);
 }
 
 uint32_t SymbolMap::findOrCreateSymbol(const Stream::String &str,uint32_t size)
