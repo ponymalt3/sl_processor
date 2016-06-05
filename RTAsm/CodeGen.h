@@ -98,7 +98,11 @@ public:
   void storageAllocationPass(uint32_t numParams)
   {
     BuddyAlloc<9> allocator(0,size);
-    allocator.allocate(numParams);//reserve space for parameter
+    
+    if(numParams > 0)
+    {
+      allocator.allocate(numParams);//reserve space for parameter
+    }
 
     Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << ErrorHandler::FATAL;
 
