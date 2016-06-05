@@ -105,6 +105,7 @@ uint32_t SymbolMap::createReference(const Stream::String &str,uint32_t irsOffset
 
   _Symbol newSym=_Symbol(str);
    newSym.flagAllocated_=1;
+   newSym.flagStayAllocated_=1;
    newSym.allocatedAddr_=irsOffset;
 
    return insertSymbol(newSym,hash);
