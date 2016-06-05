@@ -87,6 +87,11 @@ BuddyAlloc<NumLevel>::BuddyAlloc(uint32_t base,uint32_t size)
 template<uint32_t NumLevel>
 uint32_t BuddyAlloc<NumLevel>::allocate(uint32_t size)
 {
+  if(size > (1<<(NumLevel-1+minBlockSizeLg2_)))
+  {
+    return -1;
+  }
+    
   if(size < minBlockSize_)
     size=minBlockSize_;
 
@@ -127,6 +132,11 @@ uint32_t BuddyAlloc<NumLevel>::allocate(uint32_t size)
 template<uint32_t NumLevel>
 void BuddyAlloc<NumLevel>::release(uint32_t addr,uint32_t size)
 {
+  if(size > (1<<(NumLevel-1+minBlockSizeLg2_)))
+  {
+    return;
+  }
+  
   if(size < minBlockSize_)
     size=minBlockSize_;
     

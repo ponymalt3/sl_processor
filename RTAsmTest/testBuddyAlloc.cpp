@@ -125,3 +125,14 @@ MTEST(testBuddyAlloc,test_that_free_blocks_will_be_collapsed_with_lots_of_allocs
   EXPECT(testee_.allocate(256) == 256);
 }
 
+MTEST(testBuddyAlloc,test_that_alloc_too_big_block_dont_crash)
+{
+  uint32_t a=testee_.allocate(1000);
+  EXPECT(a == -1);
+}
+
+MTEST(testBuddyAlloc,test_that_release_too_big_block_dont_crash)
+{
+  testee_.release(0,1000);
+}
+
