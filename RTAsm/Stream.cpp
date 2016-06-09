@@ -12,6 +12,8 @@
 #include <algorithm>
 #include "RTProg.h"
 
+#include <iostream>
+
 Stream::String::String(const char *base,uint32_t offset,uint32_t length)
 {
   base_=base;
@@ -113,7 +115,7 @@ Stream& Stream::skipWhiteSpaces()
   return *this;
 }
 
-uint32_t Stream::readInt(bool allowSign)
+Stream::value_t Stream::readInt(bool allowSign)
 {
   uint32_t value=0;
   uint32_t digits=0;
@@ -137,9 +139,9 @@ uint32_t Stream::readInt(bool allowSign)
     ch=peek();
   }
 
-  //Error::expect(digits < 9) << (*this) << "possible const value overflow";
+  Error::expect(digits < 9) << (*this) << "possible const value overflow";
 
-  return value*(sign?-1:1);
+  return {value*(sign?-1:1),digits,sign};
 }
 
 qfp32 Stream::readQfp32()
@@ -149,45 +151,39 @@ qfp32 Stream::readQfp32()
   value.mant_=0;
   value.exp_=0;
 
-  uint32_t intPart=readInt();
+  value_t intPart=readInt();
 
-  if(intPart < 0)
+  if(intPart.sign_)
   {
     value.sign_=1;
-    intPart=-intPart;
+    intPart.value_=-intPart.value_;
   }
 
-  uint32_t bitsInt=log2(intPart);
-  
-  if((1<<bitsInt) > intPart)
-  {
-    --bitsInt;
-  }
+  uint32_t bitsInt=log2(intPart.value_);
 
-  value.exp_=(bitsInt+3)/8;
-  value.mant_=intPart<<((3-value.exp_)*8);
+  value.exp_=(bitsInt+2)/8;
+  value.mant_=intPart.value_<<((3-value.exp_)*8);
 
-  uint32_t fracPart=0;
+  value_t fracPart={0,0};
   if(peek() == '.')
   {
     read();
     fracPart=readInt(false);
   }
 
-  if(fracPart > 0)
+  if(fracPart.value_ > 0)
   {
+    uint32_t divider=1;
+    while(fracPart.digits_-- > 0)
+    {
+      divider*=10;
+    }
+    
     //convert to binary frac
-    uint32_t bitsFrac=log2(fracPart);
-    uint32_t fracValue=(1<<bitsFrac)/fracPart;
-    uint32_t allowedFracBits=29-bitsInt;
-
-    uint32_t fracMant=0;
-    if(allowedFracBits > bitsFrac)
-      fracMant=fracValue<<(allowedFracBits-bitsFrac);
-    else
-      fracMant=fracValue>>(bitsFrac-allowedFracBits);
-
-    value.mant_+=fracMant;
+    uint64_t fracMant=fracPart.value_;
+    fracMant*=1<<((3-value.exp_)*8);
+    fracMant=(fracMant+divider/2)/divider;//round nearest
+    value.mant_+=(uint32_t)fracMant;
   }
 
   return value;
@@ -301,7 +297,7 @@ Token Stream::readToken()
   if(peek() == '(')//array access
   {
     read();
-    index=readInt(false);
+    index=readInt(false).value_;
     Error::expect(read() == ')') << (*this) << "missing ')'";
   }
 

@@ -292,7 +292,7 @@ bool RTParser::parseStatement(Stream &stream)
   {
     Token name=stream.readToken();
     assert(name.getType() == Token::TOK_NAME);
-    codeGen_.addArrayDeclaration(stream.createStringFromToken(name.getOffset(),name.getLength()),stream.readInt());
+    codeGen_.addArrayDeclaration(stream.createStringFromToken(name.getOffset(),name.getLength()),stream.readInt(false).value_);
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
     break;
   }
@@ -308,7 +308,7 @@ bool RTParser::parseStatement(Stream &stream)
   {
     Token name=stream.readToken();
     assert(name.getType() == Token::TOK_NAME);
-    codeGen_.addReference(stream.createStringFromToken(name.getOffset(),name.getLength()),stream.readInt(false));
+    codeGen_.addReference(stream.createStringFromToken(name.getOffset(),name.getLength()),stream.readInt(false).value_);
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
     break;
   }

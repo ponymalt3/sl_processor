@@ -61,8 +61,15 @@ public:
   uint32_t getCurrentLine() const { return line_; }
 
   Stream& skipWhiteSpaces();
+  
+  struct value_t
+  {
+    uint32_t value_;
+    uint32_t digits_;
+    bool sign_;
+  };
 
-  uint32_t readInt(bool allowSign=true);
+  value_t readInt(bool allowSign=true);
   qfp32 readQfp32();
   String readSymbol();
   Token readToken();
