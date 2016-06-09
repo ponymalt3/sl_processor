@@ -194,7 +194,7 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
     //write first part of
     writeCode(SLCode::Load::create1(constData),symRef);
     
-    if(SLCode::Load::constDataValue2(constData) != 0)
+    if(SLCode::Load::constDataValue2(constData) != 0 || SLCode::Load::constDataValue3(constData) != 0)
     {
       writeCode(SLCode::Load::create2(constData),symRef);
     }
