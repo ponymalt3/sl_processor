@@ -184,38 +184,3 @@ MTEST(testAssignment,test_that_array_assigned_to_var_works)
   
   EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(15).asUint);  
 }
-
-
-/*
-MTEST(testSyntax,test_assign)
-{
-  RTProg testAssign=RTASM(
-    def a 23;
-
-    b=0.735;
-    c=13;
-
-  %with spaces%
-    d = c ;
-
-  %addr internal regs%
-    a0=10;
-    a1=20;
-    a1=-b*c;
-    a1=c;
-
-  %deref addrs%
-    [a0]=[a1];
-    [a0]=[a0];
-    [a0]=a;
-    [a0]=[a1]+23*-a;
-
-  %simple assignments%
-    c=c*2;
-    b=3.4594;
-    b=c;
-  );
-
-  RTProgTester tester(testAssign);
-  EXPECT(tester.parse().getNumErrors() == 0);    
-}*/
