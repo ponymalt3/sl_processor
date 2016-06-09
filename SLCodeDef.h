@@ -175,7 +175,7 @@ namespace SLCode
 
       //1-111111 11111--- -------- --------
       //12111111 11111222 22222222 --------
-      //12211111 11112222 22222222 33333333
+      //12111111 11112222 22222222 33333333
 
       //uint32_t constData1=constDataValue1(value);
       //uint32_t constData2=constDataValue2(value);
