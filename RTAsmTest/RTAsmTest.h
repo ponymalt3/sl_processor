@@ -30,6 +30,11 @@ public:
     return codeGen_.getCodeAt(addr);
   }
   
+  uint32_t getCodeSize() const
+  {
+    return codeGen_.getCurCodeAddr();
+  }
+  
   uint32_t getIRSAddrOfSymbol(const char *symbol)
   {
     uint32_t len=0;
