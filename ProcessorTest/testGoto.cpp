@@ -134,11 +134,13 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
     
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
-    SLCode::Goto::create(3,false),
+    SLCode::Goto::create(5,false),
     
     //should be executed
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
+    0xFFFF,//nop
+    0xFFFF,//nop
     
     //should be skipped
     SLCode::Load::create1(value.asUint),
@@ -155,7 +157,7 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
   proc.writeMemory(ad0,0);
   proc.writeMemory(ad0+1,0);
   
-  proc.run(8);
+  proc.run(10);
   
   EXPECT(proc.readMemory(ad0) == ad0.asUint);
   EXPECT(proc.readMemory(ad0+1) == ad0.asUint);
