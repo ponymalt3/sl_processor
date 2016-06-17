@@ -424,7 +424,7 @@ _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_
 
   uint32_t pcNext=state_.pc_+1;
 
-  if(decEx_.goto_)//goto cannot stall!!
+  if(decEx_.goto_ && enable_(_State::S_EXEC))//goto cannot stall!!
     pcNext=decode_.jmpTargetPc_;
 
   if(setPcEnable)//external pc set
