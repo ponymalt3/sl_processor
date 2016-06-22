@@ -354,7 +354,7 @@ void CodeGen::removeLoopFrame()
 
   instrMov(loopReg,irsStorage);
 }
-
+/*
 void CodeGen::loadOperandIntoResult(const _Operand &op)
 {
   instrMov(_Operand::createResult(),op);
@@ -369,7 +369,7 @@ uint32_t CodeGen::getOperandSymbolRef(const _Operand &a)
   }
 
   return SymbolMap::InvalidLink;
-}
+}*/
 
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 {
