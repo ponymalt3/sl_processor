@@ -134,7 +134,9 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
 
   if(!a.isResult() && a.type_ != _Operand::TY_MEM)
   {
-    loadOperandIntoResult(a);
+    //loadOperandIntoResult(a);
+    instrMov(_Operand::createResult(),a);
+    a=_Operand::createResult();
   }
 
   writeCode(0,getOperandSymbolRef(b));
@@ -247,7 +249,10 @@ void CodeGen::instrLoop(const _Operand &opa)
   _Operand a=resolveOperand(opa);
 
   if(!a.isResult())
-    loadOperandIntoResult(a);
+  {
+    instrMov(_Operand::createResult(),a);
+    a=_Operand::createResult();
+  }
 
   writeCode(0);
 }
