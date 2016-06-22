@@ -43,6 +43,7 @@ public:
     CodeGen &codeGen_;
     uint16_t labelRef_;
     uint16_t codeAddr_;
+    uint16_t labelAddr_;
   };
 
   class TmpStorage
