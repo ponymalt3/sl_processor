@@ -159,9 +159,8 @@ protected:
   uint32_t allocateTmpStorage();
   void changeStorageSize(const TmpStorage &storage,uint32_t size);
 
-  uint32_t createLabel();
-  void updateLabel(const Label &label);
-  void patchAndRemoveLabel(const Label &label,uint32_t patchAddrStart);
+  uint32_t getLabelId();
+  void patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart);
 
   void writeCode(uint32_t code,uint32_t ref=SymbolMap::InvalidLink);
 
@@ -199,8 +198,8 @@ protected:
   uint32_t loopDepth_;
   _LoopFrame loopFrames_[MaxLoopDepth];
 
-  uint16_t labels_[64];
-  uint16_t lastFreeLabelPos_;
+  //uint16_t labels_[64];
+  uint32_t labelIdBitMap_;
   uint16_t usedRefs_;
 
   uint32_t codeAddr_;

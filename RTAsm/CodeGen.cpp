@@ -13,8 +13,9 @@
 
 CodeGen::Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
-  labelRef_=codeGen_.createLabel();
+  labelRef_=codeGen_.getLabelId();
   codeAddr_=codeGen_.getCurCodeAddr();
+  labelAddr_=0;
 }
 
 CodeGen::Label::~Label()
@@ -26,12 +27,12 @@ CodeGen::Label::~Label()
 void CodeGen::Label::setLabel()
 {
   Error::expect(labelRef_ != NoRef) << "invalid label" << ErrorHandler::FATAL;
-  codeGen_.updateLabel(*this);
+  labelAddr_=codeGen_.getCurCodeAddr();
 }
 
 void CodeGen::Label::deleteLabel()
 {
-  codeGen_.patchAndRemoveLabel(*this,codeAddr_);
+  codeGen_.patchAndReleaseLabelId(*this,codeAddr_);
   labelRef_=NoRef;
 }
 
@@ -94,7 +95,7 @@ CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),symbols_(stream
   usedRefs_=0;
   loopDepth_=0;
   codeAddr_=0;
-  lastFreeLabelPos_=0;
+  labelIdBitMap_=0x7FFFFFFF;
 
   //allocate first symbol for temp loop storage
   symbols_.createSymbolNoToken(MaxLoopDepth);
@@ -269,7 +270,7 @@ void CodeGen::instrContinue()
 
 void CodeGen::instrGoto(const Label &label)
 {
-  writeCode(0,label.getLabelReference());
+  writeCode(SLCode::Goto::create(0,false),label.getLabelReference());
 }
 
 void CodeGen::instrCompare(_Operand a,_Operand b,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage)
@@ -441,33 +442,23 @@ uint32_t CodeGen::allocateTmpStorage()
   return symbols_.createSymbolNoToken(1);
 }
 
-uint32_t CodeGen::createLabel()
+uint32_t CodeGen::getLabelId()
 {
-  const uint32_t maxNumLabels=sizeof(labels_)/sizeof(labels_[0]);
-
-  Error::expect(lastFreeLabelPos_ < maxNumLabels) << "label buffer too small" << ErrorHandler::FATAL;
-
-  uint32_t result=lastFreeLabelPos_;
-
-  for(uint32_t i=lastFreeLabelPos_+1;i<maxNumLabels;++i)
+  Error::expect(labelIdBitMap_ != 0) << "no more label ids available" << ErrorHandler::FATAL;
+  
+  uint32_t freeBitPos=Stream::log2(labelIdBitMap_);
+  
+  if((1<<freeBitPos) > labelIdBitMap_)
   {
-    if(labels_[i] == NoLabel)
-    {
-      lastFreeLabelPos_=i;
-      break;
-    }
+    --freeBitPos;
   }
+  
+  labelIdBitMap_&=~(1<<freeBitPos);
 
-  labels_[result]=0;
-  return result;
+  return freeBitPos;
 }
 
-void CodeGen::updateLabel(const Label &label)
-{
-  labels_[label.getLabelReference()]=getCurCodeAddr();
-}
-
-void CodeGen::patchAndRemoveLabel(const Label &label,uint32_t patchAddrStart)
+void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
 {
   uint32_t labelRef=label.getLabelReference();
 
@@ -476,15 +467,13 @@ void CodeGen::patchAndRemoveLabel(const Label &label,uint32_t patchAddrStart)
     //check if goto must be patched
     if(instrs_[i].isGoto() && instrs_[i].symRef_ == labelRef)
     {
-      instrs_[i].patchGotoTarget(label.codeAddr_-i);
+      instrs_[i].patchGotoTarget(label.labelAddr_-i);
       instrs_[i].symRef_=NoRef;
     }
   }
 
-  labels_[labelRef]=NoLabel;
-
-  if(lastFreeLabelPos_ > labelRef)
-    lastFreeLabelPos_=labelRef;
+  //release label id
+  labelIdBitMap_|=1<<labelRef;
 }
 
 void CodeGen::changeStorageSize(const TmpStorage &storage,uint32_t size)
