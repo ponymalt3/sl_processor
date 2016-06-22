@@ -151,8 +151,6 @@ public:
   }
 
 protected:
-  void loadOperandIntoResult(const _Operand &op);
-  uint32_t getOperandSymbolRef(const _Operand &a);
 
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
   
