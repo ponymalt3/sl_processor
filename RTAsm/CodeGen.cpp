@@ -239,9 +239,13 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
 void CodeGen::instrNeg(const _Operand &opa)
 {
   _Operand a=resolveOperand(opa);
-
-  instrMov(_Operand::createResult(),a);
-  writeCode(0);
+  
+  if(!a.isResult())
+  {
+    instrMov(_Operand::createResult(),a);
+  }
+  
+  writeCode(SLCode::Neg::create());
 }
 
 void CodeGen::instrLoop(const _Operand &opa)
