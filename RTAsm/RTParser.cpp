@@ -174,14 +174,14 @@ uint32_t RTParser::parseCmpMode(Stream &stream)
       stream.read();
       return CodeGen::CMP_MODE_LE;
     }
-    return CodeGen::CMP_MODE_GT+CodeGen::CMP_MODE_SWAP_FLAG;
+    return CodeGen::CMP_MODE_LT;
   case '>':
     if(stream.peek() == '=')//greater than or equal
     {
       stream.read();
       return CodeGen::CMP_MODE_LE+CodeGen::CMP_MODE_SWAP_FLAG;
     }
-    return CodeGen::CMP_MODE_GT;
+    return CodeGen::CMP_MODE_LT+CodeGen::CMP_MODE_SWAP_FLAG;
   case '!':
   {
     if(stream.read() == '=')
@@ -236,6 +236,8 @@ void RTParser::parseIfStatement(Stream &stream)
   if(token.getType() == Token::TOK_ELSE)
   {
     codeGen_.instrGoto(labelEnd);
+    labelElse.setLabel();//move label
+    
     parseStatements(stream);
     token=stream.readToken();
   }
