@@ -446,6 +446,20 @@ SLCode::Operand CodeGen::translateOperand(_Operand op)
   return SLCode::Operand::INVALID_OP;
 }
 
+SLCode::Command CodeGen::translateOperation(char op)
+{
+  switch(op)
+  {
+    case '+': return SLCode::Command::CMD_ADD;
+    case '-': return SLCode::Command::CMD_SUB;
+    case '*': return SLCode::Command::CMD_MUL;
+    case '/': return SLCode::Command::CMD_DIV;
+    default: 
+      break;
+  }
+  return SLCode::Command::CMD_MOV;
+}
+
 uint32_t CodeGen::allocateTmpStorage()
 {
   return symbols_.createSymbolNoToken(1);
