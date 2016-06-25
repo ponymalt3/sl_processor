@@ -53,6 +53,19 @@ _Operand CodeGen::TmpStorage::allocate()
   return _Operand::createSymAccess(symbolRef_,size_-1);
 }
 
+_Operand CodeGen::TmpStorage::preloadConstValue(qfp32_t value)
+{
+  //loads a constant into irs and move code to begin of block (block starts where TmpStorage is created)
+  uint16_t codeBlockStart=getCurCodeAddr();
+  
+  _Operand op=allocate();
+  codeGen_.instrMov(op,_Operand(value));
+
+  moveCodeBlock(codeBlockStart,getCurCodeAddr()-codeBlockStart,blockBegin_);
+  
+  return op;
+}
+
 CodeGen::_LoopFrame::_LoopFrame()
 {
   labCont_=0;
@@ -525,4 +538,28 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
     symbols_[ref].updateLastAccess(getCurCodeAddr());
 
   ++codeAddr_;
+}
+
+void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr)
+{
+  Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not engough instr buffer space" << ErrorHandler::FATAL;
+  Error::expect(targetAddr < startAddr) << "code can only be moved backwards" << ErrorHandler::FATAL;
+  
+  //move code to tmp
+  for(uint32_t i=0;i<size;++i)
+  {
+    instrs_[getCurCodeAddr()+i]=instrs_[startAddr+i];
+  }
+  
+  for(int32_t i=startAddr-1;i>=targetAddr;--i)
+  {
+    instrs_[i+size]=instrs_[i];
+    Error::expect(instrs_[i].isGoto() == false) << "cant move goto instruction";
+  }
+  
+  for(uint32_t i=0;i<size;++i)
+  {
+    instrs_[targetAddr+i]=instrs_[getCurCodeAddr()+i];
+    Error::expect(instrs_[targetAddr+i].isGoto() == false) << "cant move goto instruction";
+  }
 }

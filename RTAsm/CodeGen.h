@@ -62,6 +62,7 @@ public:
     TmpStorage(CodeGen &codeGen);
 
     _Operand allocate();
+    _Operand preloadConstValue(qfp32_t value);
 
   protected:
     uint32_t getSymbolReference() const { return symbolRef_; }
@@ -69,6 +70,7 @@ public:
     CodeGen &codeGen_;
     uint16_t symbolRef_;
     uint16_t size_;
+    uint16_t blockBegin_;
   };
 
   struct _LoopFrame
@@ -160,7 +162,6 @@ public:
   }
 
 protected:
-
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
   
   SLCode::Operand translateOperand(_Operand op);
@@ -173,6 +174,7 @@ protected:
   void patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart);
 
   void writeCode(uint32_t code,uint32_t ref=SymbolMap::InvalidLink);
+  void moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr);
 
   struct _Instr
   {
