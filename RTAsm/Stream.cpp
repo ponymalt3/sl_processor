@@ -326,6 +326,8 @@ void Stream::restorePos()
 
 uint32_t Stream::log2(int32_t value)
 {
+  //rerurns number of bits needed to represent binary value
+  
   if(value < 0)
     value=-value;
 
