@@ -78,9 +78,9 @@ public:
   void markPos();
   void restorePos();
 
-protected:
   static uint32_t log2(int32_t value);
 
+protected:
   const char *asmText_;  
   uint32_t pos_;
   uint32_t line_;
