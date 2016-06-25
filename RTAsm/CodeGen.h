@@ -21,7 +21,15 @@
 class CodeGen : public Error
 {
 public:
-  enum {CMP_MODE_GT=0,CMP_MODE_LE=3,CMP_MODE_EQ=1,CMP_MODE_NEQ=2,CMP_MODE_SWAP_FLAG=0x8000};
+  enum 
+  {
+    CMP_MODE_EQ=SLCode::CmpMode::CMP_EQ,
+    CMP_MODE_LE=SLCode::CmpMode::CMP_LE,
+    CMP_MODE_LT=SLCode::CmpMode::CMP_LT,
+    CMP_MODE_NEQ=SLCode::CmpMode::CMP_NEQ,
+    CMP_MODE_SWAP_FLAG=0x8000
+  };
+  
   enum {EXEC_MODE_1CYC,EXEC_MODE_3CYC};
   enum {MaxLoopDepth=6,LoopStorageIndex=0,NoLoopFrame=-1};
   enum {NoRef=0xFFFF,NoLabel=NoRef};
@@ -81,7 +89,7 @@ public:
   void instrBreak();
   void instrContinue();
   void instrGoto(const Label &label);
-  void instrCompare(_Operand a,_Operand b,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage);
+  void instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage);
   void instrSignal(uint32_t target);
   void instrWait();
 
@@ -156,6 +164,7 @@ protected:
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
   
   SLCode::Operand translateOperand(_Operand op);
+  SLCode::Command translateOperation(char op);
 
   uint32_t allocateTmpStorage();
   void changeStorageSize(const TmpStorage &storage,uint32_t size);
