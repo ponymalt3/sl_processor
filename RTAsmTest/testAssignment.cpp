@@ -184,3 +184,23 @@ MTEST(testAssignment,test_that_array_assigned_to_var_works)
   
   EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(15).asUint);  
 }
+
+MTEST(testAssignment,test_that_array_base_addr_load_works)
+{
+  RTProg testAssign=RTASM(
+    decl array 4;
+    array(0)=5;
+    a0=array;
+    [a0]=1;
+  );
+  ;
+  
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  EXPECT(tester.getIRSAddrOfSymbol("array") == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(1).asUint);  
+}
