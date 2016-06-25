@@ -282,19 +282,29 @@ void CodeGen::instrGoto(const Label &label)
   writeCode(SLCode::Goto::create(0,false),label.getLabelReference());
 }
 
-void CodeGen::instrCompare(_Operand a,_Operand b,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage)
+void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage)
 {
-  if(cmpMode&CMP_MODE_SWAP_FLAG)
+  _Operand a=resolveOperand(opa);
+  _Operand b=resolveOperand(opb);
+  
+  if((cmpMode&CMP_MODE_SWAP_FLAG) ^ (negate?CMP_MODE_SWAP_FLAG:0))
   {
     _Operand t=a;
     a=b;
     b=t;
-    cmpMode&=~CMP_MODE_SWAP_FLAG;
   }
+  
+  cmpMode&=~CMP_MODE_SWAP_FLAG;
 
   if(negate)
   {
-    cmpMode=(~cmpMode)&3;//supports 4 modes
+    switch(cmpMode)
+    {
+      case CMP_MODE_EQ: cmpMode=CMP_MODE_NEQ; break;
+      case CMP_MODE_NEQ: cmpMode=CMP_MODE_EQ; break;
+      case CMP_MODE_LE: cmpMode=CMP_MODE_LT; break;
+      case CMP_MODE_LT: cmpMode=CMP_MODE_LE; break; 
+    }
   }
 
   if(b.type_ != _Operand::TY_RESOLVED_SYM)
@@ -305,11 +315,11 @@ void CodeGen::instrCompare(_Operand a,_Operand b,uint32_t cmpMode,uint32_t execM
   }
 
   if(!a.isResult())
+  {
     instrMov(_Operand::createResult(),a);
+  }  
 
-  uint32_t code=0+((cmpMode&3)<<10)+(negate<<9);
-
-  writeCode(code,getOperandSymbolRef(b));
+  writeCode(SLCode::Cmp::create(0,(SLCode::CmpMode)cmpMode),b.mapIndex_);
 }
 
 void CodeGen::instrSignal(uint32_t target)
