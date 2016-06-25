@@ -175,3 +175,21 @@ MTEST(testAssignADx,test_that_deref_addr0_assigned_to_deref_addr1_with_both_inc_
   EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(27).asUint);
   EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(43).asUint); 
 }
+
+MTEST(testAssignADx,test_that_var_assigned_to_deref_addr0_without_inc_works)
+{
+  RTProg testAssign=RTASM(
+    a=7;
+    a0=5;
+    [a0]=a;
+    [a0]=99;
+  );
+  
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(99).asUint);
+}
