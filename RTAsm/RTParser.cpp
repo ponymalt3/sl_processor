@@ -41,13 +41,16 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream)
 uint32_t RTParser::operatorPrecedence(char op) const
 {
   if(op == '+' || op == '-')
-    return 2;
+    return 20;
 
   if(op == '/' || op == '*')
-    return 3;
-
-  if(op == ')')
-    return 1;
+    return 30;
+    
+  if(op == UnaryMinus)
+    return 40;
+    
+  if(op == '(' || op == ')')
+    return 10;
 
   return 0;//lowest priority otherwise
 }
@@ -60,7 +63,6 @@ bool RTParser::isValuePrefix(char ch) const
 _Operand RTParser::parseExpr(Stream &stream)
 {
   Stack<_Operand,32> operands;
-  volatile char dummy=0;
   Stack<char,40> ops;
 
   CodeGen::TmpStorage tmpStorage(codeGen_);
@@ -87,64 +89,62 @@ _Operand RTParser::parseExpr(Stream &stream)
 
     _Operand expr=parserSymbolOrConstOrMem(stream);
 
-    //handle combine, unary minus and bracket close
-    do
-    {
-      stream.skipWhiteSpaces().markPos();
+    stream.skipWhiteSpaces();//.markPos();
+    ch=stream.peek();
 
-      ch=stream.read();
-
-      bool neg=false;
+    bool neg=false;
+    
+    //combine
+    while(!ops.empty() && operatorPrecedence(ch) <= operatorPrecedence(ops.top()))
+    {            
+      //handle brackets
+      if(ops.top() == '(')
+      {
+        Error::expect(ch == ')') << stream << "expect missing ')'";
+        
+        ops.pop();
+        stream.read();
+        stream.skipWhiteSpaces();
+        ch=stream.peek();
+        continue;
+      }
+      
       if(ops.top() == UnaryMinus)
       {
         ops.pop();
         neg=true;
       }
-
-      //combine
-      if(!ops.empty() && operatorPrecedence(ch) <= operatorPrecedence(ops.top()))
+      
+      //reduce a+-b => a-b if possible
+      if(!ops.empty() && (neg == false || ops.top() == '+' || ops.top() == '-'))
       {
-        //reduce a+-b => a-b if possible
-        if(neg == false || ops.top() == '+' || ops.top() == '-')
-        {
-          char op=ops.pop();
+        char op=ops.pop();
 
-          if(neg)
-            op=op=='+'?'-':'+';
+        if(neg)
+          op=op=='+'?'-':'+';
 
-          neg=false;
+        neg=false;
 
-          _Operand a=operands.pop();
-          codeGen_.instrOperation(a,expr,op,tmpStorage);
-          expr=_Operand::createResult();//result operand
-        }
+        _Operand a=operands.pop();
+        codeGen_.instrOperation(a,expr,op,tmpStorage);
+        expr=_Operand::createResult();//result operand
       }
-
+      
       if(neg)
       {
         codeGen_.instrNeg(expr);
         expr=_Operand::createResult();
+        neg=false;
       }
+    }
+    
+    //discard cause already in ch
+    stream.skipWhiteSpaces().markPos();
+    stream.read();      
 
-      //expr used in 'if' or 'loop' is terminated with ')' otherwise with ';'
-      if(ch == ';' || (ch == ')' && (stream.peek() == '\n' || stream.peek() == ' ')))
-      {
-        if(!ops.empty())
-        {
-          stream.restorePos();
-          continue;
-        }
-        else
-          break;
-      }
-
-      if(ch == ')')
-        Error::expect(ops.pop() == '(') << stream << "expect ')'";
-
-    }while(ch == ')' || ch == ';');
-
-    //pending operand
-    ops.push(ch);
+    //pending (valid) operand
+    if(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '(')
+      ops.push(ch);
 
     if(!operands.empty() && operands.top().isResult())
     {
@@ -155,7 +155,7 @@ _Operand RTParser::parseExpr(Stream &stream)
 
     operands.push(expr);
 
-  }while(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '(');
+  }while(!ops.empty());//ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '(');
 
   stream.restorePos();
 
