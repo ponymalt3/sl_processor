@@ -189,8 +189,8 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
 {
   RTProg testAssign=RTASM(
     decl array 4;
-    array(0)=5;
-    a0=array;
+    array(1)=5;
+    a0=array+1;
     [a0]=1;
   );
   ;
@@ -202,5 +202,5 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(1).asUint);  
 }
