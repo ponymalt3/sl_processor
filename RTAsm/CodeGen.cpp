@@ -11,6 +11,14 @@
 #include "Error.h"
 #include "Operand.h"
 
+template<typename _T>
+void swap(_T &a,_T &b)
+{
+  _T t=a;
+  a=b;
+  b=t;
+} 
+
 CodeGen::Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
   labelRef_=codeGen_.getLabelId();
@@ -122,20 +130,29 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
 
   assert(!(a.isResult() && b.isResult()));
   Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << ErrorHandler::FATAL;
-
-  bool aIsResult=a.isResult() || a.type_ == _Operand::TY_VALUE || a.isInternalReg();
-  bool bIsResult=b.isResult() || b.type_ == _Operand::TY_VALUE || b.isInternalReg();
-  bool aIsResMem=a.type_ == _Operand::TY_RESOLVED_SYM;
-  bool bIsResMem=b.type_ == _Operand::TY_RESOLVED_SYM;
-
-  if(((!aIsResult && bIsResult) || (aIsResMem && !bIsResMem)) && op != '/' && op != '-')//div/sub
+  
+  //special handling when using constant data
+  if(b.type_ == _Operand::TY_VALUE && (a.type_ == _Operand::TY_VALUE || a.type_ == _Operand::TY_RESULT))
   {
-    _Operand t=a;
-    bool t2=aIsResult;
-    a=b;
-    b=t;
-    aIsResult=bIsResult;
-    bIsResult=t2;
+    b=tmpStorage.preloadConstValue(b.value_);
+  }
+  
+  //if operands can swapped preload const
+  if(a.type_ == _Operand::TY_VALUE && b.type_ == _Operand::TY_RESULT && op != '/' && op != '-')
+  {
+    a=tmpStorage.preloadConstValue(a.value_);
+  }
+
+  bool aIsResult=a.isResult() || a.type_ == _Operand::TY_VALUE;
+  bool bIsResult=b.isResult() || b.type_ == _Operand::TY_VALUE;
+  bool aIsIRS=a.type_ == _Operand::TY_RESOLVED_SYM;
+  bool bIsIRS=b.type_ == _Operand::TY_RESOLVED_SYM;
+
+  if(((!aIsResult && bIsResult) || (aIsIRS && !bIsIRS)) && op != '/' && op != '-')//div/sub
+  {
+    swap(a,b);
+    swap(aIsResult,bIsResult);
+    swap(aIsIRS,bIsIRS);
   }
 
   if(bIsResult)
@@ -144,6 +161,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
     _Operand tmp=tmpStorage.allocate();
     instrMov(tmp,b);
     b=tmp;
+    bIsIRS=true;
   }
 
   if(!a.isResult() && a.type_ != _Operand::TY_MEM)
@@ -152,8 +170,30 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
     instrMov(_Operand::createResult(),a);
     a=_Operand::createResult();
   }
+  
+  bool aIncAddr=false;
+  bool bIncAddr=false;
+  
+  if(a.type_ == _Operand::TY_MEM && b.type_ == _Operand::TY_MEM)
+  {
+    aIncAddr=a.addrInc_;
+    bIncAddr=b.addrInc_;
+  }
+  else
+  {
+    aIncAddr=(a.type_ == _Operand::TY_MEM && a.addrInc_) || (b.type_ == _Operand::TY_MEM && b.addrInc_);
+  }
+    
+  uint32_t symRef=SymbolMap::InvalidLink;
+  uint32_t irsOffset=0;
 
-  writeCode(0,getOperandSymbolRef(b));
+  if(bIsIRS)
+  {
+    symRef=b.mapIndex_;
+    irsOffset=b.arrayOffset_;
+  }
+
+  writeCode(SLCode::Op::create(translateOperand(a),translateOperand(b),translateOperation(op),irsOffset,aIncAddr,bIncAddr),symRef);
 }
 
 void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
