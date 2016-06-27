@@ -105,6 +105,8 @@ _MUnit SLArithUnit::comb(const _DecodeEx &decEx)
     {
       munit.complete_=0;
     }
+    
+    pipeline_[curCycle_].cmd_=0xFF;
   }
 
   return munit;
