@@ -40,6 +40,7 @@ CodeGen::TmpStorage::TmpStorage(CodeGen &codeGen):codeGen_(codeGen)
 {
   symbolRef_=NoRef;
   size_=0;
+  blockBegin_=codeGen_.getCurCodeAddr();
 }
 
 _Operand CodeGen::TmpStorage::allocate()
@@ -53,15 +54,15 @@ _Operand CodeGen::TmpStorage::allocate()
   return _Operand::createSymAccess(symbolRef_,size_-1);
 }
 
-_Operand CodeGen::TmpStorage::preloadConstValue(qfp32_t value)
+_Operand CodeGen::TmpStorage::preloadConstValue(qfp32 value)
 {
   //loads a constant into irs and move code to begin of block (block starts where TmpStorage is created)
-  uint16_t codeBlockStart=getCurCodeAddr();
+  uint16_t codeBlockStart=codeGen_.getCurCodeAddr();
   
   _Operand op=allocate();
   codeGen_.instrMov(op,_Operand(value));
 
-  moveCodeBlock(codeBlockStart,getCurCodeAddr()-codeBlockStart,blockBegin_);
+  codeGen_.moveCodeBlock(codeBlockStart,codeGen_.getCurCodeAddr()-codeBlockStart,blockBegin_);
   
   return op;
 }

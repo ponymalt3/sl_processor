@@ -15,6 +15,7 @@
 #include "BuddyAlloc.h"
 #include "Operand.h"
 #include "SymbolMap.h"
+#include "Stream.h"
 
 #include "../SLCodeDef.h"
 
@@ -62,7 +63,7 @@ public:
     TmpStorage(CodeGen &codeGen);
 
     _Operand allocate();
-    _Operand preloadConstValue(qfp32_t value);
+    _Operand preloadConstValue(qfp32 value);
 
   protected:
     uint32_t getSymbolReference() const { return symbolRef_; }
