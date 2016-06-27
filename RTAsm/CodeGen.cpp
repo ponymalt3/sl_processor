@@ -542,7 +542,12 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
 
 void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr)
 {
-  Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not engough instr buffer space" << ErrorHandler::FATAL;
+  if(startAddr == targetAddr)
+  {
+    return;
+  }
+  
+  Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not engough instr buffer space" << ErrorHandler::FATAL;  
   Error::expect(targetAddr < startAddr) << "code can only be moved backwards" << ErrorHandler::FATAL;
   
   //move code to tmp
@@ -551,7 +556,7 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
     instrs_[getCurCodeAddr()+i]=instrs_[startAddr+i];
   }
   
-  for(int32_t i=startAddr-1;i>=targetAddr;--i)
+  for(int32_t i=startAddr-1;i>=(int32_t)targetAddr;--i)
   {
     instrs_[i+size]=instrs_[i];
     Error::expect(instrs_[i].isGoto() == false) << "cant move goto instruction";
