@@ -63,7 +63,7 @@ MTEST(testOperationsExtended,test_that_substraction_chain_with_negates_works)
     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
 }
 
-MTEST(testOperationsExtended,test_that_operator_precedence_is_correct)
+MTEST(testOperationsExtended,test_that_operator_precedence_is_correct_with_const)
 {
   RTProg testCode=RTASM(
     a=1+4/5/6*7+-9;
@@ -79,6 +79,30 @@ MTEST(testOperationsExtended,test_that_operator_precedence_is_correct)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint)
      << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+}
+
+MTEST(testOperationsExtended,test_that_operator_precedence_is_correct_with_vars)
+{
+  RTProg testCode=RTASM(
+    a=1;
+    b=4;
+    c=5;
+    d=6;
+    e=7;
+    f=9;
+    g=a+b/c/d*e+-f;
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+  
+  qfp32_t expect=qfp32_t(1)+qfp32_t(4)/qfp32_t(5)/qfp32_t(6)*qfp32_t(7)-qfp32_t(9);
+   
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("g")) == expect.asUint)
+     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("g")));
 }
 
 MTEST(testOperationsExtended,test_that_negate_with_const_works)

@@ -126,8 +126,25 @@ _Operand RTParser::parseExpr(Stream &stream)
         neg=false;
 
         _Operand a=operands.pop();
-        codeGen_.instrOperation(a,expr,op,tmpStorage);
-        expr=_Operand::createResult();//result operand
+        
+        //const only operation => no instr needed
+        if(a.type_ == _Operand::TY_VALUE && expr.type_ == _Operand::TY_VALUE)
+        {
+          switch(op)
+          {
+            case '+': expr=_Operand(a.value_+expr.value_); break;
+            case '-': expr=_Operand(a.value_-expr.value_); break; 
+            case '*': expr=_Operand(a.value_*expr.value_); break;
+            case '/': expr=_Operand(a.value_/expr.value_); break; 
+            default:
+              Error::expect(false) << stream << "unkown operator '" << (op) << "'";
+          }
+        }
+        else
+        {
+          codeGen_.instrOperation(a,expr,op,tmpStorage);
+          expr=_Operand::createResult();//result operand
+        }
       }
       
       if(neg)
@@ -143,8 +160,8 @@ _Operand RTParser::parseExpr(Stream &stream)
     stream.read();      
 
     //pending (valid) operand
-    if(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '(')
-      ops.push(ch);
+    //if(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '(')
+    ops.push(ch);
 
     if(!operands.empty() && operands.top().isResult())
     {
@@ -155,7 +172,7 @@ _Operand RTParser::parseExpr(Stream &stream)
 
     operands.push(expr);
 
-  }while(!ops.empty());//ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '(');
+  }while(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '(');
 
   stream.restorePos();
 

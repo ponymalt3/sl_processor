@@ -11,14 +11,21 @@
 #include <stdint.h>
 //#include "Token.h"
 #include "Error.h"
+#include "qfp32.h" 
 
 struct qfp32
-{
+{  
   uint32_t mant_ : 29;
   uint32_t exp_ : 2;
   uint32_t sign_ : 1;
   
   uint32_t toUint32() const { return *reinterpret_cast<const uint32_t*>(this); }
+  static qfp32 fromUint32(uint32_t raw) { return *reinterpret_cast<qfp32*>(&raw); }
+  
+  qfp32 operator+(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())+qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
+  qfp32 operator-(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())-qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
+  qfp32 operator*(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())*qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
+  qfp32 operator/(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())/qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
 };
 
 class Token;
