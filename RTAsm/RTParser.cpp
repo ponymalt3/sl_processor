@@ -323,6 +323,18 @@ bool RTParser::parseStatement(Stream &stream)
     parseIfStatement(stream); break;
   case Token::TOK_LOOP:
     parseLoopStatement(stream); break;
+  case Token::TOK_CONT:
+  {
+    codeGen_.instrContinue();
+    Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
+    break;
+  }
+  case Token::TOK_BREAK:
+  {
+    codeGen_.instrBreak();
+    Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
+    break;
+  }
   case Token::TOK_DECL:
   {
     Token name=stream.readToken();
