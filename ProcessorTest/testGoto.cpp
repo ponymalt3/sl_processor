@@ -62,7 +62,7 @@ MTEST(TestGoto,testSimpleBackwardJump)
     SLCode::Load::create1(value.asUint),
     
     //jump
-    SLCode::Goto::create(0x200+2,false),
+    SLCode::Goto::create(-2,false),
     
     //should not be executed
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),

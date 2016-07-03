@@ -258,7 +258,8 @@ _Decode SLProcessor::decodeInstr() const
   decode.irsAddr_=state_.irs_+bdata(10 downto 2);//irsOffset
 
   //pre calculate jmp target
-  decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)*((decode.cData_&0x200)?-1:1);
+  decode.jmpBack_=(decode.cData_&0x200)?1:0;
+  decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)*(decode.jmpBack_?-1:1);
   
   
   incAD2=incAD2 || (!bdata(15) && incAD);

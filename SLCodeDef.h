@@ -141,10 +141,18 @@ namespace SLCode
     static uint32_t create(int32_t relJump,bool loopEndMarker)
     {
       //GOTO RESULT, CONST       => code/6 CONST/10 (A/1) (MD/1)
+      
+      bool backwardJmp=false;
+      
+      if(relJump < 0)
+      {
+        backwardJmp=true;
+        relJump=-relJump;
+      }
 
       uint32_t muxA=MUX1_RESULT;
       uint32_t loopEnd=loopEndMarker;
-      uint32_t pcAdjust=relJump&0x3FF;
+      uint32_t pcAdjust=(backwardJmp?0x200:0) + (relJump&0x1FF);
 
       return Code + (pcAdjust<<2) + (muxA<<1) + loopEnd;
     }
