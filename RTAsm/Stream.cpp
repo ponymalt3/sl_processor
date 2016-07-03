@@ -77,7 +77,7 @@ char Stream::peek()
   {
     ++pos_;
     while(pos_ < length_ && asmText_[pos_++] != '%');
-    while(pos_ < length_ && asmText_[pos_] == ' ') ++pos_;
+    while(pos_ < length_ && (asmText_[pos_] == ' ' || asmText_[pos_] == '\n')) ++pos_;
   }
 
   return asmText_[pos_];
@@ -101,6 +101,7 @@ Stream& Stream::skipWhiteSpaces()
     {
       ++pos_;
       while(pos_ < length_ && asmText_[pos_++] != '%');
+      ch=asmText_[pos_];
     }
     
     if(ch ==' ' || ch == '\n')
