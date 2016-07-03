@@ -130,7 +130,6 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   _Operand a=resolveOperand(opa);
   _Operand b=resolveOperand(opb);
 
-  assert(!(a.isResult() && b.isResult()));
   Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << ErrorHandler::FATAL;
   
   //special handling when using constant data
@@ -306,15 +305,6 @@ void CodeGen::instrNeg(const _Operand &opa)
 
 void CodeGen::instrLoop(const _Operand &opa)
 {
-  _Operand a=resolveOperand(opa);
-
-  if(!a.isResult())
-  {
-    instrMov(_Operand::createResult(),a);
-    a=_Operand::createResult();
-  }
-
-  writeCode(0);
 }
 
 void CodeGen::instrBreak()
@@ -422,22 +412,6 @@ void CodeGen::removeLoopFrame()
 
 
 }
-/*
-void CodeGen::loadOperandIntoResult(const _Operand &op)
-{
-  instrMov(_Operand::createResult(),op);
-}
-
-uint32_t CodeGen::getOperandSymbolRef(const _Operand &a)
-{
-  if(a.type_ == _Operand::TY_RESOLVED_SYM)
-  {
-    symbols_[a.mapIndex_].updateLastAccess(getCurCodeAddr());
-    return a.mapIndex_;
-  }
-
-  return SymbolMap::InvalidLink;
-}*/
 
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 {
