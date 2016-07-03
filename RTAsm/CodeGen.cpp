@@ -79,12 +79,14 @@ CodeGen::_LoopFrame::_LoopFrame()
 {
   labCont_=0;
   labBreak_=0;
+  counter_=0;
 }
 
-CodeGen::_LoopFrame::_LoopFrame(const Label *labCont,const Label *labBreak)
+CodeGen::_LoopFrame::_LoopFrame(const Label *labCont,const Label *labBreak,const _Operand *counter)
 {
   labCont_=labCont;
   labBreak_=labBreak;
+  counter_=counter;
 }
 
 
@@ -402,16 +404,12 @@ void CodeGen::addReference(const Stream::String &str,uint32_t irsOffset)
   symbols_.createReference(str,irsOffset);
 }
 
-void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel)
+void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand &counter)
 {
   Error::expect(loopDepth_ < MaxLoopDepth) << "FATAL loop frames run out of space" << ErrorHandler::FATAL;
 
-  _Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
-  _Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
-
-  instrMov(irsStorage,loopReg);
-
-  loopFrames_[loopDepth_]=_LoopFrame(&contLabel,&breakLabel);
+  
+  loopFrames_[loopDepth_]=_LoopFrame(&contLabel,&breakLabel,&counter);
 
   ++loopDepth_;
 }
@@ -422,10 +420,7 @@ void CodeGen::removeLoopFrame()
 
   --loopDepth_;
 
-  _Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
-  _Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
 
-  instrMov(loopReg,irsStorage);
 }
 /*
 void CodeGen::loadOperandIntoResult(const _Operand &op)
@@ -475,12 +470,11 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
   {
     Error::expect(loopDepth_ != 0 && op.loopIndex_ < loopDepth_) << "using loop index '" << ('i'+op.loopIndex_) << " outside loop" << ErrorHandler::FATAL;
 
-    uint32_t loop=loopDepth_-op.loopIndex_-1;
+    uint32_t index=op.loopIndex_;
+    
+    return *(loopFrames_[index].counter_);
 
-    if(loop == 0)
-      return _Operand::createInternalReg(_Operand::TY_IR_LOOP);
 
-    return _Operand::createSymAccess(LoopStorageIndex,loopDepth_-loop);
   }
 
   return op;
@@ -503,6 +497,7 @@ SLCode::Operand CodeGen::translateOperand(_Operand op)
       {
         return SLCode::Operand::DEREF_AD1;
       }
+    case _Operand::TY_INDEX: return SLCode::Operand::IRS;
     default:
       Error::expect(false) << "internal error: no operand translation found!" << ErrorHandler::FATAL;
   }

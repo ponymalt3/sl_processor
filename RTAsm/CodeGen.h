@@ -77,10 +77,11 @@ public:
   struct _LoopFrame
   {
     _LoopFrame();
-    _LoopFrame(const Label *labCont,const Label *labBreak);
+    _LoopFrame(const Label *labCont,const Label *labBreak,const _Operand *counter);
 
     const Label *labCont_;
     const Label *labBreak_;
+    const _Operand *counter_;
   };
 
   CodeGen(Stream &stream);
@@ -105,7 +106,7 @@ public:
     return codeAddr_;
   }
 
-  void createLoopFrame(const Label &contLabel,const Label &breakLabel);
+  void createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand &counter);
   void removeLoopFrame();
 
   template<const uint32_t size>

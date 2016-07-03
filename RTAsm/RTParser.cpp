@@ -275,17 +275,33 @@ void RTParser::parseLoopStatement(Stream &stream)
   CodeGen::Label beg(codeGen_);
   CodeGen::Label cont(codeGen_);
   CodeGen::Label end(codeGen_);
-
-  codeGen_.createLoopFrame(cont,end);
-
-  codeGen_.instrLoop(op);
+  
+  CodeGen::TmpStorage storage(codeGen_);
+  
+  _Operand destLoopCount=op;
+  if(destLoopCount.type_ != _Operand::TY_SYMBOL)
+  {
+    destLoopCount=storage.allocate();
+    codeGen_.instrMov(destLoopCount,op);
+  }  
+  
+  _Operand loopCounter=storage.allocate();
+  codeGen_.instrMov(loopCounter,_Operand(qfp32::fromUint32(qfp32_t(0).asUint)));
+  
+  codeGen_.createLoopFrame(cont,end,loopCounter);
 
   beg.setLabel();
 
   parseStatements(stream);
 
   cont.setLabel();
-
+  
+  //inc counter
+  codeGen_.instrOperation(_Operand(qfp32::fromUint32(qfp32_t(1).asUint)),loopCounter,'+',storage);
+  codeGen_.instrMov(loopCounter,_Operand::createResult());
+  
+  //compare
+  codeGen_.instrCompare(_Operand::createResult(),destLoopCount,CodeGen::CMP_MODE_LT,1,false,storage);
   codeGen_.instrGoto(beg);
 
   end.setLabel();
