@@ -607,7 +607,10 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   if(!stall.stallDecEx_)
   {
     //retired instr
-    executedAddr_=decode_.curPc_;
+    if(enable_(_State::S_EXEC))
+    {
+      executedAddr_=decode_.curPc_;
+    }
     
     code_=codeNext;
     decode_=decodeNext;

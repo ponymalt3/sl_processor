@@ -6,6 +6,8 @@
 #include "RTAsm/RTProg.h"
 #include "../ProcessorTest/SLProcessorTest.h"
 
+#include "DisAsm.h"
+
 class RTProgTester
 {
 public:
@@ -33,6 +35,18 @@ public:
   uint32_t getCodeSize() const
   {
     return codeGen_.getCurCodeAddr();
+  }
+  
+  std::string getDisAsmString()
+  {
+    uint16_t code[512];
+    
+    for(uint32_t i=0;i<getCodeSize();++i)
+    {
+      code[i]=getCodeAt(i);
+    }
+    
+    return DisAsm::getStringFromCode(code,getCodeSize());
   }
   
   uint32_t getIRSAddrOfSymbol(const char *symbol)
