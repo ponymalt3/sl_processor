@@ -365,7 +365,7 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
     instrMov(_Operand::createResult(),a);
   }  
 
-  writeCode(SLCode::Cmp::create(0,(SLCode::CmpMode)cmpMode),b.mapIndex_);
+  writeCode(SLCode::Cmp::create(b.arrayOffset_,(SLCode::CmpMode)cmpMode),b.mapIndex_);
 }
 
 void CodeGen::instrSignal(uint32_t target)

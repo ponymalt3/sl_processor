@@ -20,11 +20,14 @@ MTEST(testIfOperands,test_that_const_const_operand_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
+  
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).asUint)
+    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")));
 }
 
 MTEST(testIfOperands,test_that_const_ref_operand_works)
@@ -142,4 +145,26 @@ MTEST(testIfOperands,test_that_deref_a0_deref_a1_with_inc_operand_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).asUint);
   EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(6).asUint); 
+}
+
+MTEST(testIfOperands,test_that_array_as_operand_works)
+{
+  RTProg testCode=RTASM(
+    decl arr 10;
+    ok=5;
+    arr(5)=1;
+    if(arr(5) == 1) 
+      ok=1;
+    else
+      ok=0;
+    end
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).asUint);
 }
