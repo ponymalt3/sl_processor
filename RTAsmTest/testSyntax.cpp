@@ -105,23 +105,39 @@ MTEST(testSyntax,test_assign)
   EXPECT(tester.parse().getNumErrors() == 0);    
 }
 
-MTEST(testSyntax,test_assign_expect_fail)
+MTEST(testSyntax,test_const_values_cant_be_assigned)
 {
-  RTProg testAssignFail=RTASM(
+  RTProg code=RTASM(
     def a 23;
 
   %cant assign values to consts%
     a=1;
-
-  %cant read a0/a1%
-    b=a1;
-
-  %cant read non existing values%
-  %  c=d;%
   );
 
-  RTProgTester tester(testAssignFail);
-  EXPECT(tester.parse().getNumErrors() == 0);    
+  RTProgTester tester(code);
+  EXPECT(tester.parse().getNumErrors() != 0);    
+}
+
+MTEST(testSyntax,test_addr_reg_cant_be_read)
+{
+  RTProg code=RTASM(
+  %cant read a0/a1%
+    b=a1;
+  );
+
+  RTProgTester tester(code);
+  EXPECT(tester.parse().getNumErrors() != 0);    
+}
+
+MTEST(testSyntax,test_non_existing_var_cant_be_read)
+{
+  RTProg code=RTASM(
+  %cant read non existing values%
+    c=d;
+  );
+
+  RTProgTester tester(code);
+  EXPECT(tester.parse().getNumErrors() != 0);    
 }
 
 MTEST(testSyntax,test_if_construct)
