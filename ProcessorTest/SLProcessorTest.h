@@ -117,9 +117,9 @@ public:
   
   void executeUntilAddr(uint32_t addr)
   {
-    while(processor_.getExecutedAddr() != addr)
+    while(processor_.getExecutedAddr() == 0xFFFFFFFF || processor_.getExecutedAddr() < addr)
     {
-      processor_.update(0,0,0);
+      processor_.update(0,0,0);    
     }
   }
     
