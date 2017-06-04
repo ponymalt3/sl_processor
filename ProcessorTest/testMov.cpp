@@ -467,3 +467,39 @@ MTEST(TestMov,test_that_mov_to_IRS_from_Result_works)
   
   EXPECT(proc.readMemory(5) == value.asUint);
 }
+
+//NOT POSSIBLE ANYMORE: cause data mux for mem write is saved
+MTEST(TestMov,test_that_mov_from_mem_AD0_to_mem_AD1_works_DISABLED)
+{
+  qfp32_t ad0=9;
+  qfp32_t ad1=11;
+  qfp32_t value1=-0.25;
+  qfp32_t value2=13;
+
+  uint32_t code[]=
+  {
+    SLCode::Load::create1(ad0.asUint),
+    SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
+    SLCode::Load::create1(ad1.asUint),
+    SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
+    
+    SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,0,true),
+    SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0),
+   
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(ad0,value1.asUint);
+  proc.writeMemory(ad0+1,value1.asUint);
+  proc.writeMemory(ad1,0);
+  proc.writeMemory(ad1+1,0);
+  
+  proc.run(10);
+  
+  EXPECT(proc.readMemory(ad1+0) == value1.asUint);
+  EXPECT(proc.readMemory(ad1+1) == value1.asUint);
+}
