@@ -123,7 +123,7 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_with_inc_works)
   proc.writeMemory(ad1,0);
   proc.writeMemory(ad1+1,0);
   
-  proc.run(8);
+  proc.run(9);
   
   EXPECT(proc.readMemory(ad1) == value.asUint);
   EXPECT(proc.readMemory(ad1+1) == value.asUint);
@@ -224,11 +224,12 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_s
   proc.writeMemory(ad1,0);
   
   proc.reset();
-  proc.executeWithMemExtStall(8);
+  proc.executeWithMemExtStall(10);
+  
+  proc.execute(2);  
   
   proc.writeMemory(ad1,0);
   
-  proc.execute(1);  
   
   EXPECT(proc.readMemory(ad1) == value.asUint);
 }
