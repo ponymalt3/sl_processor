@@ -44,7 +44,7 @@ namespace SLCode
       uint32_t incAD=incAddr;
       uint32_t muxA=(b==REG_RES)?MUX1_RESULT:MUX1_MEM;
       uint32_t muxB=(b==REG_LOOP)?MUX2_LOOP:MUX2_MEM;
-      uint32_t muxAD0=0;//(a==DEREF_AD0)?0:1;
+      uint32_t muxAD0=(a==DEREF_AD0)?0:1;
       uint32_t muxAD1=(a==DEREF_AD0 || b==DEREF_AD0)?0:1;
       uint32_t wbReg=a;
       
@@ -54,7 +54,7 @@ namespace SLCode
         //use same instruction as MOVDATA2(2) but other mux config
         muxAD0=(a==DEREF_AD0)?0:1;
         muxAD1=(b==DEREF_AD0)?0:1;
-        return Code3 + (incAD<<4) + (MUX2_LOOP<<3) + (muxAD1<<2) + (MUX1_MEM<<1) + (muxAD0<<0);
+        return Code3 + (incAD<<4) + (MUX2_MEM<<3) + (muxAD1<<2) + (MUX1_MEM<<1) + (muxAD0<<0);
       }
 
       if(a == IRS)

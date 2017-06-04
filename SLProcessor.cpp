@@ -233,7 +233,10 @@ _Decode SLProcessor::decodeInstr() const
       case 2://MOVDATA2(2)
         decode.enMEM_=1;
         //incAD=bdata(4);
+        decode.enADr0_=decode.muxA_==SLCode::MUX1_MEM;
+        decode.enADr1_=1;
         incAD=bdata(4);// & decode.muxA_;
+        incAD2=decode.muxA_==SLCode::MUX1_MEM && bdata(4);
         break;
 
       case 3://SIG
