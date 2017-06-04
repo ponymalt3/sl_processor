@@ -228,8 +228,38 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_s
   
   proc.execute(2);  
   
+  EXPECT(proc.readMemory(ad1) == value.asUint);
+}
+
+MTEST(TestMemXMov,test_that_change_AD1_is_blocked_while_external_mem_is_in_progress)
+{
+  qfp32_t ad1=1000;
+  qfp32_t value=31.5;
+  
+  uint32_t code[]=
+  {
+    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create2(ad1.asUint),
+    SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
+
+    SLCode::Load::create1(value.asUint),
+    SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),    
+    SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),//change AD1
+    
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(5,0);
   proc.writeMemory(ad1,0);
   
+  proc.reset();
+  proc.execute(6);
+  proc.executeWithMemExtStall(4);  
+  proc.execute(2);  
   
   EXPECT(proc.readMemory(ad1) == value.asUint);
 }
