@@ -35,6 +35,7 @@ CodeGen::Label::~Label()
 void CodeGen::Label::setLabel()
 {
   Error::expect(labelRef_ != NoRef) << "invalid label" << ErrorHandler::FATAL;
+  //codeGen_.updateLabel(*this);
   labelAddr_=codeGen_.getCurCodeAddr();
 }
 
@@ -130,6 +131,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   _Operand a=resolveOperand(opa);
   _Operand b=resolveOperand(opb);
 
+  //assert(!(a.isResult() && b.isResult()));
   Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << ErrorHandler::FATAL;
   
   //special handling when using constant data
