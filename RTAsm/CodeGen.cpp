@@ -398,6 +398,8 @@ void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,con
 {
   Error::expect(loopDepth_ < MaxLoopDepth) << "FATAL loop frames run out of space" << ErrorHandler::FATAL;
 
+  //_Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
+  //_Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
   
   loopFrames_[loopDepth_]=_LoopFrame(&contLabel,&breakLabel,&counter);
 
@@ -410,7 +412,10 @@ void CodeGen::removeLoopFrame()
 
   --loopDepth_;
 
+  //_Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
+  //_Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
 
+  //instrMov(loopReg,irsStorage);
 }
 
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
@@ -448,7 +453,10 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
     
     return *(loopFrames_[index].counter_);
 
+   // if(loop == 0)
+   //   return _Operand::createInternalReg(_Operand::TY_IR_LOOP);
 
+    //return _Operand::createSymAccess(LoopStorageIndex,loopDepth_-loop);
   }
 
   return op;
