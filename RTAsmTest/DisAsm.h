@@ -59,7 +59,7 @@ public:
     {
       case 0: return "a0";
       case 1: return "a1";
-      case 2: return "unused";
+      case 2: return "irs";
       case 3: return "result";
     }
   }
@@ -99,7 +99,7 @@ public:
     {
       std::string s="[a" + valueToString(code&1) + (code&0x10?"++":"") + "]";
       
-      if(((code>>3)&1) == SLCode::MUX2_LOOP && ((code>>1)&1) == SLCode::MUX1_MEM)
+      if(((code>>3)&1) == SLCode::MUX2_IRS && ((code>>1)&1) == SLCode::MUX1_MEM)
       {
          return s + " = [a" + valueToString((code>>2)&1) + (code&0x10?"++":"") + "]";
       }

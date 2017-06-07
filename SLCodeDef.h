@@ -10,12 +10,12 @@
 
 namespace SLCode
 {
-  enum Operand {REG_AD0=0,REG_AD1,REG_LOOP,REG_RES,IRS,DEREF_AD0,DEREF_AD1,INVALID_OP};
+  enum Operand {REG_AD0=0,REG_AD1,REG_IRS,REG_RES,IRS,DEREF_AD0,DEREF_AD1,INVALID_OP};
   enum Command {CMD_MOV=0,CMD_CMP,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES};
   enum CmpMode {CMP_EQ=0,CMP_NEQ,CMP_LT,CMP_LE};
 
-  enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_LOOP=1};
-  enum {WBREG_AD0=REG_AD0,WBREG_AD1=REG_AD1,WBREG_UNUSED=REG_LOOP,WBREG_NONE=3};
+  enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_IRS=1};
+  enum {WBREG_AD0=REG_AD0,WBREG_AD1=REG_AD1,WBREG_IRS=REG_IRS,WBREG_NONE=3};
   
   struct IRS
   {
@@ -43,7 +43,7 @@ namespace SLCode
       uint32_t offset=irsOffset&0x1FF;
       uint32_t incAD=incAddr;
       uint32_t muxA=(b==REG_RES)?MUX1_RESULT:MUX1_MEM;
-      uint32_t muxB=(b==REG_LOOP)?MUX2_LOOP:MUX2_MEM;
+      uint32_t muxB=(b==REG_IRS)?MUX2_IRS:MUX2_MEM;
       uint32_t muxAD0=(a==DEREF_AD0)?0:1;
       uint32_t muxAD1=(a==DEREF_AD0 || b==DEREF_AD0)?0:1;
       uint32_t wbReg=a;
