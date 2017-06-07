@@ -361,6 +361,12 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _Exec &execComb,
     {
       decodeEx.stall_=1;
     }
+    
+    //stall if irs reg will be written
+    if(decodeComb.enIRS_ && decEx_.wbReg_ == SLCode::WBREG_IRS)
+    {
+      decodeEx.stall_=1;
+    }
   }
   
   //ext write in progress
@@ -588,6 +594,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
     {
     case SLCode::REG_AD0: stateNext.addr_[0]=(int32_t)(a.abs()); break;
     case SLCode::REG_AD1: stateNext.addr_[1]=(int32_t)(a.abs()); break;
+    case SLCode::REG_IRS: stateNext.irs_=(int32_t)(a.abs()); break;
     }
   }
 
