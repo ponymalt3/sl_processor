@@ -38,7 +38,7 @@ MTEST(testSyntax,test_basic_features)
   );
   
   RTProgTester tester(test);
-  EXPECT(tester.parse().getNumErrors() == 0);
+  EXPECT(tester.parse().getNumErrors() == 1);
 }
 
 MTEST(testSyntax,test_basic_exprs)
