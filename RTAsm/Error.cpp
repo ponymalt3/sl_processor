@@ -93,6 +93,12 @@ ErrorHandler& Error::expect(bool expr)
 
   handler_.newLinePending_=false;
   handler_.isFault_=!expr;
+  
+  if(handler_.isFault_)
+  {
+    ++(handler_.errors_);
+  }
+  
   return handler_;
 }
 
