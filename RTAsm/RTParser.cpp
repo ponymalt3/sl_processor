@@ -15,9 +15,15 @@ RTParser::RTParser(CodeGen &codeGen) : Error(codeGen.getErrorHandler()), codeGen
 
 void RTParser::parse(Stream &stream)
 {
-  parseStatements(stream);
-
-  Error::expect(stream.readToken().getType() == Token::TOK_EOS) << stream << "missing end of file token";
+  try
+  {
+    parseStatements(stream);
+    Error::expect(stream.readToken().getType() == Token::TOK_EOS) << stream << "missing end of file token";
+  }
+  catch(const std::runtime_error &e)
+  {
+    Error::expect(false) << e.what();
+  }
 }
 
 _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream)
