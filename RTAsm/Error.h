@@ -14,6 +14,7 @@ class ErrorHandler;
 
 class Error
 {
+public:
   Error(ErrorHandler &handler);
 
   ErrorHandler& expect(bool expr);

@@ -64,7 +64,7 @@ ErrorHandler& ErrorHandler::operator<<(Type type)
 {
   if(type == FATAL)
   {
-    if(isActive_)
+    if(isFault_)
       throw std::runtime_error("fatal error");
   }
 
