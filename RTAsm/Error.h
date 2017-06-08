@@ -8,12 +8,28 @@
 #define ERROR_H_
 
 #include <stdint.h>
+#include <stdexcept>
 
 class ErrorHandler;
 
 class Error
 {
-public:  
+public:
+  class Exception : public std::runtime_error
+  {
+  public:
+    friend class ErrorHandler;    
+    uint32_t getNumErrors() const { return numErrors_; }
+    
+  protected:
+    Exception(uint32_t numErrors) : std::runtime_error("fatal error")
+    {
+      numErrors_=numErrors;
+    }
+    
+    uint32_t numErrors_;    
+  };
+  
   Error(ErrorHandler &handler);
 
   ErrorHandler& expect(bool expr);

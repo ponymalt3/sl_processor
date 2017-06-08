@@ -65,7 +65,7 @@ ErrorHandler& ErrorHandler::operator<<(Type type)
   if(type == FATAL)
   {
     if(isFault_)
-      throw std::exception();
+      throw Error::Exception(errors_);
   }
 
   return *this;
