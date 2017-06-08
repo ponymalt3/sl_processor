@@ -196,7 +196,7 @@ _Decode SLProcessor::decodeInstr() const
 
     case 2: //GOTO
       decode.goto_=1;
-      decode.goto_const_=1;
+      decode.goto_const_=bdata(0);
       break;
 
     case 3: //LOAD
@@ -435,7 +435,18 @@ _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_
   uint32_t pcNext=state_.pc_+1;
 
   if(decEx_.goto_ && enable_(_State::S_EXEC))//goto cannot stall!!
-    pcNext=decode_.jmpTargetPc_;
+  {
+    if(decode_.goto_const_)
+    {
+      pcNext=decode_.jmpTargetPc_;
+    }
+    else
+    {
+      _qfp32_t a;
+      a.asUint=state_.result_;
+      pcNext=(int32_t)(a.abs());
+    }
+  }
 
   if(setPcEnable)//external pc set
     pcNext=pcValue;

@@ -140,7 +140,7 @@ namespace SLCode
 
     static uint32_t create(int32_t relJump,bool loopEndMarker)
     {
-      //GOTO RESULT, CONST       => code/6 CONST/10 (A/1) (MD/1)
+      //GOTO CONST       => code/6 CONST/10 (A/1) (MD/1)
       
       bool backwardJmp=false;
       
@@ -154,8 +154,17 @@ namespace SLCode
       uint32_t loopEnd=loopEndMarker;
       uint32_t pcAdjust=(backwardJmp?0x200:0) + (relJump&0x1FF);
 
-      return Code + (pcAdjust<<2) + (muxA<<1) + loopEnd;
+      return Code + (pcAdjust<<2) + (muxA<<1) + 1;
     }
+    
+    //absolute goto
+    static uint32_t create()
+    {
+      //GOTO RESULT       => code/6
+
+      return Code + 0;
+    }
+    
   };
 
   struct Load
