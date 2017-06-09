@@ -140,7 +140,7 @@ Stream::value_t Stream::readInt(bool allowSign)
     ch=peek();
   }
 
-  Error::expect(digits < 9) << (*this) << "possible const value overflow";
+  Error::expect(digits <= 9) << (*this) << "possible const value overflow";
 
   return {value*(sign?-1:1),digits,sign};
 }
@@ -159,6 +159,8 @@ qfp32 Stream::readQfp32()
     value.sign_=1;
     intPart.value_=-intPart.value_;
   }
+  
+  Error::expect(intPart.value_ < 1U<<29) << (*this) << "qfp32 value overflow";
 
   uint32_t bitsInt=log2(intPart.value_);
 

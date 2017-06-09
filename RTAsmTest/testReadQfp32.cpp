@@ -197,6 +197,16 @@ MTEST(testReadQfp32,test_that_negative_max_value_is_ok)
   EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(-536870911).toRaw());  
 }
 
+MTEST(testReadQfp32,test_that_qfp32_overflow_is_detected)
+{
+  RTProg testAssign=RTASM(
+    a=-536870912;
+  );
+  
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse().getNumErrors() == 1);   
+}
+
 }
 
 MTEST(testReadQfp32,test_that_only_one_load_instr_is_generated_for_exp0)
