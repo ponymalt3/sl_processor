@@ -15,7 +15,7 @@ ErrorHandler::ErrorHandler()
   isFault_=false;
   linePrinted_=false;
   newLinePending_=false;
-  line_=0;
+  line_=0xFFFFFFFF;
   errors_=0;
 }
 
@@ -55,8 +55,14 @@ ErrorHandler& ErrorHandler::operator<<(uint32_t value)
 
 ErrorHandler& ErrorHandler::operator<<(const Stream &stream)
 {
-  line_=stream.getCurrentLine();
-  linePrinted_=false;
+  uint32_t line=stream.getCurrentLine();
+  
+  if(line_ != line)
+  {
+    linePrinted_=false;
+  }
+  
+  line_=line;
   return *this;
 }
 
