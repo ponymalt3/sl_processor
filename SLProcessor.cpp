@@ -442,9 +442,7 @@ _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_
     }
     else
     {
-      _qfp32_t a;
-      a.asUint=state_.result_;
-      pcNext=(int32_t)(a.abs());
+      pcNext=(int32_t)(_qfp32_t::initFromRaw(state_.result_).abs());
     }
   }
 
