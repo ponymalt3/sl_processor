@@ -197,3 +197,19 @@ MTEST(testOperationsWithBrackets,test_that_negate_inside_brackets_work)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(-2).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
 }
+
+MTEST(testOperationsWithBrackets,test_that_bracket_negate_with_const_works)
+{
+  RTProg testCode=RTASM(
+    a=5*-(8+1);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(-45).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+}

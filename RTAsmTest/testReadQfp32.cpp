@@ -207,8 +207,6 @@ MTEST(testReadQfp32,test_that_qfp32_overflow_is_detected)
   EXPECT(tester.parse().getNumErrors() == 1);   
 }
 
-}
-
 MTEST(testReadQfp32,test_that_only_one_load_instr_is_generated_for_exp0)
 {
   RTProg testAssign=RTASM(

@@ -155,8 +155,15 @@ _Operand RTParser::parseExpr(Stream &stream)
       
       if(neg)
       {
-        codeGen_.instrNeg(expr);
-        expr=_Operand::createResult();
+        if(expr.type_ == _Operand::TY_VALUE)
+        {
+          expr=_Operand(expr.value_*qfp32::fromRealQfp32(-1.0));
+        }
+        else
+        {
+          codeGen_.instrNeg(expr);
+          expr=_Operand::createResult();
+        }
         neg=false;
       }
     }
