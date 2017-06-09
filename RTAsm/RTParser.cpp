@@ -39,7 +39,7 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream)
   if(token.getType() == Token::TOK_INDEX)
     return _Operand::createLoopIndex(token.getIndex());
 
-  Error::expect(token.getType() == Token::TOK_NAME) << stream << "unexpected token '" << token.getName(stream) << "'";
+  Error::expect(token.getType() == Token::TOK_NAME) << stream << "unexpected token " << token.getName(stream);
 
   return _Operand::createSymbol(token.getName(stream),token.getIndex());
 }

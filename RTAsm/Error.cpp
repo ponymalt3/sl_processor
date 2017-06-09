@@ -25,7 +25,7 @@ ErrorHandler& ErrorHandler::operator<<(const char *str)
     return *this;
 
   printHeader();
-  std::cout<<"  "<<str;
+  std::cout<<str;
   return *this;
 }
 
@@ -36,10 +36,11 @@ ErrorHandler& ErrorHandler::operator<<(const Stream::String &str)
 
   printHeader();
 
-  std::cout<<"  ";
+  std::cout<<"'";
   for(uint32_t i=0;i<str.getLength();++i)
     std::cout<<str[i];
 
+  std::cout<<"'";
   return *this;
 }
 
@@ -49,7 +50,7 @@ ErrorHandler& ErrorHandler::operator<<(uint32_t value)
     return *this;
 
   printHeader();
-  std::cout<<"  "<<value;
+  std::cout<<value;
   return *this;
 }
 
