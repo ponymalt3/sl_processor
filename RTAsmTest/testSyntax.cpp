@@ -113,9 +113,10 @@ MTEST(testSyntax,test_const_values_cant_be_assigned)
   %cant assign values to consts%
     a=1;
   );
-
+  
+  //expect errors
   RTProgTester tester(code);
-  EXPECT(tester.parse().getNumErrors() != 0);    
+  EXPECT(tester.parse().getNumErrors() != 0); 
 }
 
 MTEST(testSyntax,test_addr_reg_cant_be_read)
@@ -124,9 +125,9 @@ MTEST(testSyntax,test_addr_reg_cant_be_read)
   %cant read a0/a1%
     b=a1;
   );
-
+  
   RTProgTester tester(code);
-  EXPECT(tester.parse().getNumErrors() != 0);    
+  EXPECT(tester.parse().getNumErrors() != 0); 
 }
 
 MTEST(testSyntax,test_non_existing_var_cant_be_read)
@@ -137,7 +138,7 @@ MTEST(testSyntax,test_non_existing_var_cant_be_read)
   );
 
   RTProgTester tester(code);
-  EXPECT(tester.parse().getNumErrors() != 0);    
+  EXPECT(tester.parse().getNumErrors() != 0);
 }
 
 MTEST(testSyntax,test_if_construct)
@@ -208,7 +209,7 @@ MTEST(testSyntax,test_if_construct)
   );
 
   RTProgTester tester(testIf);
-  EXPECT(tester.parse().getNumErrors() == 0);    
+  EXPECT(tester.parse().getNumErrors() == 0);
 }
 
 MTEST(testSyntax,test_loop_construct)
@@ -286,3 +287,42 @@ MTEST(testSyntax,test_that_comment_at_the_end_works)
   RTProgTester tester(testComment);
   EXPECT(tester.parse().getNumErrors() == 0);  
 }  
+
+MTEST(testSyntax,test_that_store_const_in_irs_works)
+{
+  RTProg test=RTASM(
+    def cons -31;
+    a=cons;
+  );
+  
+  //a should be allocted to irs address 1
+  
+  RTProgTester tester(test);
+  EXPECT(tester.parse().getNumErrors() == 0);
+}
+
+MTEST(testSyntax,test_that_store_const2_in_irs_works)
+{
+  RTProg test=RTASM(
+    def cons 199;
+    a=cons;
+  );
+  
+  //a should be allocted to irs address 1
+  
+  RTProgTester tester(test);
+  EXPECT(tester.parse().getNumErrors() == 0);
+}
+
+MTEST(testSyntax,test_that_store_const3_in_irs_works)
+{
+  RTProg test=RTASM(
+    def cons 400000000;
+    a=cons;
+  );
+  
+  //a should be allocted to irs address 1
+  
+  RTProgTester tester(test);
+  EXPECT(tester.parse().getNumErrors() == 0);
+}

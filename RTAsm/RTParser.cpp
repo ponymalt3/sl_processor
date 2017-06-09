@@ -95,7 +95,7 @@ _Operand RTParser::parseExpr(Stream &stream)
 
     _Operand expr=parserSymbolOrConstOrMem(stream);
 
-    stream.skipWhiteSpaces();//.markPos();
+    stream.skipWhiteSpaces();
     ch=stream.peek();
 
     bool neg=false;
