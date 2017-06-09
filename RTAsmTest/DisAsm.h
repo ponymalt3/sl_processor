@@ -206,7 +206,7 @@ public:
       }
       
       std::stringstream ss;
-      ss<<qfp32_t::initFromRawData(raw);
+      ss<<qfp32_t::initFromRaw(raw);
       return std::string("result = ") + ss.str();
     }
     

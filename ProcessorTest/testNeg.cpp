@@ -12,7 +12,7 @@ MTEST(TestNeg,test_that_negate_Result_works)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Neg::create(),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,5),
 
@@ -27,5 +27,5 @@ MTEST(TestNeg,test_that_negate_Result_works)
   
   proc.run(5);
   
-  EXPECT(proc.readMemory(5) == (-value).asUint);
+  EXPECT(proc.readMemory(5) == (-value).toRaw());
 }

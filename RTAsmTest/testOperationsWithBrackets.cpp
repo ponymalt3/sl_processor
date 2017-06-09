@@ -17,8 +17,8 @@ MTEST(testOperationsWithBrackets,test_that_bracket_precedence_is_correct_with_co
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(1).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(1).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_bracket_precedence_is_correct_with_vars)
@@ -35,9 +35,9 @@ MTEST(testOperationsWithBrackets,test_that_bracket_precedence_is_correct_with_va
 
   tester.loadCode();
   tester.execute();
-   
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")) == qfp32_t(1).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")));
+  
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")) == qfp32_t(1).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_bracket_negate_work_with_const)
@@ -52,8 +52,8 @@ MTEST(testOperationsWithBrackets,test_that_bracket_negate_work_with_const)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(-5).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(-5).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_bracket_negate_work_with_vars)
@@ -70,8 +70,8 @@ MTEST(testOperationsWithBrackets,test_that_bracket_negate_work_with_vars)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(-5).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(-5).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_bracket_negate_in_const_sum_work)
@@ -86,9 +86,12 @@ MTEST(testOperationsWithBrackets,test_that_bracket_negate_in_const_sum_work)
 
   tester.loadCode();
   tester.execute();
+  
+    std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+    
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(0).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(0).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_bracket_negate_in_sum_with_vars_work)
@@ -106,8 +109,8 @@ MTEST(testOperationsWithBrackets,test_that_bracket_negate_in_sum_with_vars_work)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")) == qfp32_t(0).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")) == qfp32_t(0).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("d")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_multiple_brackets_with_const_term_work)
@@ -123,8 +126,8 @@ MTEST(testOperationsWithBrackets,test_that_multiple_brackets_with_const_term_wor
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(15).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(15).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_multiple_brackets_work)
@@ -140,8 +143,8 @@ MTEST(testOperationsWithBrackets,test_that_multiple_brackets_work)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(15).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(15).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_bracket_depth_2_work)
@@ -157,8 +160,8 @@ MTEST(testOperationsWithBrackets,test_that_bracket_depth_2_work)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(3).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(3).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_bracket_depth_3_work)
@@ -174,8 +177,8 @@ MTEST(testOperationsWithBrackets,test_that_bracket_depth_3_work)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(6).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(6).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
 }
 
 MTEST(testOperationsWithBrackets,test_that_negate_inside_brackets_work)
@@ -191,6 +194,6 @@ MTEST(testOperationsWithBrackets,test_that_negate_inside_brackets_work)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(-2).asUint)
-     << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(-2).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
 }

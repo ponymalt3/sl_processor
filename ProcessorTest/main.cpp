@@ -13,7 +13,7 @@ MTEST(TestBugs,testOpWithOperandsResultAndIRS)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_SUB,5),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
 
@@ -24,12 +24,12 @@ MTEST(TestBugs,testOpWithOperandsResultAndIRS)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value2.asUint);
+  proc.writeMemory(5,value2.toRaw());
   proc.writeMemory(6,0);
   
   proc.run(7);
   
-  EXPECT(proc.readMemory(6) == (value-value2).asUint);
+  EXPECT(proc.readMemory(6) == (value-value2).toRaw());
 }
 
 // run all tests

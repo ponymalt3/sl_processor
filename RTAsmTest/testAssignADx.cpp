@@ -19,7 +19,7 @@ MTEST(testAssignADx,test_that_def_const_assigned_to_addr0_and_deref_addr0_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(10) == qfp32_t(10).asUint);  
+  EXPECT(tester.getProcessor().readMemory(10) == qfp32_t(10).toRaw());  
 }
 
 MTEST(testAssignADx,test_that_ref_assigned_to_addr0_and_deref_addr0_works)
@@ -34,12 +34,12 @@ MTEST(testAssignADx,test_that_ref_assigned_to_addr0_and_deref_addr0_works)
   EXPECT(tester.parse(1).getNumErrors() == 0);
   
   qfp32_t value=21;  
-  tester.getProcessor().writeMemory(0,value.asUint);
+  tester.getProcessor().writeMemory(0,value.toRaw());
   
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(value) == value.asUint);  
+  EXPECT(tester.getProcessor().readMemory(value) == value.toRaw());  
 }
 
 MTEST(testAssignADx,test_that_const_assigned_to_addr0_and_deref_addr0_works)
@@ -56,7 +56,7 @@ MTEST(testAssignADx,test_that_const_assigned_to_addr0_and_deref_addr0_works)
   tester.execute();
    
   qfp32_t value=17;
-  EXPECT(tester.getProcessor().readMemory(10) == value.asUint);  
+  EXPECT(tester.getProcessor().readMemory(10) == value.toRaw());  
 }
 
 MTEST(testAssignADx,test_that_var_assigned_to_addr0_and_deref_addr0_works)
@@ -74,7 +74,7 @@ MTEST(testAssignADx,test_that_var_assigned_to_addr0_and_deref_addr0_works)
   tester.execute();
    
   qfp32_t value=23;
-  EXPECT(tester.getProcessor().readMemory(value) == value.asUint);  
+  EXPECT(tester.getProcessor().readMemory(value) == value.toRaw());  
 }
 
 MTEST(testAssignADx,test_that_array_assigned_to_addr0_and_deref_addr0_works)
@@ -95,7 +95,7 @@ MTEST(testAssignADx,test_that_array_assigned_to_addr0_and_deref_addr0_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(2) == qfp32_t(3).asUint);  
+  EXPECT(tester.getProcessor().readMemory(2) == qfp32_t(3).toRaw());  
 }
 
 MTEST(testAssignADx,test_that_def_const_assigned_to_addr1_and_deref_addr1_works)
@@ -112,7 +112,7 @@ MTEST(testAssignADx,test_that_def_const_assigned_to_addr1_and_deref_addr1_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(10) == qfp32_t(10).asUint);  
+  EXPECT(tester.getProcessor().readMemory(10) == qfp32_t(10).toRaw());  
 }
 
 MTEST(testAssignADx,test_that_var_assigned_to_deref_addr0_with_inc_works)
@@ -130,8 +130,8 @@ MTEST(testAssignADx,test_that_var_assigned_to_deref_addr0_with_inc_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(7).asUint); 
-  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(99).asUint); 
+  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(7).toRaw()); 
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(99).toRaw()); 
 }
 
 MTEST(testAssignADx,test_that_var_assigned_to_deref_addr1_with_inc_works)
@@ -149,8 +149,8 @@ MTEST(testAssignADx,test_that_var_assigned_to_deref_addr1_with_inc_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(7).asUint); 
-  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(99).asUint); 
+  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(7).toRaw()); 
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(99).toRaw()); 
 }
 
 MTEST(testAssignADx,test_that_deref_addr0_assigned_to_deref_addr1_with_both_inc_works)
@@ -170,10 +170,10 @@ MTEST(testAssignADx,test_that_deref_addr0_assigned_to_deref_addr1_with_both_inc_
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(7) == qfp32_t(700).asUint);
-  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(700).asUint);
-  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(27).asUint);
-  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(43).asUint); 
+  EXPECT(tester.getProcessor().readMemory(7) == qfp32_t(700).toRaw());
+  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(700).toRaw());
+  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(27).toRaw());
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(43).toRaw()); 
 }
 
 MTEST(testAssignADx,test_that_var_assigned_to_deref_addr0_without_inc_works)
@@ -191,5 +191,5 @@ MTEST(testAssignADx,test_that_var_assigned_to_deref_addr0_without_inc_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(99).asUint);
+  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(99).toRaw());
 }

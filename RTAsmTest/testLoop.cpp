@@ -21,8 +21,8 @@ MTEST(testLoop,test_that_loop_and_inc_and_const_count_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(5).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(5).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
 }
 
 MTEST(testLoop,test_that_loop_with_index_access_and_const_count_works)
@@ -41,8 +41,8 @@ MTEST(testLoop,test_that_loop_with_index_access_and_const_count_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(10).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(10).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
 }
 
 MTEST(testLoop,test_that_loop_with_index_access_and_var_count_works)
@@ -62,8 +62,8 @@ MTEST(testLoop,test_that_loop_with_index_access_and_var_count_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(10).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(10).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
 }
 
 MTEST(testLoop,test_that_loop_in_loop_with_index_access_and_var_count_works)
@@ -86,8 +86,8 @@ MTEST(testLoop,test_that_loop_in_loop_with_index_access_and_var_count_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(35).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(35).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
 }
 
 MTEST(testLoop,test_that_loop_continue_works)
@@ -112,8 +112,8 @@ MTEST(testLoop,test_that_loop_continue_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(3).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(3).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
 }
 
 MTEST(testLoop,test_that_loop_break_works)
@@ -135,8 +135,8 @@ MTEST(testLoop,test_that_loop_break_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(2).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(2).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
 }
 
 MTEST(testLoop,test_that_loop_in_loop_with_continue_and_break_works)
@@ -174,8 +174,8 @@ MTEST(testLoop,test_that_loop_in_loop_with_continue_and_break_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(16).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(16).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
 }
 
 MTEST(testLoop,test_that_loop_with_zero_loop_count_executes_one_time)
@@ -194,6 +194,6 @@ MTEST(testLoop,test_that_loop_with_zero_loop_count_executes_one_time)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(1).asUint)
-    << "read value is: " << qfp32_t::initFromRawData(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(1).toRaw())
+    << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")));
 }

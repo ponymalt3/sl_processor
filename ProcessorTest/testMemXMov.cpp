@@ -14,8 +14,8 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     //stall 1 cycle
     
@@ -29,12 +29,12 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad1,value.asUint);
+  proc.writeMemory(ad1,value.toRaw());
   proc.writeMemory(5,0);
   
   proc.run(8);//include one cycle stall
   
-  EXPECT(proc.readMemory(5) == value.asUint);
+  EXPECT(proc.readMemory(5) == value.toRaw());
 }
 
 MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works)
@@ -44,11 +44,11 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
     
     0xFFFF,
@@ -62,7 +62,7 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works)
   
   proc.run(7);
   
-  EXPECT(proc.readMemory(ad1) == value.asUint);
+  EXPECT(proc.readMemory(ad1) == value.toRaw());
 }
 
 MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_with_inc_works)
@@ -72,8 +72,8 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_with_inc_works)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     //stall 1 cycle
     
@@ -89,13 +89,13 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_with_inc_works)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,0);
-  proc.writeMemory(ad1,value.asUint);
+  proc.writeMemory(ad1,value.toRaw());
   proc.writeMemory(ad1+1,0);
   
   proc.run(9);
   
-  EXPECT(proc.readMemory(5) == value.asUint);
-  EXPECT(proc.readMemory(ad1+1) == value.asUint);
+  EXPECT(proc.readMemory(5) == value.toRaw());
+  EXPECT(proc.readMemory(ad1+1) == value.toRaw());
 }
 
 MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_with_inc_works)
@@ -105,11 +105,11 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_with_inc_works)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES,0,true),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
     
@@ -125,8 +125,8 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_with_inc_works)
   
   proc.run(9);
   
-  EXPECT(proc.readMemory(ad1) == value.asUint);
-  EXPECT(proc.readMemory(ad1+1) == value.asUint);
+  EXPECT(proc.readMemory(ad1) == value.toRaw());
+  EXPECT(proc.readMemory(ad1+1) == value.toRaw());
 }
 
 MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_is_in_progress)
@@ -137,11 +137,11 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_i
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
 
-    SLCode::Load::create1(value.asUint),    
+    SLCode::Load::create1(value.toRaw()),    
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES,0,true),
     //stall 1 cycle
     SLCode::Mov::create(SLCode::REG_RES,SLCode::DEREF_AD1),
@@ -156,12 +156,12 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_i
   
   proc.writeMemory(5,0);
   proc.writeMemory(ad1,0);
-  proc.writeMemory(ad1+1,value2.asUint);
+  proc.writeMemory(ad1+1,value2.toRaw());
   
   proc.run(10);
   
-  EXPECT(proc.readMemory(ad1) == value.asUint);
-  EXPECT(proc.readMemory(5) == value2.asUint);
+  EXPECT(proc.readMemory(ad1) == value.toRaw());
+  EXPECT(proc.readMemory(5) == value2.toRaw());
 }
 
 MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works_while_external_mem_is_stalled)
@@ -171,8 +171,8 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works_while_external_mem_is_s
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     //stall 1 cycle
     
@@ -192,11 +192,11 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works_while_external_mem_is_s
   proc.reset();
   proc.executeWithMemExtStall(7);
   
-  proc.writeMemory(ad1,value.asUint);
+  proc.writeMemory(ad1,value.toRaw());
   
   proc.execute(3);  
   
-  EXPECT(proc.readMemory(5) == value.asUint);
+  EXPECT(proc.readMemory(5) == value.toRaw());
 }
 
 MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_stalled)
@@ -206,11 +206,11 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_s
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
 
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
     
     0xFFFF,
@@ -228,7 +228,7 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_s
   
   proc.execute(2);  
   
-  EXPECT(proc.readMemory(ad1) == value.asUint);
+  EXPECT(proc.readMemory(ad1) == value.toRaw());
 }
 
 MTEST(TestMemXMov,test_that_change_AD1_is_blocked_while_external_mem_is_in_progress)
@@ -238,11 +238,11 @@ MTEST(TestMemXMov,test_that_change_AD1_is_blocked_while_external_mem_is_in_progr
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad1.asUint),
-    SLCode::Load::create2(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Load::create2(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
 
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),    
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),//change AD1
     
@@ -261,5 +261,5 @@ MTEST(TestMemXMov,test_that_change_AD1_is_blocked_while_external_mem_is_in_progr
   proc.executeWithMemExtStall(4);  
   proc.execute(2);  
   
-  EXPECT(proc.readMemory(ad1) == value.asUint);
+  EXPECT(proc.readMemory(ad1) == value.toRaw());
 }

@@ -13,7 +13,7 @@ MTEST(TestOp,testOpWithOperandsResultAndIRS)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_SUB,5),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
 
@@ -24,12 +24,12 @@ MTEST(TestOp,testOpWithOperandsResultAndIRS)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value2.asUint);
+  proc.writeMemory(5,value2.toRaw());
   proc.writeMemory(6,0);
   
   proc.run(7);
   
-  EXPECT(proc.readMemory(6) == (value-value2).asUint);
+  EXPECT(proc.readMemory(6) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA0)
@@ -41,10 +41,10 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA0)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::DEREF_AD0,SLCode::CMD_SUB,5),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
 
@@ -55,11 +55,11 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA0)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,value2.asUint);
+  proc.writeMemory(ad0,value2.toRaw());
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad0) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad0) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA0AndIncAddr)
@@ -71,10 +71,10 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA0AndIncAddr)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::DEREF_AD0,SLCode::CMD_SUB,5,true),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
 
@@ -85,12 +85,12 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA0AndIncAddr)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,value2.asUint);
+  proc.writeMemory(ad0,value2.toRaw());
   proc.writeMemory(ad0+1,0);
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad0+1) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA1)
@@ -102,10 +102,10 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA1)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::DEREF_AD1,SLCode::CMD_SUB,5),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
 
@@ -116,11 +116,11 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA1)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad1,value2.asUint);
+  proc.writeMemory(ad1,value2.toRaw());
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad1) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad1) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA1AndIncAddr)
@@ -132,10 +132,10 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA1AndIncAddr)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::DEREF_AD1,SLCode::CMD_SUB,0,true),
     SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
 
@@ -146,12 +146,12 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA1AndIncAddr)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad1,value2.asUint);
+  proc.writeMemory(ad1,value2.toRaw());
   proc.writeMemory(ad1+1,0);
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithOperandsDATA0WithAddrIncAndIRS)
@@ -163,7 +163,7 @@ MTEST(TestOp,testOpWithOperandsDATA0WithAddrIncAndIRS)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
     SLCode::Op::create(SLCode::DEREF_AD0,SLCode::IRS,SLCode::CMD_SUB,5,true),
@@ -176,13 +176,13 @@ MTEST(TestOp,testOpWithOperandsDATA0WithAddrIncAndIRS)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value2.asUint);
-  proc.writeMemory(ad0,value.asUint);
+  proc.writeMemory(5,value2.toRaw());
+  proc.writeMemory(ad0,value.toRaw());
   proc.writeMemory(ad0+1,0);
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad0+1) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithOperandsDATA1WithAddrIncAndIRS)
@@ -194,7 +194,7 @@ MTEST(TestOp,testOpWithOperandsDATA1WithAddrIncAndIRS)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
     SLCode::Op::create(SLCode::DEREF_AD1,SLCode::IRS,SLCode::CMD_SUB,5,true),
@@ -207,13 +207,13 @@ MTEST(TestOp,testOpWithOperandsDATA1WithAddrIncAndIRS)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value.asUint);
-  proc.writeMemory(ad1,value2.asUint);
+  proc.writeMemory(5,value.toRaw());
+  proc.writeMemory(ad1,value2.toRaw());
   proc.writeMemory(ad1+1,0);
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad1+1) == (value2-value).asUint);
+  EXPECT(proc.readMemory(ad1+1) == (value2-value).toRaw());
 }
 
 
@@ -229,10 +229,10 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall1)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     //load ad1
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
     //should stall one cycle
@@ -248,12 +248,12 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall1)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,0);
-  proc.writeMemory(ad0,value.asUint);
-  proc.writeMemory(ad1,value2.asUint);
+  proc.writeMemory(ad0,value.toRaw());
+  proc.writeMemory(ad1,value2.toRaw());
   
   proc.run(10);
   
-  EXPECT(proc.readMemory(5) == (value-value2).asUint);
+  EXPECT(proc.readMemory(5) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall2)
@@ -266,10 +266,10 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall2)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     //load ad1
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
     //should stall one cycle
@@ -285,12 +285,12 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall2)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,0);
-  proc.writeMemory(ad0,value2.asUint);
-  proc.writeMemory(ad1,value.asUint);
+  proc.writeMemory(ad0,value2.toRaw());
+  proc.writeMemory(ad1,value.toRaw());
   
   proc.run(10);
   
-  EXPECT(proc.readMemory(5) == (value-value2).asUint);
+  EXPECT(proc.readMemory(5) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithMemoryAndIRSWithNoIncExpectStall)
@@ -302,7 +302,7 @@ MTEST(TestOp,testOpWithMemoryAndIRSWithNoIncExpectStall)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
     //should stall one cycle
@@ -317,12 +317,12 @@ MTEST(TestOp,testOpWithMemoryAndIRSWithNoIncExpectStall)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value2.asUint);
-  proc.writeMemory(ad0,value.asUint);
+  proc.writeMemory(5,value2.toRaw());
+  proc.writeMemory(ad0,value.toRaw());
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad0) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad0) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithResultAndMemoryWithNoIncExpectStall)
@@ -333,7 +333,7 @@ MTEST(TestOp,testOpWithResultAndMemoryWithNoIncExpectStall)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
     //should stall one cycle
@@ -348,11 +348,11 @@ MTEST(TestOp,testOpWithResultAndMemoryWithNoIncExpectStall)
   
   LoadAndSimulateProcessor proc(code);
  
-  proc.writeMemory(ad0,value.asUint);
+  proc.writeMemory(ad0,value.toRaw());
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(ad0) == (ad0-value).asUint);
+  EXPECT(proc.readMemory(ad0) == (ad0-value).toRaw());
 }
 
 
@@ -367,10 +367,10 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpA)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     //load ad1
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
     //should stall one cycle
@@ -386,14 +386,14 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpA)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,value2.asUint);
-  proc.writeMemory(ad1,value.asUint);
+  proc.writeMemory(ad0,value2.toRaw());
+  proc.writeMemory(ad1,value.toRaw());
   proc.writeMemory(ad1+1,0);
   
   proc.run(11);
   
-  EXPECT(proc.readMemory(ad0) == (value-value2).asUint);
-  EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad0) == (value-value2).toRaw());
+  EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpB)
@@ -406,10 +406,10 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpB)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     //load ad1
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
     //should stall one cycle
@@ -425,14 +425,14 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpB)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,value2.asUint);
-  proc.writeMemory(ad1,value.asUint);
+  proc.writeMemory(ad0,value2.toRaw());
+  proc.writeMemory(ad1,value.toRaw());
   proc.writeMemory(ad0+1,0);
   
   proc.run(11);
   
-  EXPECT(proc.readMemory(ad0+1) == (value-value2).asUint);
-  EXPECT(proc.readMemory(ad1) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
+  EXPECT(proc.readMemory(ad1) == (value-value2).toRaw());
 }
 
 MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
@@ -445,10 +445,10 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     //load ad1
-    SLCode::Load::create1(ad1.asUint),
+    SLCode::Load::create1(ad1.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
     
     //should stall one cycle
@@ -464,15 +464,15 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,value2.asUint);
-  proc.writeMemory(ad1,value.asUint);
+  proc.writeMemory(ad0,value2.toRaw());
+  proc.writeMemory(ad1,value.toRaw());
   proc.writeMemory(ad0+1,0);
   proc.writeMemory(ad1+1,0);
   
   proc.run(11);
   
-  EXPECT(proc.readMemory(ad0+1) == (value-value2).asUint);
-  EXPECT(proc.readMemory(ad1+1) == (value-value2).asUint);
+  EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
+  EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
 }
 
 
@@ -484,7 +484,7 @@ MTEST(TestOp,testOpAddition)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_ADD,5),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
 
@@ -495,12 +495,12 @@ MTEST(TestOp,testOpAddition)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value.asUint);
+  proc.writeMemory(5,value.toRaw());
   proc.writeMemory(6,0);
   
   proc.run(6);
   
-  EXPECT(proc.readMemory(6) == (value2+value).asUint);
+  EXPECT(proc.readMemory(6) == (value2+value).toRaw());
 }
 
 MTEST(TestOp,testOpSubstract)
@@ -510,7 +510,7 @@ MTEST(TestOp,testOpSubstract)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_SUB,5),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
 
@@ -521,12 +521,12 @@ MTEST(TestOp,testOpSubstract)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value.asUint);
+  proc.writeMemory(5,value.toRaw());
   proc.writeMemory(6,0);
   
   proc.run(6);
   
-  EXPECT(proc.readMemory(6) == (value2-value).asUint);
+  EXPECT(proc.readMemory(6) == (value2-value).toRaw());
 }
 
 MTEST(TestOp,testOpMultiply)
@@ -536,7 +536,7 @@ MTEST(TestOp,testOpMultiply)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_MUL,5),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
 
@@ -547,12 +547,12 @@ MTEST(TestOp,testOpMultiply)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value.asUint);
+  proc.writeMemory(5,value.toRaw());
   proc.writeMemory(6,0);
   
   proc.run(6);
   
-  EXPECT(proc.readMemory(6) == (value2*value).asUint);
+  EXPECT(proc.readMemory(6) == (value2*value).toRaw());
 }
 
 MTEST(TestOp,testOpDivide)
@@ -562,7 +562,7 @@ MTEST(TestOp,testOpDivide)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_DIV,5),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
 
@@ -573,10 +573,10 @@ MTEST(TestOp,testOpDivide)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value.asUint);
+  proc.writeMemory(5,value.toRaw());
   proc.writeMemory(6,0);
   
   proc.run(35);
   
-  EXPECT(proc.readMemory(6) == (value2/value).asUint);
+  EXPECT(proc.readMemory(6) == (value2/value).toRaw());
 }

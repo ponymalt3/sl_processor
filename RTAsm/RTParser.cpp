@@ -292,7 +292,7 @@ void RTParser::parseLoopStatement(Stream &stream)
   }  
   
   _Operand loopCounter=storage.allocate();
-  codeGen_.instrMov(loopCounter,_Operand(qfp32::fromUint32(qfp32_t(0).asUint)));
+  codeGen_.instrMov(loopCounter,_Operand(qfp32::fromRealQfp32(_qfp32_t(0))));
   
   codeGen_.createLoopFrame(cont,end,loopCounter);
 
@@ -303,7 +303,7 @@ void RTParser::parseLoopStatement(Stream &stream)
   cont.setLabel();
   
   //inc counter
-  codeGen_.instrOperation(_Operand(qfp32::fromUint32(qfp32_t(1).asUint)),loopCounter,'+',storage);
+  codeGen_.instrOperation(_Operand(qfp32::fromRealQfp32(qfp32_t(1))),loopCounter,'+',storage);
   codeGen_.instrMov(loopCounter,_Operand::createResult());
   
   //compare

@@ -19,13 +19,13 @@ struct qfp32
   uint32_t exp_ : 2;
   uint32_t sign_ : 1;
   
-  uint32_t toUint32() const { return *reinterpret_cast<const uint32_t*>(this); }
-  static qfp32 fromUint32(uint32_t raw) { return *reinterpret_cast<qfp32*>(&raw); }
+  static qfp32 fromRealQfp32(_qfp32_t v) { return {v.getMant(),v.getExp(),v.getSign()}; }
+  _qfp32_t toRealQfp32() const { return _qfp32_t(sign_,exp_,mant_); }
   
-  qfp32 operator+(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())+qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
-  qfp32 operator-(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())-qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
-  qfp32 operator*(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())*qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
-  qfp32 operator/(const qfp32 &rhs) const { return fromUint32((qfp32_t::initFromRawData(toUint32())/qfp32_t::initFromRawData(rhs.toUint32())).asUint); }
+  qfp32 operator+(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()+rhs.toRealQfp32()); }
+  qfp32 operator-(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()-rhs.toRealQfp32()); }
+  qfp32 operator*(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()*rhs.toRealQfp32()); }
+  qfp32 operator/(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()/rhs.toRealQfp32()); }
 };
 
 class Token;

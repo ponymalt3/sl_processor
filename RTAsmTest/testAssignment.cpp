@@ -19,7 +19,7 @@ MTEST(testAssignment,test_that_def_const_assigned_to_var_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(13).asUint);  
+  EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(13).toRaw());  
 }
 
 MTEST(testAssignment,test_that_ref_assigned_to_var_works)
@@ -35,12 +35,12 @@ MTEST(testAssignment,test_that_ref_assigned_to_var_works)
   
   qfp32_t expect=13;
   
-  tester.getProcessor().writeMemory(0,expect.asUint);
+  tester.getProcessor().writeMemory(0,expect.toRaw());
   
   tester.loadCode();
   tester.execute();  
     
-  EXPECT(tester.getProcessor().readMemory(1) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(1) == expect.toRaw());  
 }
 
 MTEST(testAssignment,test_that_const_assigned_to_ref_works)
@@ -53,13 +53,13 @@ MTEST(testAssignment,test_that_const_assigned_to_ref_works)
   RTProgTester tester(testAssign);
   EXPECT(tester.parse(1).getNumErrors() == 0);//use one parameter
   
-  tester.getProcessor().writeMemory(0,qfp32_t(13).asUint);
+  tester.getProcessor().writeMemory(0,qfp32_t(13).toRaw());
   
   tester.loadCode();
   tester.execute();  
   
   qfp32_t expect=7;
-  EXPECT(tester.getProcessor().readMemory(0) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(0) == expect.toRaw());  
 }
 
 MTEST(testAssignment,test_that_const_assigned_to_var_works)
@@ -78,7 +78,7 @@ MTEST(testAssignment,test_that_const_assigned_to_var_works)
   
   qfp32_t expect=1;
   
-  EXPECT(tester.getProcessor().readMemory(0) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(0) == expect.toRaw());  
 }
 
 MTEST(testAssignment,test_that_var_assigned_to_var_works)
@@ -98,7 +98,7 @@ MTEST(testAssignment,test_that_var_assigned_to_var_works)
   tester.execute();
   
   qfp32_t expect=1;  
-  EXPECT(tester.getProcessor().readMemory(1) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(1) == expect.toRaw());  
 }
 
 MTEST(testAssignment,test_that_def_const_assigned_to_array_works)
@@ -117,7 +117,7 @@ MTEST(testAssignment,test_that_def_const_assigned_to_array_works)
   tester.execute();
   
   qfp32_t expect=7;  
-  EXPECT(tester.getProcessor().readMemory(0+2) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(0+2) == expect.toRaw());  
 }
 
 MTEST(testAssignment,test_that_ref_assigned_to_array_works)
@@ -135,12 +135,12 @@ MTEST(testAssignment,test_that_ref_assigned_to_array_works)
   EXPECT(addr == 8);
   
   qfp32_t expect=7; 
-  tester.getProcessor().writeMemory(1,expect.asUint);
+  tester.getProcessor().writeMemory(1,expect.toRaw());
   
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(addr+2) == expect.asUint);  
+  EXPECT(tester.getProcessor().readMemory(addr+2) == expect.toRaw());  
 }
 
 MTEST(testAssignment,test_that_array_assigned_to_ref_works)
@@ -156,12 +156,12 @@ MTEST(testAssignment,test_that_array_assigned_to_ref_works)
   EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
   EXPECT(tester.getIRSAddrOfSymbol("array") == 8);
   
-  tester.getProcessor().writeMemory(1,qfp32_t(7).asUint);
+  tester.getProcessor().writeMemory(1,qfp32_t(7).toRaw());
   
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(15).asUint);  
+  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(15).toRaw());  
 }
 
 MTEST(testAssignment,test_that_array_assigned_to_var_works)
@@ -182,7 +182,7 @@ MTEST(testAssignment,test_that_array_assigned_to_var_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(15).asUint);  
+  EXPECT(tester.getProcessor().readMemory(0) == qfp32_t(15).toRaw());  
 }
 
 MTEST(testAssignment,test_that_array_base_addr_load_works)
@@ -193,7 +193,6 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
     a0=array+1;
     [a0]=1;
   );
-  ;
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -202,5 +201,5 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(1).toRaw());  
 }

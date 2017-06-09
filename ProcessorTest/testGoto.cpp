@@ -14,7 +14,7 @@ MTEST(TestGoto,testSimpleForwardJump)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
     
     //jump
@@ -22,11 +22,11 @@ MTEST(TestGoto,testSimpleForwardJump)
     
     //should be skipped
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),
     
     //target
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
     0xFFFF,
     0xFFFF,
@@ -39,7 +39,7 @@ MTEST(TestGoto,testSimpleForwardJump)
   
   proc.run(9);
   
-  EXPECT(proc.readMemory(ad0) == value2.asUint);
+  EXPECT(proc.readMemory(ad0) == value2.toRaw());
 }
 
 MTEST(TestGoto,testSimpleBackwardJump)
@@ -51,22 +51,22 @@ MTEST(TestGoto,testSimpleBackwardJump)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
     
     //load result reg
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
         
     //should be executed    
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     
     //jump
     SLCode::Goto::create(-2,false),
     
     //should not be executed
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
     
     0xFFFF,
@@ -81,7 +81,7 @@ MTEST(TestGoto,testSimpleBackwardJump)
   
   proc.run(12);
   
-  EXPECT(proc.readMemory(ad0) == value.asUint);
+  EXPECT(proc.readMemory(ad0) == value.toRaw());
   EXPECT(proc.readMemory(ad0+1) == 0);
 }
 
@@ -94,7 +94,7 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsTrue)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
     
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
@@ -104,7 +104,7 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsTrue)
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),
     
     //should be executed
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
     
     0xFFFF,
@@ -114,12 +114,12 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsTrue)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value.asUint);
+  proc.writeMemory(5,value.toRaw());
   proc.writeMemory(ad0,0);
   
   proc.run(10);
   
-  EXPECT(proc.readMemory(ad0) == value2.asUint);
+  EXPECT(proc.readMemory(ad0) == value2.toRaw());
 }
 
 MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
@@ -130,7 +130,7 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
     
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
@@ -143,7 +143,7 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
     0xFFFF,//nop
     
     //should be skipped
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
     
     0xFFFF,
@@ -153,12 +153,12 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,value.asUint);
+  proc.writeMemory(5,value.toRaw());
   proc.writeMemory(ad0,0);
   proc.writeMemory(ad0+1,0);
   
   proc.run(10);
   
-  EXPECT(proc.readMemory(ad0) == ad0.asUint);
-  EXPECT(proc.readMemory(ad0+1) == ad0.asUint);
+  EXPECT(proc.readMemory(ad0) == ad0.toRaw());
+  EXPECT(proc.readMemory(ad0+1) == ad0.toRaw());
 }

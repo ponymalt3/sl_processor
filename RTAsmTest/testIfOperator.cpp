@@ -26,7 +26,7 @@ MTEST(testIfOperator,test_that_operator_equal_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_equal_execute_else_branch)
@@ -50,7 +50,7 @@ MTEST(testIfOperator,test_that_operator_equal_execute_else_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_less_execute_then_branch)
@@ -74,7 +74,7 @@ MTEST(testIfOperator,test_that_operator_less_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_less_execute_else_branch)
@@ -98,7 +98,7 @@ MTEST(testIfOperator,test_that_operator_less_execute_else_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_less_equal_1_execute_then_branch)
@@ -122,7 +122,7 @@ MTEST(testIfOperator,test_that_operator_less_equal_1_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_less_equal_2_execute_then_branch)
@@ -146,7 +146,7 @@ MTEST(testIfOperator,test_that_operator_less_equal_2_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_less_equal_execute_else_branch)
@@ -170,7 +170,7 @@ MTEST(testIfOperator,test_that_operator_less_equal_execute_else_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_greater_equal_1_execute_then_branch)
@@ -194,7 +194,7 @@ MTEST(testIfOperator,test_that_operator_greater_equal_1_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_greater_equal_2_execute_then_branch)
@@ -218,7 +218,7 @@ MTEST(testIfOperator,test_that_operator_greater_equal_2_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_greater_equal_execute_else_branch)
@@ -242,7 +242,7 @@ MTEST(testIfOperator,test_that_operator_greater_equal_execute_else_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_greater_execute_then_branch)
@@ -266,7 +266,7 @@ MTEST(testIfOperator,test_that_operator_greater_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_greater_execute_else_branch)
@@ -290,7 +290,7 @@ MTEST(testIfOperator,test_that_operator_greater_execute_else_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_not_equal_execute_then_branch)
@@ -314,7 +314,7 @@ MTEST(testIfOperator,test_that_operator_not_equal_execute_then_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(1).toRaw());  
 }
 
 MTEST(testIfOperator,test_that_operator_not_equal_execute_else_branch)
@@ -338,5 +338,5 @@ MTEST(testIfOperator,test_that_operator_not_equal_execute_else_branch)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).asUint);  
+  EXPECT(tester.getProcessor().readMemory(offset) == qfp32_t(2).toRaw());  
 }

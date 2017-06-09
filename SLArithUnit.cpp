@@ -31,9 +31,8 @@ void SLArithUnit::reset()
 
 void SLArithUnit::addOperation(const _DecodeEx &decEx)
 {
-  _qfp32_t a,b;
-  a.asUint=decEx.a_;
-  b.asUint=decEx.b_;
+  _qfp32_t a=_qfp32_t::initFromRaw(decEx.a_);
+  _qfp32_t b=_qfp32_t::initFromRaw(decEx.b_);
   
   newOpAdded_=false;
   
@@ -57,11 +56,11 @@ void SLArithUnit::addOperation(const _DecodeEx &decEx)
   switch(decEx.cmd_)
   {
   case SLCode::CMD_MOV:
-    pipeline_[(curCycle_+0)%32].result_=(b).asUint;
+    pipeline_[(curCycle_+0)%32].result_=b.toRaw();
     pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_MOV;
     break;
   case SLCode::CMD_CMP:
-    pipeline_[(curCycle_+0)%32].result_=(extA-extB).asUint;
+    pipeline_[(curCycle_+0)%32].result_=(extA-extB).toRaw();
     pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_CMP;
     break;      
   default:
@@ -114,9 +113,8 @@ _MUnit SLArithUnit::comb(const _DecodeEx &decEx)
 
 void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
 {
-  _qfp32_t a,b;
-  a.asUint=decEx.a_;
-  b.asUint=decEx.b_;
+  _qfp32_t a=_qfp32_t::initFromRaw(decEx.a_);
+  _qfp32_t b=_qfp32_t::initFromRaw(decEx.b_);
   
   _qfp32_t extA=a,extB=b;
   
@@ -125,19 +123,19 @@ void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
     switch(decEx.cmd_)
     {
     case SLCode::CMD_ADD:
-      pipeline_[(curCycle_+1)%32].result_=(extA+extB).asUint;
+      pipeline_[(curCycle_+1)%32].result_=(extA+extB).toRaw();
       pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_ADD;
       break;
     case SLCode::CMD_SUB:
-      pipeline_[(curCycle_+1)%32].result_=(extA-extB).asUint;
+      pipeline_[(curCycle_+1)%32].result_=(extA-extB).toRaw();
       pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_SUB;
       break;
     case SLCode::CMD_MUL:
-      pipeline_[(curCycle_+1)%32].result_=(a*b).asUint;
+      pipeline_[(curCycle_+1)%32].result_=(a*b).toRaw();
       pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_MUL;
       break;
     case SLCode::CMD_DIV:
-      pipeline_[(curCycle_+30)%32].result_=(a/b).asUint;
+      pipeline_[(curCycle_+30)%32].result_=(a/b).toRaw();
       pipeline_[(curCycle_+30)%32].cmd_=SLCode::CMD_DIV;
       break;
     //case SLCode::CMD_MAC:

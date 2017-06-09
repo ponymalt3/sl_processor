@@ -15,19 +15,19 @@ MTEST(TestGotoAbs,test_that_goto_with_abs_addr_works)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
     //jump
-    SLCode::Load::create1(target.asUint),
+    SLCode::Load::create1(target.toRaw()),
     SLCode::Goto::create(),
     
     //should be skipped
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,true),
     
     //target
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
     
     0xFFFF,
@@ -41,7 +41,7 @@ MTEST(TestGotoAbs,test_that_goto_with_abs_addr_works)
   
   proc.run(11);
   
-  EXPECT(proc.readMemory(ad0) == value2.asUint);
+  EXPECT(proc.readMemory(ad0) == value2.toRaw());
 }
 
 MTEST(TestGotoAbs,test_that_goto_flushes_pipeline_and_prevent_addr_inc)
@@ -54,18 +54,18 @@ MTEST(TestGotoAbs,test_that_goto_flushes_pipeline_and_prevent_addr_inc)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
     //jump
-    SLCode::Load::create1(target.asUint),
+    SLCode::Load::create1(target.toRaw()),
     SLCode::Goto::create(),
     
     //should be skipped
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,true),
     
     //target
-    SLCode::Load::create1(value2.asUint),
+    SLCode::Load::create1(value2.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
     
     0xFFFF,
@@ -79,5 +79,5 @@ MTEST(TestGotoAbs,test_that_goto_flushes_pipeline_and_prevent_addr_inc)
   
   proc.run(10);
   
-  EXPECT(proc.readMemory(ad0) == value2.asUint);
+  EXPECT(proc.readMemory(ad0) == value2.toRaw());
 }

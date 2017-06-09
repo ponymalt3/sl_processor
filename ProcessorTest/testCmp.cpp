@@ -12,7 +12,7 @@ MTEST(TestCmp,testEqualExpectTrue)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -22,12 +22,12 @@ MTEST(TestCmp,testEqualExpectTrue)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
   
-  EXPECT(proc.readMemory(10) == value.asUint);
+  EXPECT(proc.readMemory(10) == value.toRaw());
 }
 
 MTEST(TestCmp,testEqualExpectFalse)
@@ -37,7 +37,7 @@ MTEST(TestCmp,testEqualExpectFalse)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -47,7 +47,7 @@ MTEST(TestCmp,testEqualExpectFalse)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
@@ -62,7 +62,7 @@ MTEST(TestCmp,testNotEqualExpectTrue)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_NEQ),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -72,12 +72,12 @@ MTEST(TestCmp,testNotEqualExpectTrue)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
   
-  EXPECT(proc.readMemory(10) == value.asUint);
+  EXPECT(proc.readMemory(10) == value.toRaw());
 }
 
 MTEST(TestCmp,testNotEqualExpectFalse)
@@ -87,7 +87,7 @@ MTEST(TestCmp,testNotEqualExpectFalse)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_NEQ),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -97,7 +97,7 @@ MTEST(TestCmp,testNotEqualExpectFalse)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
@@ -112,7 +112,7 @@ MTEST(TestCmp,testLessEqualExpectTrue)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_LE),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -122,12 +122,12 @@ MTEST(TestCmp,testLessEqualExpectTrue)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
   
-  EXPECT(proc.readMemory(10) == value.asUint);
+  EXPECT(proc.readMemory(10) == value.toRaw());
 }
 
 MTEST(TestCmp,testLessEqualWithBothOperandsEqualExpectTrue)
@@ -137,7 +137,7 @@ MTEST(TestCmp,testLessEqualWithBothOperandsEqualExpectTrue)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_LE),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -147,12 +147,12 @@ MTEST(TestCmp,testLessEqualWithBothOperandsEqualExpectTrue)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
   
-  EXPECT(proc.readMemory(10) == value.asUint);
+  EXPECT(proc.readMemory(10) == value.toRaw());
 }
 
 MTEST(TestCmp,testLessEqualExpectFalse)
@@ -162,7 +162,7 @@ MTEST(TestCmp,testLessEqualExpectFalse)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_LE),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -172,7 +172,7 @@ MTEST(TestCmp,testLessEqualExpectFalse)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
@@ -187,7 +187,7 @@ MTEST(TestCmp,testLessThanExpectTrue)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_LT),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -197,12 +197,12 @@ MTEST(TestCmp,testLessThanExpectTrue)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
   
-  EXPECT(proc.readMemory(10) == value.asUint);
+  EXPECT(proc.readMemory(10) == value.toRaw());
 }
 
 MTEST(TestCmp,testLessThanWithBothOperandsEqualExpectFalse)
@@ -212,7 +212,7 @@ MTEST(TestCmp,testLessThanWithBothOperandsEqualExpectFalse)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_LT),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -222,7 +222,7 @@ MTEST(TestCmp,testLessThanWithBothOperandsEqualExpectFalse)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
@@ -237,7 +237,7 @@ MTEST(TestCmp,testLessThanExpectFalse)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_LT),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
     0xFFFF,
@@ -247,7 +247,7 @@ MTEST(TestCmp,testLessThanExpectFalse)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(10,0);
   
   proc.run(5);
@@ -264,16 +264,16 @@ MTEST(TestCmp,testBlockAddrIncIfCondNotMet)
   uint32_t code[]=
   {
     //load ad0
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES,0,0),
     
     //cmp
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Cmp::create(5,SLCode::CmpMode::CMP_EQ),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,1),
     
     //write different value
-    SLCode::Load::create1(compare.asUint),
+    SLCode::Load::create1(compare.toRaw()),
     SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,0),
     0xFFFF,
     0xFFFF,
@@ -282,11 +282,11 @@ MTEST(TestCmp,testBlockAddrIncIfCondNotMet)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,compare.asUint);
+  proc.writeMemory(5,compare.toRaw());
   proc.writeMemory(11,0);
   
   proc.run(9);
   
-  EXPECT(proc.readMemory(10) == compare.asUint);
+  EXPECT(proc.readMemory(10) == compare.toRaw());
   EXPECT(proc.readMemory(11) == 0);//no write
 }

@@ -244,7 +244,7 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
   if(b.type_ == _Operand::TY_VALUE || b.isArrayBaseAddr())
   {
     //qfp32 value=b.value_;
-    uint32_t constData=b.value_.toUint32();
+    uint32_t constData=b.value_.toRealQfp32().toRaw();
 
     uint32_t symRef=NoRef;
 

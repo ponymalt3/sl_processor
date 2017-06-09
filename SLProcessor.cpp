@@ -518,10 +518,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
     }
   }
   
-  _qfp32_t a;
-  a.asUint=decEx_.b_;//data;
-
-  exec.intResult_=(int32_t)(a.abs());
+  exec.intResult_=(int32_t)(_qfp32_t::initFromRaw(decEx_.b_).abs());
 
   exec.execNext_=1;
 
@@ -597,8 +594,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   //register write (in EXEC stage)
   if(enable_(_State::S_EXEC) && decEx_.wbEn_)
   {
-    _qfp32_t a;
-    a.asUint=state_.result_;
+    _qfp32_t a=_qfp32_t::initFromRaw(state_.result_);
     //a.asUint=decEx_.writeDataSel_?decEx_.a_:decEx_.b_;
     int32_t test=(int32_t)(a.abs());
     switch(decEx_.wbReg_)

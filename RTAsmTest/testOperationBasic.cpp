@@ -18,7 +18,7 @@ MTEST(testOperationsBasic,test_that_const_const_operation_works)
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_const_var_operation_works)
@@ -35,7 +35,7 @@ MTEST(testOperationsBasic,test_that_const_var_operation_works)
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_var_ref_operation_works)
@@ -49,13 +49,13 @@ MTEST(testOperationsBasic,test_that_var_ref_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(4,qfp32_t(5).asUint);
+  tester.getProcessor().writeMemory(4,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
   
   qfp32_t expect=qfp32_t(4)/qfp32_t(5); 
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_ref_const_sym_operation_works)
@@ -69,13 +69,13 @@ MTEST(testOperationsBasic,test_that_ref_const_sym_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(4,qfp32_t(4).asUint);
+  tester.getProcessor().writeMemory(4,qfp32_t(4).toRaw());
 
   tester.loadCode();
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
 }
 
 
@@ -96,13 +96,13 @@ MTEST(testOperationsBasic,test_that_const_ad0_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(5,qfp32_t(5).asUint);
+  tester.getProcessor().writeMemory(5,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_const_ad0_with_inc_operation_works)
@@ -117,14 +117,14 @@ MTEST(testOperationsBasic,test_that_const_ad0_with_inc_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(5,qfp32_t(5).asUint);
+  tester.getProcessor().writeMemory(5,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
-  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(6).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(6).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_ad0_ad1_operation_works)
@@ -140,16 +140,16 @@ MTEST(testOperationsBasic,test_that_ad0_ad1_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(5,qfp32_t(4).asUint);
-  tester.getProcessor().writeMemory(8,qfp32_t(5).asUint);
+  tester.getProcessor().writeMemory(5,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(8,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
   
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
-  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(30).asUint);
-  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(31).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
+  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(30).toRaw());
+  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(31).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_ad0_with_inc_ad1_operation_works)
@@ -165,16 +165,16 @@ MTEST(testOperationsBasic,test_that_ad0_with_inc_ad1_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(5,qfp32_t(4).asUint);
-  tester.getProcessor().writeMemory(8,qfp32_t(5).asUint);
+  tester.getProcessor().writeMemory(5,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(8,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
   
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
-  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(30).asUint);
-  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(31).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(30).toRaw());
+  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(31).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_ad0_ad1_with_inc_operation_works)
@@ -190,16 +190,16 @@ MTEST(testOperationsBasic,test_that_ad0_ad1_with_inc_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(5,qfp32_t(4).asUint);
-  tester.getProcessor().writeMemory(8,qfp32_t(5).asUint);
+  tester.getProcessor().writeMemory(5,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(8,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
-  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(30).asUint);
-  EXPECT(tester.getProcessor().readMemory(9) == qfp32_t(31).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
+  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(30).toRaw());
+  EXPECT(tester.getProcessor().readMemory(9) == qfp32_t(31).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_ad0_with_inc_ad1_with_inc_operation_works)
@@ -215,16 +215,16 @@ MTEST(testOperationsBasic,test_that_ad0_with_inc_ad1_with_inc_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(5,qfp32_t(4).asUint);
-  tester.getProcessor().writeMemory(8,qfp32_t(5).asUint);
+  tester.getProcessor().writeMemory(5,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(8,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
-  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(30).asUint);
-  EXPECT(tester.getProcessor().readMemory(9) == qfp32_t(31).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(30).toRaw());
+  EXPECT(tester.getProcessor().readMemory(9) == qfp32_t(31).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_ad1_ad0_with_inc_operation_works)
@@ -240,16 +240,16 @@ MTEST(testOperationsBasic,test_that_ad1_ad0_with_inc_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(5,qfp32_t(5).asUint);
-  tester.getProcessor().writeMemory(8,qfp32_t(4).asUint);
+  tester.getProcessor().writeMemory(5,qfp32_t(5).toRaw());
+  tester.getProcessor().writeMemory(8,qfp32_t(4).toRaw());
 
   tester.loadCode();
   tester.execute();
    
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.asUint);
-  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(30).asUint);
-  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(31).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw());
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(30).toRaw());
+  EXPECT(tester.getProcessor().readMemory(8) == qfp32_t(31).toRaw());
 }
 
 
@@ -274,7 +274,7 @@ MTEST(testOperationsBasic,test_that_var_var_addition_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(9).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(9).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_var_var_substraction_works)
@@ -291,7 +291,7 @@ MTEST(testOperationsBasic,test_that_var_var_substraction_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(-1).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(-1).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_var_var_multiplication_works)
@@ -308,7 +308,7 @@ MTEST(testOperationsBasic,test_that_var_var_multiplication_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(20).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(20).toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_var_var_division_works)
@@ -326,7 +326,7 @@ MTEST(testOperationsBasic,test_that_var_var_division_works)
   tester.execute();
   
   qfp32_t expect=qfp32_t(4)/qfp32_t(5);   
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == expect.asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == expect.toRaw());
 }
 
 MTEST(testOperationsBasic,test_that_var_negate_works)
@@ -342,5 +342,5 @@ MTEST(testOperationsBasic,test_that_var_negate_works)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(-4).asUint);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(-4).toRaw());
 }

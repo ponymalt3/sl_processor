@@ -13,14 +13,14 @@ MTEST(TestIRS,test_that_irs_addr_is_changed)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,offset),
     
     //change irs
-    SLCode::Load::create1(irs.asUint),
+    SLCode::Load::create1(irs.toRaw()),
     SLCode::Mov::create(SLCode::REG_IRS,SLCode::REG_RES,0,0),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,offset),
     
     0xFFFF,
@@ -35,8 +35,8 @@ MTEST(TestIRS,test_that_irs_addr_is_changed)
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(offset) == value.asUint);
-  EXPECT(proc.readMemory(irs+offset) == value.asUint);
+  EXPECT(proc.readMemory(offset) == value.toRaw());
+  EXPECT(proc.readMemory(irs+offset) == value.toRaw());
 }
 
 MTEST(TestIRS,test_that_irs_addr_is_changed_with_big_value)
@@ -47,14 +47,14 @@ MTEST(TestIRS,test_that_irs_addr_is_changed_with_big_value)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,offset),
     
     //change irs
-    SLCode::Load::create1(irs.asUint),
+    SLCode::Load::create1(irs.toRaw()),
     SLCode::Mov::create(SLCode::REG_IRS,SLCode::REG_RES,0,0),
     
-    SLCode::Load::create1(value.asUint),
+    SLCode::Load::create1(value.toRaw()),
     SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,offset),
     
     0xFFFF,
@@ -69,8 +69,8 @@ MTEST(TestIRS,test_that_irs_addr_is_changed_with_big_value)
   
   proc.run(8);
   
-  EXPECT(proc.readMemory(offset) == value.asUint);
-  EXPECT(proc.readMemory(irs+offset) == value.asUint);
+  EXPECT(proc.readMemory(offset) == value.toRaw());
+  EXPECT(proc.readMemory(irs+offset) == value.toRaw());
 }
 
 MTEST(TestIRS,test_that_irs_access_after_irs_changed_is_stalled)
@@ -82,11 +82,11 @@ MTEST(TestIRS,test_that_irs_access_after_irs_changed_is_stalled)
   
   uint32_t code[]=
   {
-    SLCode::Load::create1(ad0.asUint),
+    SLCode::Load::create1(ad0.toRaw()),
     SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
     
     //change irs
-    SLCode::Load::create1(irs.asUint),
+    SLCode::Load::create1(irs.toRaw()),
     SLCode::Mov::create(SLCode::REG_IRS,SLCode::REG_RES),
     
     //instr  must stall cause irs reg is used
@@ -100,10 +100,10 @@ MTEST(TestIRS,test_that_irs_access_after_irs_changed_is_stalled)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(offset,(value/qfp32_t(2)).asUint);
-  proc.writeMemory(irs+offset,value.asUint);
+  proc.writeMemory(offset,(value/qfp32_t(2)).toRaw());
+  proc.writeMemory(irs+offset,value.toRaw());
   
   proc.run(9);
   
-  EXPECT(proc.readMemory(ad0) == value.asUint);
+  EXPECT(proc.readMemory(ad0) == value.toRaw());
 }
