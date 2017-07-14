@@ -213,6 +213,29 @@ protected:
     {
       return (code_^SLCode::Load::Code)>>(16-SLCode::Load::Bits) == 0;
     }
+    
+    static qfp32_t restoreValueFromLoad(_Instr a,_Instr b={0,0},_Instr c={0,0})
+    {
+      if((a.code_&0xF000) == 0xB000)
+      {
+        uint32_t raw=((a.code_&0x7FF)<<19) + ((a.code_&0x800)<<20);
+        
+        if((b.code_&0xF000) == 0xB000)
+        {
+          raw+=((b.code_&0x7FF)<<8);
+          raw+=((b.code_&0x800)<<19);
+          
+          if((c.code_&0xF000) == 0xB000)
+          {
+            raw+=(c.code_&0x0FF);
+          }
+        }
+        
+        return qfp32_t::initFromRaw(raw);
+      }
+      
+      return qfp32_t(0);
+    }
 
     void patchIrsOffset(uint32_t irsOffset);
     void patchConstant(uint32_t value,bool patch2ndWord);
