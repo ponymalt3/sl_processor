@@ -296,12 +296,7 @@ Token Stream::readToken()
   if(sym.getLength() == 8 && sym == "continue")
     return Token(sym,Token::TOK_CONT);
 
-  uint32_t index=0xFFFF;
-  if(peek() == '(')//array access
   {
-    read();
-    index=readInt(false).value_;
-    Error::expect(read() == ')') << (*this) << "missing ')'";
   }
 
   return Token(sym,Token::TOK_NAME,0xFFFF);
