@@ -85,7 +85,9 @@ public:
 
     _Operand allocate();
     _Operand preloadConstValue(qfp32 value);
-
+    void preloadCode(uint32_t codeAddr,uint32_t size);
+    _Operand getArrayBaseOffset();
+    
   protected:
     uint32_t getSymbolReference() const { return symbolRef_; }
 

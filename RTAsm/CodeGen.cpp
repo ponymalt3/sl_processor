@@ -71,9 +71,22 @@ _Operand CodeGen::TmpStorage::preloadConstValue(qfp32 value)
   _Operand op=allocate();
   codeGen_.instrMov(op,_Operand(value));
 
-  codeGen_.moveCodeBlock(codeBlockStart,codeGen_.getCurCodeAddr()-codeBlockStart,blockBegin_);
+  uint32_t blockSize=codeGen_.getCurCodeAddr()-codeBlockStart;
+  codeGen_.moveCodeBlock(codeBlockStart,blockSize,blockBegin_);
+  blockBegin_+=blockSize;
   
   return op;
+}
+
+void CodeGen::TmpStorage::preloadCode(uint32_t codeAddr,uint32_t size)
+{
+  codeGen_.moveCodeBlock(codeAddr,size,blockBegin_);
+  blockBegin_+=size;
+}
+
+_Operand CodeGen::TmpStorage::getArrayBaseOffset()
+{
+  return _Operand::createSymAccess(symbolRef_,0xFFFF);
 }
 
 CodeGen::_LoopFrame::_LoopFrame()
