@@ -14,7 +14,7 @@ public:
   
 protected:
   uint32_t guard0_;
-  BuddyAlloc<9> testee_;
+  BuddyAlloc testee_;
   uint32_t guard1_;
 };
 
