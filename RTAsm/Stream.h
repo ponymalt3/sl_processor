@@ -52,6 +52,7 @@ public:
 
     uint32_t getOffset() const { return offset_; }
     uint32_t getLength() const { return length_; }
+    const char* getBase() const { return base_; }
 
   protected:
     const char *base_;
@@ -81,6 +82,7 @@ public:
   String readSymbol();
   Token readToken();
   String createStringFromToken(uint32_t offset,uint32_t length) const;
+  String createStringFromToken(const char *base,uint32_t length) const;
 
   void markPos();
   void restorePos();

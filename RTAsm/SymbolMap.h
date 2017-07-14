@@ -24,7 +24,7 @@ public:
     void updateLastAccess(uint32_t codeAddr) { lastAccess_=codeAddr; }
     void changeArraySize(uint32_t size);
 
-    uint16_t strOffset_;
+    const char *customStr_;
     uint16_t strLength_ : 8;
     uint16_t flagAllocated_ : 1;
     uint16_t flagConst_ : 1;

@@ -10,7 +10,7 @@
 
 SymbolMap::_Symbol::_Symbol()
 {
-  strOffset_=0;
+  customStr_=0;
   strLength_=0;
   flagAllocated_=0;
   flagConst_=0;
@@ -26,7 +26,7 @@ SymbolMap::_Symbol::_Symbol()
 
 SymbolMap::_Symbol::_Symbol(const Stream::String &str)
 {
-  strOffset_=str.getOffset();
+  customStr_=str.getBase()+str.getOffset();
   strLength_=str.getLength();
   flagAllocated_=0;
   flagConst_=0;
@@ -171,7 +171,7 @@ uint32_t SymbolMap::findSymbol(const Stream::String &str,uint32_t hashIndex)
   uint32_t cur=hashTable_[hashIndex&0xFF];
   while(cur != InvalidLink)
   {
-    if(stream_.createStringFromToken(symbols_[cur].strOffset_,symbols_[cur].strLength_) == str)
+    if(stream_.createStringFromToken(symbols_[cur].customStr_,symbols_[cur].strLength_) == str)
       return cur;
 
     cur=symbols_[cur].link_;
