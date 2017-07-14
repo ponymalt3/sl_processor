@@ -640,15 +640,44 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
     instrs_[getCurCodeAddr()+i]=instrs_[startAddr+i];
   }
   
+  uint32_t j=0;
   for(int32_t i=startAddr-1;i>=(int32_t)targetAddr;--i)
   {
     instrs_[i+size]=instrs_[i];
     Error::expect(instrs_[i].isGoto() == false) << "cant move goto instruction";
+    Error::expect(instrs_[i].isLoadAddr() == false || instrs_[i].symRef_ != 65534) << "cant move load code addr instruction";
   }
   
-  for(uint32_t i=0;i<size;++i)
+  for(uint32_t i=0;i<size;)
   {
     instrs_[targetAddr+i]=instrs_[getCurCodeAddr()+i];
     Error::expect(instrs_[targetAddr+i].isGoto() == false) << "cant move goto instruction";
+    
+    if(instrs_[i].isLoadAddr() && instrs_[i].symRef_ == 65534)
+    {
+      bool load2=(i+1)<size && instrs_[i+1].isLoadAddr();
+      bool load3=(i+2)<size && instrs_[i+2].isLoadAddr();
+      
+      qfp32_t v=_Instr::restoreValueFromLoad(instrs_[i],
+                                             load2?instrs_[i+1]:_Instr({0,0}),
+                                             load3?instrs_[i+2]:_Instr({0,0}));
+      
+      v=v-int32_t(startAddr-targetAddr);
+      
+      instrs_[i].patchConstant(v.toRaw(),false);
+      
+      if(load2)
+      {
+        ++i;
+        instrs_[i].patchConstant(v.toRaw(),true);
+      }
+      
+      if(load3)
+      {
+        ++i;
+      }
+    }
+    
+    ++i;
   }
 }
