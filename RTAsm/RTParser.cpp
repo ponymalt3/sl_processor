@@ -26,7 +26,7 @@ void RTParser::parse(Stream &stream)
   }
 }
 
-_Operand RTParser::parserSymbolOrConstOrMem(Stream &stream)
+_Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &tmpStorage)
 {
   Token token=stream.readToken();
 
@@ -101,7 +101,7 @@ _Operand RTParser::parseExpr(Stream &stream)
 
     stream.restorePos();
 
-    _Operand expr=parserSymbolOrConstOrMem(stream);
+    _Operand expr=parserSymbolOrConstOrMem(stream,tmpStorage);
 
     stream.skipWhiteSpaces();
     ch=stream.peek();

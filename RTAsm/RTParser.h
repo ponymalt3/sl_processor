@@ -81,7 +81,7 @@ public:
 
   void parse(Stream &stream);
 
-  _Operand parserSymbolOrConstOrMem(Stream &stream);
+  _Operand parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &tmpStorage);
   uint32_t operatorPrecedence(char op) const;
   bool isValuePrefix(char ch) const;
   _Operand parseExpr(Stream &stream);
