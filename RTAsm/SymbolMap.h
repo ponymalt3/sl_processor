@@ -30,6 +30,9 @@ public:
     uint16_t flagConst_ : 1;
     uint16_t flagIsArray_ : 1;
     uint16_t flagStayAllocated_ : 1;//memory cant be released (cause there might be references)
+    uint16_t flagsAllocateHighest_ : 1;
+    uint16_t flagsIsFunction_ : 1;
+    uint16_t flagsHasCustomStr_ : 1;
     uint16_t allocatedSize_;
     uint16_t link_;
     union
@@ -48,9 +51,11 @@ public:
   uint32_t findSymbol(const Stream::String &str);
   uint32_t createSymbol(const Stream::String &str,uint32_t size=0);
   uint32_t findOrCreateSymbol(const Stream::String &str,uint32_t size=0);
-  uint32_t createSymbolNoToken(uint32_t size);
+  uint32_t createSymbolNoToken(uint32_t size,bool allocateHighest=false);
   uint32_t createConst(const Stream::String &str,qfp32 value);
   uint32_t createReference(const Stream::String &str,uint32_t irsOffset);
+  
+  uint32_t createFunction(const Stream::String &str,uint32_t addr);
 
   _Symbol& operator[](uint32_t i);
 

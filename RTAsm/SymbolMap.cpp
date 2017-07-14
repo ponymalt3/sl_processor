@@ -16,6 +16,8 @@ SymbolMap::_Symbol::_Symbol()
   flagConst_=0;
   flagIsArray_=0;
   flagStayAllocated_=0;
+  flagsAllocateHighest_=0;
+  flagsIsFunction_=0;
   allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
@@ -30,6 +32,8 @@ SymbolMap::_Symbol::_Symbol(const Stream::String &str)
   flagConst_=0;
   flagIsArray_=0;
   flagStayAllocated_=0;
+  flagsAllocateHighest_=0;
+  flagsIsFunction_=0;
   allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
@@ -77,9 +81,11 @@ uint32_t SymbolMap::findOrCreateSymbol(const Stream::String &str,uint32_t size)
   return insertSymbol(_Symbol(str),hash,size);
 }
 
-uint32_t SymbolMap::createSymbolNoToken(uint32_t size)
+uint32_t SymbolMap::createSymbolNoToken(uint32_t size,bool allocateHighest)
 {
-  return insertSymbol(_Symbol(),0,size);
+  _Symbol s;
+  s.flagsAllocateHighest_=allocateHighest;
+  return insertSymbol(s,0,size);
 }
 
 uint32_t SymbolMap::createConst(const Stream::String &str,qfp32 value)
@@ -107,6 +113,22 @@ uint32_t SymbolMap::createReference(const Stream::String &str,uint32_t irsOffset
    newSym.flagAllocated_=1;
    newSym.flagStayAllocated_=1;
    newSym.allocatedAddr_=irsOffset;
+
+   return insertSymbol(newSym,hash);
+}
+
+uint32_t SymbolMap::createFunction(const Stream::String &str,uint32_t addr)
+{
+  uint32_t hash=str.hash();
+
+  uint32_t i=findSymbol(str,hash);
+  Error::expect(i == InvalidLink) << stream_ << "symbol " << str << " already defined";// << Error::LineNumber(stream_,symbols_[i].strOffset_);
+
+  _Symbol newSym=_Symbol(str);
+   newSym.flagAllocated_=1;
+   newSym.flagStayAllocated_=1;
+   newSym.flagsIsFunction_=1;
+   newSym.allocatedAddr_=addr;
 
    return insertSymbol(newSym,hash);
 }
