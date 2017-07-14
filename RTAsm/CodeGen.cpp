@@ -215,7 +215,9 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
   _Operand b=resolveOperand(opb);
 
   Error::expect(a.type_ != _Operand::TY_VALUE) << stream_ << "cant write constant data";
-  Error::expect(b.type_ != _Operand::TY_IR_ADDR0 && b.type_ != _Operand::TY_IR_ADDR1) << stream_ << "cant read ad0/ad1";
+  Error::expect(b.type_ != _Operand::TY_IR_ADDR0 &&
+                b.type_ != _Operand::TY_IR_ADDR1 &&
+                b.type_ != _Operand::TY_IR_IRS) << stream_ << "cant read ad0/ad1/irs";
 
   bool aIsIRS=a.type_ == _Operand::TY_SYMBOL || a.type_ == _Operand::TY_RESOLVED_SYM;
   bool bIsIRS=b.type_ == _Operand::TY_SYMBOL || b.type_ == _Operand::TY_RESOLVED_SYM;
