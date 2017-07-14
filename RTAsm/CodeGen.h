@@ -19,6 +19,27 @@
 
 #include "../SLCodeDef.h"
 
+template<uint32_t _Size>
+class SymStack
+{
+public:
+  SymStack() { sp_=stack_; }
+
+  void push(SymbolMap &map) { *(sp_++)=&map; }
+  void pop()
+  {
+    if(sp_ > stack_)
+    {
+      --sp_;
+    }
+  }
+  SymbolMap& top() { return *(sp_[-1]); }
+
+protected:
+  SymbolMap *stack_[_Size];
+  SymbolMap **sp_;
+};
+
 class CodeGen : public Error
 {
 public:
@@ -118,14 +139,14 @@ public:
   
   SymbolMap::_Symbol findSymbol(const Stream::String &symbol)
   {
-    uint32_t sym=symbols_.findSymbol(symbol);
+    uint32_t sym=symbolMaps_.top().findSymbol(symbol);
     
     if(sym == SymbolMap::InvalidLink)
     {
       return SymbolMap::_Symbol();
     }
     
-    return symbols_[sym];
+    return symbolMaps_.top()[sym];
   }
 
 protected:
@@ -183,8 +204,10 @@ protected:
 
   uint32_t codeAddr_;
   _Instr instrs_[512];
-  SymbolMap symbols_;
+  SymStack<4> symbolMaps_;
   Stream &stream_;
+  SymbolMap functions_;
+  SymbolMap defaultSymbols_;
 };
 
 #endif /* CODEGEN_H_ */

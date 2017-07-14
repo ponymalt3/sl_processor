@@ -115,15 +115,17 @@ void CodeGen::_Instr::patchGotoTarget(int32_t target)
 
 }
 
-CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),symbols_(stream),stream_(stream)
+CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream),defaultSymbols_(stream)
 {
   usedRefs_=0;
   loopDepth_=0;
   codeAddr_=0;
   labelIdBitMap_=0x7FFFFFFF;
+  
+  symbolMaps_.push(defaultSymbols_);
 
   //allocate first symbol for temp loop storage
-  symbols_.createSymbolNoToken(MaxLoopDepth);
+  symbolMaps_.top().createSymbolNoToken(MaxLoopDepth);
 }
 
 void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage)
@@ -383,17 +385,17 @@ void CodeGen::instrWait()
 void CodeGen::addArrayDeclaration(const Stream::String &str,uint32_t size)
 {
   Error::expect(size > 0) <<"array decl "<<str<<" must be greater than 0";
-  symbols_.createSymbol(str,size);
+  symbolMaps_.top().createSymbol(str,size);
 }
 
 void CodeGen::addDefinition(const Stream::String &str,qfp32 value)
 {
-  symbols_.createConst(str,value);
+  symbolMaps_.top().createConst(str,value);
 }
 
 void CodeGen::addReference(const Stream::String &str,uint32_t irsOffset)
 {
-  symbols_.createReference(str,irsOffset);
+  symbolMaps_.top().createReference(str,irsOffset);
 }
 
 void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand &counter)
@@ -463,14 +465,14 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
   if(op.type_ == _Operand::TY_SYMBOL)
   {
     Stream::String name=stream_.createStringFromToken(op.offset_,op.length_);
-    uint32_t symRef=symbols_.findSymbol(name);
+    uint32_t symRef=symbolMaps_.top().findSymbol(name);
 
     if(createSymIfNotExists && symRef == SymbolMap::InvalidLink)
-      symRef=symbols_.createSymbol(name,0);//single element
+      symRef=symbolMaps_.top().createSymbol(name,0);//single element
 
     Error::expect(symRef != SymbolMap::InvalidLink) << "symbol " << name << " not found" << ErrorHandler::FATAL;
 
-    SymbolMap::_Symbol &symInf=symbols_[symRef];
+    SymbolMap::_Symbol &symInf=symbolMaps_.top()[symRef];
 
     if(symInf.flagConst_)//is const
       return _Operand(symInf.constValue_);
@@ -543,7 +545,7 @@ SLCode::Command CodeGen::translateOperation(char op)
 
 uint32_t CodeGen::allocateTmpStorage()
 {
-  return symbols_.createSymbolNoToken(1);
+  return symbolMaps_.top().createSymbolNoToken(1,true);
 }
 
 uint32_t CodeGen::getLabelId()
@@ -582,7 +584,7 @@ void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
 
 void CodeGen::changeStorageSize(const TmpStorage &storage,uint32_t size)
 {
-  symbols_[storage.getSymbolReference()].changeArraySize(size);
+  symbolMaps_.top()[storage.getSymbolReference()].changeArraySize(size);
 }
 
 void CodeGen::writeCode(uint32_t code,uint32_t ref)
@@ -593,7 +595,7 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
   instrs_[codeAddr_].symRef_=ref;
 
   if(ref != NoRef && !instrs_[codeAddr_].isGoto())
-    symbols_[ref].updateLastAccess(getCurCodeAddr());
+    symbolMaps_.top()[ref].updateLastAccess(getCurCodeAddr());
 
   ++codeAddr_;
 }
