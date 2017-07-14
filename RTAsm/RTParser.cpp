@@ -40,8 +40,16 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream)
     return _Operand::createLoopIndex(token.getIndex());
 
   Error::expect(token.getType() == Token::TOK_NAME) << stream << "unexpected token " << token.getName(stream);
+  
+  uint32_t index=0xFFFF;
+  if(stream.skipWhiteSpaces().peek() == '(')
+  {
+    stream.read();
+    index=stream.readInt(false).value_;
+    Error::expect(stream.read() == ')') << (stream) << "missing ')'";
+  }
 
-  return _Operand::createSymbol(token.getName(stream),token.getIndex());
+  return _Operand::createSymbol(token.getName(stream),index);
 }
 
 uint32_t RTParser::operatorPrecedence(char op) const
@@ -379,12 +387,25 @@ bool RTParser::parseStatement(Stream &stream)
     Error::expect(stream.skipWhiteSpaces().read() == '=') << stream << "expect '=' operator";
 
     _Operand op;
+    
+    if(token.getType() == Token::TOK_NAME)
+    {
+      
+      uint32_t index=0xFFFF;
+      if(stream.skipWhiteSpaces().peek() == '(')
+      {
+        stream.read();
+        index=stream.readInt(false).value_;
+        Error::expect(stream.read() == ')') << (stream) << "missing ')'";
+      }
+      
+      op=_Operand::createSymbol(token.getName(stream),index);
+    }
+      
     if(token.getType() == Token::TOK_REGA)
       op=_Operand::createInternalReg(token.getIndex()?_Operand::TY_IR_ADDR1:_Operand::TY_IR_ADDR0);
     if(token.getType() == Token::TOK_MEM)
       op=_Operand::createMemAccess(token.getIndex(),token.getAddrInc());
-    if(token.getType() == Token::TOK_NAME)
-      op=_Operand::createSymbol(token.getName(stream),token.getIndex());
 
     Error::expect(op.type_ != _Operand::TY_INVALID) << stream << "invalid left hand side for assignment " << (token.getName(stream));
 

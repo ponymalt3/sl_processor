@@ -304,7 +304,7 @@ Token Stream::readToken()
     Error::expect(read() == ')') << (*this) << "missing ')'";
   }
 
-  return Token(sym,Token::TOK_NAME,index);
+  return Token(sym,Token::TOK_NAME,0xFFFF);
 }
 
 Stream::String Stream::createStringFromToken(uint32_t offset,uint32_t length) const
