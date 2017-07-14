@@ -14,8 +14,8 @@
 
 struct _Operand
 {
-  enum Type {TY_INVALID,TY_VALUE,TY_MEM,TY_SYMBOL,TY_RESULT,TY_INDEX,TY_IR_LOOP,TY_IR_ADDR0,TY_IR_ADDR1,TY_RESOLVED_SYM};
-  enum InternalReg {IR_ADR0,IR_ADR1,IR_LOOP};
+  enum Type {TY_INVALID,TY_VALUE,TY_MEM,TY_SYMBOL,TY_RESULT,TY_INDEX,TY_IR_IRS,TY_IR_ADDR0,TY_IR_ADDR1,TY_RESOLVED_SYM};
+  enum InternalReg {IR_ADR0,IR_ADR1,IR_IRS};
 
   _Operand(uint32_t regaIndex,bool addrInc)
   {
@@ -84,8 +84,8 @@ struct _Operand
   }
 
   bool isResult() const { return type_ == TY_RESULT; }
-  bool isArrayBaseAddr() const { return type_ == TY_RESOLVED_SYM && index_ == 0xFFFF; }
-  bool isInternalReg() const { return type_ == TY_IR_LOOP || type_ == TY_IR_ADDR0 || type_ == TY_IR_ADDR1; }
+  bool isArrayBaseAddr() const { return type_ == TY_RESOLVED_SYM && arrayOffset_ == 0xFFFF; }
+  bool isInternalReg() const { return type_ == TY_IR_IRS || type_ == TY_IR_ADDR0 || type_ == TY_IR_ADDR1; }
 
   uint16_t type_;
   union
