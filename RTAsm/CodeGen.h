@@ -109,42 +109,7 @@ public:
   void createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand &counter);
   void removeLoopFrame();
 
-  template<const uint32_t size>
-  void storageAllocationPass(uint32_t numParams)
-  {
-    BuddyAlloc<9> allocator(0,size);
-    
-    if(numParams > 0)
-    {
-      allocator.allocate(numParams);//reserve space for parameter
-    }
-
-    Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << ErrorHandler::FATAL;
-
-    for(uint32_t i=0;i<codeAddr_;++i)
-    {
-      if(instrs_[i].isIrsInstr())
-      {
-        SymbolMap::_Symbol &symInf=symbols_[instrs_[i].symRef_];
-
-        //alloc storage if not already
-        if(!symInf.flagAllocated_)
-        {
-          symInf.flagAllocated_=1;
-          symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_);
-        }
-
-        instrs_[i].patchIrsOffset(symInf.allocatedAddr_);
-
-        //release storage
-        if(symInf.lastAccess_ == i && symInf.flagAllocated_ && !symInf.flagStayAllocated_)
-        {
-          symInf.flagAllocated_=0;
-          allocator.release(symInf.allocatedAddr_,symInf.allocatedSize_);
-        }
-      }
-    }
-  }
+  void storageAllocationPass(uint32_t size,uint32_t numParams);
   
   uint16_t getCodeAt(uint32_t addr)
   {

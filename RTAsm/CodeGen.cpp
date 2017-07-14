@@ -420,6 +420,44 @@ void CodeGen::removeLoopFrame()
   //instrMov(loopReg,irsStorage);
 }
 
+void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
+{
+  BuddyAlloc allocator(0,size);
+  
+  uint32_t x=allocator.allocate(4+numParams);//reserve space for parameter
+
+  Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << ErrorHandler::FATAL;
+
+  for(uint32_t i=0;i<codeAddr_;++i)
+  {
+    if(instrs_[i].symRef_ != SymbolMap::InvalidLink && instrs_[i].symRef_ < 0xFFC0)
+    {
+      SymbolMap::_Symbol &symInf=symbolMaps_.top()[instrs_[i].symRef_];
+      
+      //mark as patched
+      instrs_[i].symRef_=SymbolMap::InvalidLink;
+
+      //alloc storage if not already
+      if(!symInf.flagAllocated_)
+      {
+        symInf.flagAllocated_=1;
+        symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_);
+      }
+      
+      if(instrs_[i].isIrsInstr())
+      {
+        instrs_[i].patchIrsOffset(symInf.allocatedAddr_);
+      }
+
+      //release storage
+      if(symInf.lastAccess_ == i && symInf.flagAllocated_ && !symInf.flagStayAllocated_)
+      {
+        symInf.flagAllocated_=0;
+        allocator.release(symInf.allocatedAddr_,symInf.allocatedSize_);
+      }
+    }
+  }
+}
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 {
   if(op.type_ == _Operand::TY_SYMBOL)
