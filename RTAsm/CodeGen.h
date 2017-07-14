@@ -150,6 +150,31 @@ public:
     
     return symbolMaps_.top()[sym];
   }
+  
+  uint32_t findSymbolAsLink(const Stream::String &symbol)
+  {
+    return symbolMaps_.top().findSymbol(symbol);
+  }
+  
+  SymbolMap::_Symbol findFunction(const Stream::String &symbol)
+  {
+    uint32_t sym=functions_.findSymbol(symbol);
+    
+    if(sym == SymbolMap::InvalidLink)
+    {
+      return SymbolMap::_Symbol();
+    }
+    
+    return functions_[sym];
+  }
+  
+  void addFunctionAtCurrentAddr(const Stream::String &symbol,uint32_t parameters)
+  {
+    functions_.createFunction(symbol,getCurCodeAddr());
+  }
+  
+  void pushSymbolMap(SymbolMap &currentSymbolMap);
+  void popSymbolMap();
 
 protected:
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);

@@ -472,6 +472,17 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
     }
   }
 }
+
+void CodeGen::pushSymbolMap(SymbolMap &currentSymbolMap)
+{
+  symbolMaps_.push(currentSymbolMap);
+}
+
+void CodeGen::popSymbolMap()
+{
+  symbolMaps_.pop();
+}
+
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 {
   if(op.type_ == _Operand::TY_SYMBOL)
