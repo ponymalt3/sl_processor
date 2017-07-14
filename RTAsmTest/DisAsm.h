@@ -46,6 +46,11 @@ public:
         result+=s + "\n";
         continue;
       }
+      if(code[i] == 0xFFFF)
+      {
+        result+="nop\n";
+        continue;
+      }
       
       result+="invalid\n";
     }
@@ -92,7 +97,18 @@ public:
     
     if((code&0xFF80) == 0xF000)
     {
-      return wbRegToString((code>>5)&3) + " = [a" + valueToString(code&4) + ((code&0x10)?"++]":"]");
+      std::string s=wbRegToString((code>>5)&3);
+      
+      if(((code>>1)&1) == SLCode::MUX1_RESULT)
+      {
+        s+=" = result";
+      }
+      else
+      {
+        s+=" = [a" + valueToString((code>>2)&1) + ((code&0x10)?"++]":"]");
+      }
+      
+      return s;
     }
     
     if((code&0xFF80) == 0xF080)
@@ -179,10 +195,15 @@ public:
   
   static std::string gotoInstrToString(uint16_t code,uint32_t addr)
   {
-    if((code&0xF000) == 0xA000)
+    if((code&0xF001) == 0xA001)
     {
       int32_t jmp=(code>>2)&0x1FF;      
       return std::string() + "goto " + valueToString(addr+jmp*(((code>>2)&0x200)?-1:1)); 
+    }
+    
+    if((code&0xF001) == 0xA000)
+    {     
+      return std::string() + "goto result"; 
     }
     
     return "invalid";
