@@ -534,6 +534,7 @@ SLCode::Operand CodeGen::translateOperand(_Operand op)
     case _Operand::TY_RESULT: return SLCode::Operand::REG_RES;
     case _Operand::TY_IR_ADDR0: return SLCode::Operand::REG_AD0;
     case _Operand::TY_IR_ADDR1: return SLCode::Operand::REG_AD1;
+    case _Operand::TY_IR_IRS: return SLCode::Operand::REG_IRS;
     case _Operand::TY_RESOLVED_SYM: return SLCode::Operand::IRS;
     case _Operand::TY_MEM:
       if(op.regaIndex_ == _Operand::IR_ADR0)
