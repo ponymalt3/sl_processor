@@ -117,6 +117,7 @@ public:
   void instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage);
   void instrSignal(uint32_t target);
   void instrWait();
+  void instrNop();
 
   void addArrayDeclaration(const Stream::String &str,uint32_t size);
   void addDefinition(const Stream::String &str,qfp32 value);

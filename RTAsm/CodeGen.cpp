@@ -384,6 +384,11 @@ void CodeGen::instrWait()
   writeCode(0);
 }
 
+void CodeGen::instrNop()
+{
+  writeCode(0xFFFF);
+}
+
 void CodeGen::addArrayDeclaration(const Stream::String &str,uint32_t size)
 {
   Error::expect(size > 0) <<"array decl "<<str<<" must be greater than 0";
