@@ -334,6 +334,11 @@ void CodeGen::instrGoto(const Label &label)
   writeCode(SLCode::Goto::create(0,false),label.getLabelReference());
 }
 
+void CodeGen::instrGoto2()
+{
+  writeCode(SLCode::Goto::create());
+}
+
 void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage)
 {
   _Operand a=resolveOperand(opa);

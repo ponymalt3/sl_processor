@@ -114,6 +114,7 @@ public:
   void instrBreak();
   void instrContinue();
   void instrGoto(const Label &label);
+  void instrGoto2();
   void instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage);
   void instrSignal(uint32_t target);
   void instrWait();
@@ -169,7 +170,7 @@ protected:
   {
     bool isGoto() const
     {
-      return (code_^SLCode::Goto::Code)>>(16-SLCode::Goto::Bits) == 0;
+      return (code_^SLCode::Goto::Code)>>(16-SLCode::Goto::Bits) == 0 && (code_&1) == 1;
     }
     
     bool isIrsInstr() const
