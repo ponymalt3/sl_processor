@@ -384,8 +384,6 @@ bool RTParser::parseStatement(Stream &stream)
   case Token::TOK_MEM:
   case Token::TOK_NAME:
   {
-    Error::expect(stream.skipWhiteSpaces().read() == '=') << stream << "expect '=' operator";
-
     _Operand op;
     
     if(token.getType() == Token::TOK_NAME)
@@ -408,7 +406,8 @@ bool RTParser::parseStatement(Stream &stream)
       op=_Operand::createMemAccess(token.getIndex(),token.getAddrInc());
 
     Error::expect(op.type_ != _Operand::TY_INVALID) << stream << "invalid left hand side for assignment " << (token.getName(stream));
-
+    Error::expect(stream.skipWhiteSpaces().read() == '=') << stream << "expect '=' operator";
+  
     _Operand opExp=parseExpr(stream);
 
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
