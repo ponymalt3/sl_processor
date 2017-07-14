@@ -312,6 +312,11 @@ Stream::String Stream::createStringFromToken(uint32_t offset,uint32_t length) co
   return String(asmText_,offset,length);
 }
 
+Stream::String Stream::createStringFromToken(const char *base,uint32_t length) const
+{
+  return String(base,0,length);
+}
+
 void Stream::markPos()
 {
   markPos_=pos_;
