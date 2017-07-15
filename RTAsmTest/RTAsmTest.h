@@ -23,7 +23,7 @@ public:
   Error parse(uint32_t reserveParamter=0)
   {
     parser_.parse(s_);
-    codeGen_.storageAllocationPass<512>(reserveParamter);
+    codeGen_.storageAllocationPass(512,reserveParamter);
     return prog_.getErrorHandler();
   }
   
@@ -90,8 +90,7 @@ public:
     proc_.reset();
     proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
   }
-  
-  
+
 protected:
   RTProg prog_;
   Stream s_;
