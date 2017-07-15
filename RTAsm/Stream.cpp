@@ -258,7 +258,7 @@ Token Stream::readToken()
 
   Error::expect(sym.getLength() > 0) << (*this) << "unexpected character " << (sym[0]);
 
-  if(sym.getLength() == 1 && sym[0] >= 'i' && sym[0] <= 'n')
+  if(sym.getLength() == 1 && sym[0] >= 'i' && sym[0] < 'n')
     return Token(sym,Token::TOK_INDEX,sym[0]-'i');
 
   if(sym.getLength() == 2)
