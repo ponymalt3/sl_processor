@@ -485,13 +485,24 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   Error::expect(s.flagsIsFunction_ == 1) << stream << "function '" << name << "' not found";  
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' for function call";
   
-  _Operand parameter[16];
+  CodeGen::TmpStorage callFrame(codeGen_);
+  CodeGen::Label ret(codeGen_);
+  
+  //calculate new irs addr for function and store it
+  _Operand irsAddr=callFrame.allocate();
+  //return addr storage
+  _Operand retAddr=callFrame.allocate();
+  //write parameters/return value
+  _Operand returnData=callFrame.allocate();
+  //current irs addr to be restored after function returns
+  _Operand irsOrig=callFrame.allocate();
+  
   uint32_t numParameter=0;
   while(stream.skipWhiteSpaces().peek() != ')')
   {
-    Error::expect(numParameter < sizeof(parameter)/sizeof(parameter[0])) << stream << "too many function call parameter" << ErrorHandler::FATAL;
+    Error::expect(numParameter < 16) << stream << "too many function call parameter" << ErrorHandler::FATAL;
     
-    parameter[numParameter]=parseExpr(stream);
+    codeGen_.instrMov(callFrame.allocate(),parseExpr(stream));
     
     ++numParameter;
     
@@ -504,13 +515,8 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   
   stream.skipWhiteSpaces().read();//discards ')'
   
-  CodeGen::TmpStorage callFrame(codeGen_);
-  CodeGen::Label ret(codeGen_);
-  
   _Operand currentIRS=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS__",0,7)));
   
-  //calculate new irs addr for function and store it
-  _Operand irsAddr=callFrame.allocate();
   //codeGen_.instrMov(_Operand::createResult(),callFrame.getArrayBaseOffset());
   codeGen_.instrMov(_Operand::createResult(),_Operand::createConstWithRef(callFrame.getArrayBaseOffset().mapIndex_,1));
   
@@ -520,18 +526,10 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   
   //store return addr
   codeGen_.instrMov(_Operand::createResult(),_Operand::createConstWithRef(ret.getLabelReference()));
-  codeGen_.instrMov(callFrame.allocate(),_Operand::createResult());
-  
-  //write parameters/return value
-  _Operand returnData=callFrame.allocate();
+  codeGen_.instrMov(retAddr,_Operand::createResult());
   
   //store original irs address
-  codeGen_.instrMov(callFrame.allocate(),currentIRS);
-  
-  for(uint32_t i=0;i<numParameter;++i)
-  {
-    codeGen_.instrMov(callFrame.allocate(),parameter[i]);
-  }
+  codeGen_.instrMov(irsOrig,currentIRS);
   
   //change irs
   codeGen_.instrMov(_Operand::createInternalReg(_Operand::TY_IR_IRS),irsAddr);
@@ -591,13 +589,13 @@ void RTParser::parseFunctionDecl(Stream &stream)
   
   stream.skipWhiteSpaces().read();//discards ')'
   
+  //pad to 8-word aligned code mem addr
+  while(codeGen_.getCurCodeAddr()&7) codeGen_.instrNop();
+  
   if(name.getType() == Token::TOK_NAME)
   {
     codeGen_.addFunctionAtCurrentAddr(name.getName(stream),numParameter);
   }
-  
-  //pad to 8-word aligned code mem addr
-  while(codeGen_.getCurCodeAddr()&7) codeGen_.instrNop();
   
   RTParser(codeGen_).parseStatements(stream);
   codeGen_.storageAllocationPass(512,4+numParameter);
