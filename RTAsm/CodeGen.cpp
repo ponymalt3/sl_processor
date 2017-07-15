@@ -279,7 +279,7 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
     //qfp32 value=b.value_;
     uint32_t constData=b.value_.toRealQfp32().toRaw();
 
-    uint32_t symRef=NoRef;
+    uint32_t symRef=b.ref_;
 
     if(b.isArrayBaseAddr())
     {
@@ -662,7 +662,7 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
   instrs_[codeAddr_].code_=code;
   instrs_[codeAddr_].symRef_=ref;
 
-  if(ref != NoRef && !instrs_[codeAddr_].isGoto())
+  if(ref != NoRef && !instrs_[codeAddr_].isGoto() && !instrs_[codeAddr_].isLoadAddr())
     symbolMaps_.top()[ref].updateLastAccess(getCurCodeAddr());
 
   ++codeAddr_;
