@@ -125,7 +125,7 @@ public:
   void addArrayDeclaration(const Stream::String &str,uint32_t size);
   void addDefinition(const Stream::String &str,qfp32 value);
   void addReference(const Stream::String &str,uint32_t irsOffset);
-
+  
   uint32_t getCurCodeAddr() const
   {
     return codeAddr_;
@@ -250,7 +250,6 @@ protected:
   uint32_t loopDepth_;
   _LoopFrame loopFrames_[MaxLoopDepth];
 
-  //uint16_t labels_[64];
   uint32_t labelIdBitMap_;
   uint16_t usedRefs_;
 

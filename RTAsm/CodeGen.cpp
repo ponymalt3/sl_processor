@@ -128,7 +128,6 @@ void CodeGen::_Instr::patchGotoTarget(int32_t target)
 {
   code_=SLCode::Goto::create(target,false);
   //Error::expect(target < 512) << "jump target out of range " << (target);
-
 }
 
 CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream),defaultSymbols_(stream)
@@ -162,7 +161,6 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
     b=_Operand::createResult();
   }  
 
-  //assert(!(a.isResult() && b.isResult()));
   Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << ErrorHandler::FATAL;
   
   //special handling when using constant data
