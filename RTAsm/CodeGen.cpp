@@ -148,6 +148,19 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
 {
   _Operand a=resolveOperand(opa);
   _Operand b=resolveOperand(opb);
+  
+  //handle base addr
+  if(a.isArrayBaseAddr())
+  {
+    instrMov(_Operand::createResult(),a);
+    a=_Operand::createResult();
+  }
+  
+  if(b.isArrayBaseAddr())
+  {
+    instrMov(_Operand::createResult(),b);
+    b=_Operand::createResult();
+  }  
 
   //assert(!(a.isResult() && b.isResult()));
   Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << ErrorHandler::FATAL;
@@ -269,7 +282,10 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
     uint32_t symRef=NoRef;
 
     if(b.isArrayBaseAddr())
+    {
       symRef=b.mapIndex_;
+      constData=qfp32_t(40).toRaw();
+    }
 
     //write first part of
     writeCode(SLCode::Load::create1(constData),symRef);
@@ -283,7 +299,19 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
     {
       writeCode(SLCode::Load::create3(constData),symRef);
     }
-   
+    
+    if(b.isArrayBaseAddr())
+    {
+      //add [irs+0]
+      TmpStorage tmp(*this);
+      instrOperation(_Operand::createResult(),_Operand::createSymAccess(0),'+',tmp);
+      
+      Error::expect(getCurCodeAddr() > 0 && instrs_[getCurCodeAddr()-1].isIrsInstr()) << "internal error" << ErrorHandler::FATAL;
+      
+      instrs_[getCurCodeAddr()-1].patchIrsOffset(0);
+      instrs_[getCurCodeAddr()-1].symRef_=NoRef;
+    }
+    
     if(a.isResult())
       return;
 
@@ -380,7 +408,7 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
     }
   }
 
-  if(b.type_ != _Operand::TY_RESOLVED_SYM)
+  if(b.type_ != _Operand::TY_RESOLVED_SYM || b.isArrayBaseAddr())
   {
     _Operand tmp=tmpStorage.allocate();
     instrMov(tmp,b);
