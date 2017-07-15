@@ -506,6 +506,12 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
       {
         instrs_[i].patchIrsOffset(symInf.allocatedAddr_);
       }
+      
+      if(instrs_[i].isLoadAddr())
+      {
+        Error::expect((symInf.allocatedAddr_&7) == 0 || symInf.allocatedAddr_ < 32) << "addr to be loaded must less than 32 or 8 word aligned";
+        instrs_[i].patchConstant(qfp32_t(symInf.allocatedAddr_).toRaw(),false);
+      }
 
       //release storage
       if(symInf.lastAccess_ == i && symInf.flagAllocated_ && !symInf.flagStayAllocated_)
@@ -639,10 +645,22 @@ void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
   for(uint32_t i=patchAddrStart;i<getCurCodeAddr();++i)
   {
     //check if goto must be patched
-    if(instrs_[i].isGoto() && instrs_[i].symRef_ == labelRef)
+    if(instrs_[i].symRef_ != labelRef)
+    {
+      continue;
+    }
+    
+    if(instrs_[i].isGoto())
     {
       instrs_[i].patchGotoTarget(label.labelAddr_-i);
       instrs_[i].symRef_=NoRef;
+    }
+    
+    if(instrs_[i].isLoadAddr())
+    {
+      //is absolue addr
+      instrs_[i].patchConstant(qfp32_t(label.labelAddr_).toRaw(),i>0 && instrs_[i-1].isLoadAddr());
+      instrs_[i].symRef_=65534;
     }
   }
 
