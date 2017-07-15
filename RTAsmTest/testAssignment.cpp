@@ -188,10 +188,12 @@ MTEST(testAssignment,test_that_array_assigned_to_var_works)
 MTEST(testAssignment,test_that_array_base_addr_load_works)
 {
   RTProg testAssign=RTASM(
+    a=0;
     decl array 4;
     array(1)=5;
     a0=array+1;
     [a0]=1;
+    a=1;
   );
   
   RTProgTester tester(testAssign);
@@ -201,5 +203,5 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(1).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(1).toRaw()); 
 }
