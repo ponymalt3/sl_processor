@@ -562,7 +562,7 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 
   if(op.type_ == _Operand::TY_INDEX)
   {
-    Error::expect(loopDepth_ != 0 && op.loopIndex_ < loopDepth_) << "using loop index '" << ('i'+op.loopIndex_) << " outside loop" << ErrorHandler::FATAL;
+    Error::expect(loopDepth_ != 0 && op.loopIndex_ < loopDepth_) << "using loop index '" << char('i'+op.loopIndex_) << "' outside loop" << ErrorHandler::FATAL;
 
     uint32_t index=op.loopIndex_;
     

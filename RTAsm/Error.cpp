@@ -29,6 +29,18 @@ ErrorHandler& ErrorHandler::operator<<(const char *str)
   return *this;
 }
 
+ErrorHandler& ErrorHandler::operator<<(char c)
+{
+  if(!isFault_)
+    return *this;
+
+  printHeader();
+
+  std::cout<<"'"<<(c)<<"'";
+  
+  return *this;
+}
+
 ErrorHandler& ErrorHandler::operator<<(const Stream::String &str)
 {
   if(!isFault_)

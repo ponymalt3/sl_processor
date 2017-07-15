@@ -14,6 +14,7 @@ public:
   ErrorHandler();
   
   ErrorHandler& operator<<(const char *str);
+  ErrorHandler& operator<<(char c);
   ErrorHandler& operator<<(const Stream::String &str);
   ErrorHandler& operator<<(uint32_t value);
   ErrorHandler& operator<<(const Stream &stream);
