@@ -635,7 +635,7 @@ uint32_t CodeGen::getLabelId()
   
   labelIdBitMap_&=~(1<<freeBitPos);
 
-  return freeBitPos;
+  return freeBitPos + 0xFFC0;
 }
 
 void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
@@ -665,7 +665,7 @@ void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
   }
 
   //release label id
-  labelIdBitMap_|=1<<labelRef;
+  labelIdBitMap_|=1<<(labelRef&0x1F);
 }
 
 void CodeGen::changeStorageSize(const TmpStorage &storage,uint32_t size)
