@@ -116,7 +116,10 @@ void CodeGen::_Instr::patchConstant(uint32_t value,bool patch2ndWord)
   //Error::expect(value < 512) << "load addr out of range " << (value);
 
   if(patch2ndWord)
+  {
+    code_=SLCode::Load::create2(value);
     return;
+  }
 
   code_=SLCode::Load::create1(value);
 }
