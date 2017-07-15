@@ -67,9 +67,9 @@ public:
     void setLabel();
     void deleteLabel();
 
-  protected:
     uint32_t getLabelReference() const { return labelRef_; }
-
+  
+  protected:
     CodeGen &codeGen_;
     uint16_t labelRef_;
     uint16_t codeAddr_;
