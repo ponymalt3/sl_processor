@@ -41,7 +41,7 @@ MTEST(testOperationsBasic,test_that_const_var_operation_works)
 MTEST(testOperationsBasic,test_that_var_ref_operation_works)
 {
   RTProg testCode=RTASM(
-    ref x 4;
+    ref x 8;
     b=4;
     a=b/x;
   );
@@ -49,7 +49,7 @@ MTEST(testOperationsBasic,test_that_var_ref_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(4,qfp32_t(5).toRaw());
+  tester.getProcessor().writeMemory(8,qfp32_t(5).toRaw());
 
   tester.loadCode();
   tester.execute();
@@ -61,7 +61,7 @@ MTEST(testOperationsBasic,test_that_var_ref_operation_works)
 MTEST(testOperationsBasic,test_that_ref_const_sym_operation_works)
 {
   RTProg testCode=RTASM(
-    ref x 4;
+    ref x 8;
     def y 5;
     a=x/y;
   );
@@ -69,7 +69,7 @@ MTEST(testOperationsBasic,test_that_ref_const_sym_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(4,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(8,qfp32_t(4).toRaw());
 
   tester.loadCode();
   tester.execute();

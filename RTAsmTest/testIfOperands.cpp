@@ -125,8 +125,8 @@ MTEST(testIfOperands,test_that_deref_a0_deref_a1_with_inc_operand_works)
 {
   RTProg testCode=RTASM(
     a0=10;
-    a1=4;
-    ok=5;
+    a1=5;
+    ok=7;
     if([a0] == [a1++]) 
       ok=1;
     else
@@ -137,14 +137,15 @@ MTEST(testIfOperands,test_that_deref_a0_deref_a1_with_inc_operand_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  tester.getProcessor().writeMemory(4,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(5,qfp32_t(4).toRaw());
   tester.getProcessor().writeMemory(10,qfp32_t(4).toRaw());
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
-  EXPECT(tester.getProcessor().readMemory(5) == qfp32_t(6).toRaw()); 
+  EXPECT(tester.getProcessor().readMemory(6) == qfp32_t(6).toRaw()); 
 }
 
 MTEST(testIfOperands,test_that_array_as_operand_works)
