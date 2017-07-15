@@ -290,13 +290,24 @@ Token Stream::readToken()
       return Token(sym,Token::TOK_DECL);
   }
 
-  if(sym.getLength() == 5 && sym == "break")
-    return Token(sym,Token::TOK_BREAK);
-
-  if(sym.getLength() == 8 && sym == "continue")
-    return Token(sym,Token::TOK_CONT);
-
+  if(sym.getLength() == 5)
   {
+    if(sym == "break")
+      return Token(sym,Token::TOK_BREAK);
+  }
+  
+  if(sym.getLength() == 6)
+  {
+    if(sym == "return")
+      return Token(sym,Token::TOK_FCN_RET);
+  }
+
+  if(sym.getLength() == 8)
+  {
+    if(sym == "continue")
+      return Token(sym,Token::TOK_CONT);
+    if(sym == "function")
+      return Token(sym,Token::TOK_FCN_DECL);
   }
 
   return Token(sym,Token::TOK_NAME,0xFFFF);

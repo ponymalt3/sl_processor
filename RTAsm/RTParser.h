@@ -12,6 +12,7 @@
 #include "Stream.h"
 #include "CodeGen.h"
 #include "Operand.h"
+#include "Token.h"
 
 /*
  * exp := const exp' |
@@ -90,9 +91,13 @@ public:
   void parseLoopStatement(Stream &stream);
   bool parseStatement(Stream &stream);
   void parseStatements(Stream &stream);
+  _Operand parseFunctionCall(Stream &stream,const Stream::String &name);
+  void parseFunctionDecl(Stream &stream);
 
 protected:
   CodeGen &codeGen_;
+  CodeGen::Label startAddr_;
+  bool firstFunctionDecl_;
 };
 
 #endif /* RTPARSER_H_ */
