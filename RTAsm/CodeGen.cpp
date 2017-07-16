@@ -486,7 +486,7 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
 
   for(uint32_t i=0;i<codeAddr_;++i)
   {
-    if(instrs_[i].symRef_ != SymbolMap::InvalidLink && instrs_[i].symRef_ < 0xFFC0)
+    if(instrs_[i].symRef_ != SymbolMap::InvalidLink && instrs_[i].symRef_ < RefLabelOffset)
     {
       SymbolMap::_Symbol &symInf=symbolMaps_.top()[instrs_[i].symRef_];
       
@@ -633,7 +633,7 @@ uint32_t CodeGen::getLabelId()
   
   labelIdBitMap_&=~(1<<freeBitPos);
 
-  return freeBitPos + 0xFFC0;
+  return freeBitPos + RefLabelOffset;
 }
 
 void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
@@ -658,7 +658,7 @@ void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
     {
       //is absolue addr
       instrs_[i].patchConstant(qfp32_t(label.labelAddr_).toRaw(),i>0 && instrs_[i-1].isLoadAddr());
-      instrs_[i].symRef_=65534;
+      instrs_[i].symRef_=RefLoad;
     }
   }
 
@@ -705,7 +705,7 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   {
     instrs_[i+size]=instrs_[i];
     Error::expect(instrs_[i].isGoto() == false) << "cant move goto instruction";
-    Error::expect(instrs_[i].isLoadAddr() == false || instrs_[i].symRef_ != 65534) << "cant move load code addr instruction";
+    Error::expect(instrs_[i].isLoadAddr() == false || instrs_[i].symRef_ != RefLoad) << "cant move load code addr instruction";
   }
   
   for(uint32_t i=0;i<size;)
@@ -713,7 +713,7 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
     instrs_[targetAddr+i]=instrs_[getCurCodeAddr()+i];
     Error::expect(instrs_[targetAddr+i].isGoto() == false) << "cant move goto instruction";
     
-    if(instrs_[i].isLoadAddr() && instrs_[i].symRef_ == 65534)
+    if(instrs_[i].isLoadAddr() && instrs_[i].symRef_ == RefLoad)
     {
       bool load2=(i+1)<size && instrs_[i+1].isLoadAddr();
       bool load3=(i+2)<size && instrs_[i+2].isLoadAddr();

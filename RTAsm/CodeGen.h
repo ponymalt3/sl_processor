@@ -54,7 +54,7 @@ public:
   
   enum {EXEC_MODE_1CYC,EXEC_MODE_3CYC};
   enum {MaxLoopDepth=6,LoopStorageIndex=0,NoLoopFrame=-1};
-  enum {NoRef=0xFFFF,NoLabel=NoRef};
+  enum {NoRef=0xFFFF,NoLabel=NoRef,RefLoad=0xFFFE,RefLabelOffset=0xFFC0};
 
   class Label : public Error
   {
