@@ -6,7 +6,7 @@
  */
 
 #include "CodeGen.h"
-#include "BuddyAlloc.h"
+#include "Alloc.h"
 #include "Stream.h"
 #include "Error.h"
 #include "Operand.h"
@@ -478,7 +478,7 @@ void CodeGen::removeLoopFrame()
 
 void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
 {
-  BuddyAlloc allocator(0,size);
+  Allocator allocator(size);
   
   uint32_t x=allocator.allocate(4+numParams);//reserve space for parameter
 
@@ -497,7 +497,7 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
       if(!symInf.flagAllocated_)
       {
         symInf.flagAllocated_=1;
-        symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_);
+        symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_,symInf.flagsAllocateHighest_,symInf.flagIsArray_);
       }
       
       if(instrs_[i].isIrsInstr())

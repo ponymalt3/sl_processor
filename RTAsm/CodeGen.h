@@ -12,7 +12,7 @@
 
 #include "Error.h"
 #include "ErrorHandler.h"
-#include "BuddyAlloc.h"
+#include "Alloc.h"
 #include "Operand.h"
 #include "SymbolMap.h"
 #include "Stream.h"
