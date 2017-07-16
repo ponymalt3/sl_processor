@@ -598,6 +598,14 @@ void RTParser::parseFunctionDecl(Stream &stream)
   }
   
   RTParser(codeGen_).parseStatements(stream);
+  
+  if(codeGen_.getCurCodeAddr() == 0 || codeGen_.getCodeAt(codeGen_.getCurCodeAddr()-1) != SLCode::Goto::Code)
+  {
+    //generate return if not explicit written
+    codeGen_.instrMov(_Operand::createResult(),_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7))));
+    codeGen_.instrGoto2();
+  }
+  
   codeGen_.storageAllocationPass(512,4+numParameter);
   
   codeGen_.popSymbolMap();
