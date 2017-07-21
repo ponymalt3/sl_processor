@@ -1,11 +1,70 @@
 #include "RTAsmTest.h"
 #include <mtest.h>
 
-class testFunctionBehav : public mtest::test
+class testFunction : public mtest::test
 {
 };
 
-MTEST(testFunctionBehav,test_load_array_addr_in_function_works)
+MTEST(testFunction,test_that_parameter_symbols_are_function_local_only)
+{
+  RTProg testCode=RTASM(
+    function test(param1,param2)
+      x=param1+param2;
+    end
+    
+    var=99;
+    
+    function test2(paramx,paramy)
+      x=var+param2;
+    end
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 1);
+}
+
+MTEST(testFunction,test_that_simple_function_without_return_works)
+{
+  RTProg testCode=RTASM(
+    function test()
+    end
+    
+    x=1;
+    test();
+    x=3;
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(3).toRaw());
+}
+
+MTEST(testFunction,test_that_simple_function_with_return_works)
+{
+  RTProg testCode=RTASM(
+    function test()
+      return;
+    end
+    
+    x=1;
+    test();
+    x=3;
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(3).toRaw());
+}
+
+MTEST(testFunction,test_load_array_addr_in_function_works)
 {
   RTProg testCode=RTASM(
     function test()
@@ -29,7 +88,7 @@ MTEST(testFunctionBehav,test_load_array_addr_in_function_works)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(1).toRaw());  
 }
 
-MTEST(testFunctionBehav,test_function_return_ends_the_function_correctly)
+MTEST(testFunction,test_function_return_ends_the_function_correctly)
 {
   RTProg testCode=RTASM(
     function test(p)
@@ -51,7 +110,7 @@ MTEST(testFunctionBehav,test_function_return_ends_the_function_correctly)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(99).toRaw());  
 }
 
-MTEST(testFunctionBehav,test_function_return_correct_value)
+MTEST(testFunction,test_function_return_correct_value)
 {
   RTProg testCode=RTASM(
     function test()
@@ -69,7 +128,7 @@ MTEST(testFunctionBehav,test_function_return_correct_value)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(17).toRaw());  
 }
 
-MTEST(testFunctionBehav,test_function_with_parameter_return_correct_value)
+MTEST(testFunction,test_function_with_parameter_return_correct_value)
 {
   RTProg testCode=RTASM(
     function test(p1,p2)
@@ -87,7 +146,7 @@ MTEST(testFunctionBehav,test_function_with_parameter_return_correct_value)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(42).toRaw());  
 }
 
-MTEST(testFunctionBehav,test_function_with_function_call_works)
+MTEST(testFunction,test_function_with_function_call_works)
 {
   RTProg testCode=RTASM(
     function yyy(x,z)
@@ -110,7 +169,7 @@ MTEST(testFunctionBehav,test_function_with_function_call_works)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(19*23+23).toRaw());  
 }
 
-MTEST(testFunctionBehav,test_function_with_local_storage_works)
+MTEST(testFunction,test_function_with_local_storage_works)
 {
   RTProg testCode=RTASM(
     function test(p1,p2)
@@ -134,7 +193,7 @@ MTEST(testFunctionBehav,test_function_with_local_storage_works)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(99-20-1+99+23).toRaw());  
 }
 
-MTEST(testFunctionBehav,test_recursive_function_works)
+MTEST(testFunction,test_recursive_function_works)
 {
   RTProg testCode=RTASM(
     function fib(n)
