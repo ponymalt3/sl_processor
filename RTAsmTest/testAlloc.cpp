@@ -169,6 +169,17 @@ MTEST(testAlloc,test_that_allocate_highest_with_align_on_block_works_correctly)
   
   uint32_t g=testee_.allocate(8,true,true);
   EXPECT(g == 80);
+  
+  uint32_t h=testee_.allocate(61);
+  EXPECT(h == 1);
+  
+  testee_.release(a,1);
+  testee_.release(e,8);
+  testee_.release(f,3);
+  testee_.release(g,8);
+  testee_.release(h,61);
+  
+  EXPECT(testee_.allocate(512) == 0);
 }
 
 
