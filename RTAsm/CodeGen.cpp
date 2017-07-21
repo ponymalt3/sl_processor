@@ -680,6 +680,12 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
 
   if(ref != NoRef && !instrs_[codeAddr_].isGoto() && !instrs_[codeAddr_].isLoadAddr())
     symbolMaps_.top()[ref].updateLastAccess(getCurCodeAddr());
+    
+  if(ref < RefLabelOffset && instrs_[codeAddr_].isLoadAddr())
+  {
+    //load array base addr
+    symbolMaps_.top()[ref].updateLastAccess(0xFFFFFFFF);//dont release cause we dont know when data is referenced last
+  }
 
   ++codeAddr_;
 }
