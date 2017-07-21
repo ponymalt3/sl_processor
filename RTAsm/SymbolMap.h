@@ -46,7 +46,9 @@ public:
     };
   };
 
-  SymbolMap(Stream &stream);
+  SymbolMap(Stream &stream,uint32_t startAddr);
+  
+  uint32_t getStartAddr() const { return startAddr_; }
 
   uint32_t findSymbol(const Stream::String &str);
   uint32_t createSymbol(const Stream::String &str,uint32_t size=0);
@@ -67,6 +69,7 @@ protected:
   uint16_t hashTable_[256];
   uint16_t symCount_;
   Stream &stream_;
+  uint32_t startAddr_;
 };
 
 #endif /* SYMBOLMAP_H_ */

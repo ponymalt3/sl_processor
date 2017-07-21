@@ -549,7 +549,7 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
 
 void RTParser::parseFunctionDecl(Stream &stream)
 {
-  SymbolMap curSymbols(stream);
+  SymbolMap curSymbols(stream,codeGen_.getCurCodeAddr());
   codeGen_.pushSymbolMap(curSymbols);
   
   //add default symbols

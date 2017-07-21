@@ -46,9 +46,10 @@ void SymbolMap::_Symbol::changeArraySize(uint32_t size)
   allocatedSize_=size==0?1:size;
 }
 
-SymbolMap::SymbolMap(Stream &stream):Error(stream.getErrorHandler()), stream_(stream)
+SymbolMap::SymbolMap(Stream &stream,uint32_t startAddr):Error(stream.getErrorHandler()), stream_(stream)
 {
   symCount_=0;
+  startAddr_=startAddr;
 
   for(uint32_t i=0;i<(sizeof(hashTable_)/sizeof(hashTable_[0]));++i)
     hashTable_[i]=InvalidLink;

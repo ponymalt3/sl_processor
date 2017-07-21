@@ -130,7 +130,7 @@ void CodeGen::_Instr::patchGotoTarget(int32_t target)
   //Error::expect(target < 512) << "jump target out of range " << (target);
 }
 
-CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream),defaultSymbols_(stream)
+CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream,0),defaultSymbols_(stream,0)
 {
   usedRefs_=0;
   loopDepth_=0;
@@ -484,7 +484,7 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
 
   Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << ErrorHandler::FATAL;
 
-  for(uint32_t i=0;i<codeAddr_;++i)
+  for(uint32_t i=symbolMaps_.top().getStartAddr();i<codeAddr_;++i)
   {
     if(instrs_[i].symRef_ != SymbolMap::InvalidLink && instrs_[i].symRef_ < RefLabelOffset)
     {
