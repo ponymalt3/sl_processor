@@ -33,8 +33,18 @@
     <File Name="../../RTAsmTest/RTAsmTest.h"/>
     <File Name="../../RTAsmTest/testSyntax.cpp"/>
     <File Name="../../RTAsmTest/testAssignment.cpp"/>
-    <File Name="../../RTAsmTest/testBuddyAlloc.cpp"/>
     <File Name="../../RTAsmTest/testAssignADx.cpp"/>
+    <File Name="../../RTAsmTest/testReadQfp32.cpp"/>
+    <File Name="../../RTAsmTest/testIfOperator.cpp"/>
+    <File Name="../../RTAsmTest/testIfOperands.cpp"/>
+    <File Name="../../RTAsmTest/tesIfThenElse.cpp"/>
+    <File Name="../../RTAsmTest/testOperationBasic.cpp"/>
+    <File Name="../../RTAsmTest/testOperationsExtended.cpp"/>
+    <File Name="../../RTAsmTest/testOperationsWithBrackets.cpp"/>
+    <File Name="../../RTAsmTest/testLoop.cpp"/>
+    <File Name="../../RTAsmTest/DisAsm.h"/>
+    <File Name="../../RTAsmTest/testAlloc.cpp"/>
+    <File Name="../../RTAsmTest/testFunction.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

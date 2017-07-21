@@ -32,6 +32,8 @@
     <File Name="../../ProcessorTest/testMemXMov.cpp"/>
     <File Name="../../ProcessorTest/testMemXOp.cpp"/>
     <File Name="../../ProcessorTest/testLoop.cpp"/>
+    <File Name="../../ProcessorTest/testIRS.cpp"/>
+    <File Name="../../ProcessorTest/testGotoAbs.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

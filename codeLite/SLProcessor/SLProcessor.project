@@ -20,6 +20,33 @@
   <Description/>
   <Dependencies/>
   <Dependencies Name="Release"/>
+  <Dependencies Name="Debug"/>
+  <VirtualDirectory Name="src">
+    <File Name="../../SLArithUnit.cpp"/>
+    <File Name="../../SLArithUnit.h"/>
+    <File Name="../../SLCodeDef.h"/>
+    <File Name="../../SLProcessor.cpp"/>
+    <File Name="../../SLProcessor.h"/>
+    <File Name="../../SLProcessorStructs.h"/>
+    <VirtualDirectory Name="RTAsm">
+      <File Name="../../RTAsm/CodeGen.cpp"/>
+      <File Name="../../RTAsm/CodeGen.h"/>
+      <File Name="../../RTAsm/Error.cpp"/>
+      <File Name="../../RTAsm/Error.h"/>
+      <File Name="../../RTAsm/ErrorHandler.h"/>
+      <File Name="../../RTAsm/Operand.h"/>
+      <File Name="../../RTAsm/RTParser.cpp"/>
+      <File Name="../../RTAsm/RTParser.h"/>
+      <File Name="../../RTAsm/RTProg.h"/>
+      <File Name="../../RTAsm/Stream.cpp"/>
+      <File Name="../../RTAsm/Stream.h"/>
+      <File Name="../../RTAsm/SymbolMap.cpp"/>
+      <File Name="../../RTAsm/Token.h"/>
+      <File Name="../../RTAsm/SymbolMap.h"/>
+      <File Name="../../RTAsm/Misc.h"/>
+      <File Name="../../RTAsm/Alloc.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
   <Settings Type="Static Library">
     <GlobalSettings>
       <Compiler Options="-std=c++11" C_Options="" Assembler="">
@@ -31,7 +58,7 @@
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
-    <Configuration Name="Debug" CompilerType="GCC ( 4.9 )" DebuggerType="LLDB Debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Debug" CompilerType="GCC ( 4.9 )" DebuggerType="" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
@@ -62,7 +89,7 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
-      <Completion EnableCpp11="no">
+      <Completion EnableCpp11="no" EnableCpp14="no">
         <ClangCmpFlagsC/>
         <ClangCmpFlags/>
         <ClangPP/>
@@ -101,7 +128,7 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
-      <Completion EnableCpp11="no">
+      <Completion EnableCpp11="no" EnableCpp14="no">
         <ClangCmpFlagsC/>
         <ClangCmpFlags/>
         <ClangPP/>
@@ -109,30 +136,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <Dependencies Name="Debug"/>
-  <VirtualDirectory Name="src">
-    <File Name="../../SLArithUnit.cpp"/>
-    <File Name="../../SLArithUnit.h"/>
-    <File Name="../../SLCodeDef.h"/>
-    <File Name="../../SLProcessor.cpp"/>
-    <File Name="../../SLProcessor.h"/>
-    <File Name="../../SLProcessorStructs.h"/>
-    <VirtualDirectory Name="RTAsm">
-      <File Name="../../RTAsm/BuddyAlloc.h"/>
-      <File Name="../../RTAsm/CodeGen.cpp"/>
-      <File Name="../../RTAsm/CodeGen.h"/>
-      <File Name="../../RTAsm/Error.cpp"/>
-      <File Name="../../RTAsm/Error.h"/>
-      <File Name="../../RTAsm/ErrorHandler.h"/>
-      <File Name="../../RTAsm/Operand.h"/>
-      <File Name="../../RTAsm/RTParser.cpp"/>
-      <File Name="../../RTAsm/RTParser.h"/>
-      <File Name="../../RTAsm/RTProg.h"/>
-      <File Name="../../RTAsm/Stream.cpp"/>
-      <File Name="../../RTAsm/Stream.h"/>
-      <File Name="../../RTAsm/SymbolMap.cpp"/>
-      <File Name="../../RTAsm/Token.h"/>
-      <File Name="../../RTAsm/SymbolMap.h"/>
-    </VirtualDirectory>
-  </VirtualDirectory>
 </CodeLite_Project>
