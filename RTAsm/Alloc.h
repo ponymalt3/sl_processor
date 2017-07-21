@@ -60,7 +60,7 @@ public:
       while(firstFreeBlock_ < numBlocks_ && blocks_[firstFreeBlock_] == 0xFF) ++firstFreeBlock_;
     }
     
-    uint32_t lastAllocBlock=(addr+size)/8;
+    uint32_t lastAllocBlock=(addr+size-1)/8;
     if(lastAllocBlock > lastUsedBlock_)
     {
       lastUsedBlock_=lastAllocBlock;
