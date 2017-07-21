@@ -23,7 +23,10 @@ public:
   Error parse(uint32_t reserveParamter=0)
   {
     parser_.parse(s_);
-    codeGen_.storageAllocationPass(512,reserveParamter);
+    if(Error(prog_.getErrorHandler()).getNumErrors() == 0)
+    {
+      codeGen_.storageAllocationPass(512,reserveParamter);
+    }
     return prog_.getErrorHandler();
   }
   
