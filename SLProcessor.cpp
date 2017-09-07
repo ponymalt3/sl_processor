@@ -117,6 +117,8 @@ void SLProcessor::reset()
 
   enable_=(1<<_State::S_FETCH);
   state_.loadState_=1;
+  
+  state_.loopCount_=0x80000000;
 }
 
 _CodeFetch SLProcessor::codeFetch()
@@ -164,6 +166,7 @@ _Decode SLProcessor::decodeInstr() const
   decode.neg_=0;
   decode.wait_=0;
   decode.signal_=0;
+  decode.loop_=0;
 
   decode.cmpMode_=bdata(1 downto 0);
   decode.cmpNoXCy_=bdata(11);
@@ -246,6 +249,10 @@ _Decode SLProcessor::decodeInstr() const
 
       case 4://NEG
         decode.neg_=1;
+        break;
+        
+      case 5://LOOP
+        decode.loop_=1;
         break;
       }
     }
@@ -339,6 +346,11 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _Exec &execComb,
   
   decodeEx.goto_=decodeComb.goto_;
   
+  if(state_.loopCount_ == 0)
+  {
+    decodeEx.goto_=0;
+  }
+
   decodeEx.neg_=decodeComb.neg_;
   
   decodeEx.stall_=0;
@@ -448,6 +460,14 @@ _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_
 
   if(setPcEnable)//external pc set
     pcNext=pcValue;
+    
+  if(decode_.goto_const_ == 1 && enable_(_State::S_EXEC) && decode_.jmpBack_ == 1)
+  {
+    if((state_.loopCount_&0x80000000) == 0)
+    {
+      stateNext.loopCount_=state_.loopCount_-1;
+    }
+  }
     
   stateNext.result_=state_.result_;
   stateNext.resultPrefetch_=state_.resultPrefetch_;
@@ -601,6 +621,12 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
     case SLCode::REG_AD1: stateNext.addr_[1]=(int32_t)(a.abs()); break;
     case SLCode::REG_IRS: stateNext.irs_=(int32_t)(a.abs()); break;
     }
+  }
+  
+  if(enable_(_State::S_EXEC) && decode_.loop_ == 1)
+  {
+    stateNext.loopCount_=0;
+    stateNext.loopCount_=(int32_t)(_qfp32_t::initFromRaw(state_.result_).abs());
   }
 
   //************************************ update register *******************************************

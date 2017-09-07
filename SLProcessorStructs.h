@@ -62,6 +62,7 @@ struct _Decode
   uint32_t neg_ : 1;
   uint32_t wait_ : 1;
   uint32_t signal_ : 1;
+  uint32_t loop_ : 1;
 
   uint32_t cmpMode_ : 2;
   uint32_t cmpNoXCy_ : 1;
@@ -71,6 +72,7 @@ struct _Decode
   uint32_t memEx_ : 1;
 
   uint32_t curPc_ : 16;
+  uint32_t jmpBack_ : 1;
   uint32_t jmpTargetPc_ : 16;
   uint32_t incAD0_ : 1;
   uint32_t incAD1_ : 1;
@@ -143,6 +145,8 @@ struct _State
   BitData enable_;
   
   uint32_t stallExec1d_ : 1;
+  
+  uint32_t loopCount_;
   
   uint32_t result_;
   uint32_t resultPrefetch_ : 1;//fetch result data when ready and set this flag (also used for const loading)

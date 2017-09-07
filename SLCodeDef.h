@@ -236,6 +236,22 @@ namespace SLCode
       return Code + (mode<<2) + (muxA<<1);
     }
   };
+  
+  struct Loop
+  {
+    enum {Code=0xF140,Bits=10};
+
+    enum {};
+
+    static uint32_t create()
+    {
+      //LOOP         => code/10
+
+      uint32_t muxA=MUX1_RESULT;
+
+      return Code + (muxA<<1);
+    }
+  };
 }
 
 #endif /* SLPROCESSORINSTRDEF_H_ */
