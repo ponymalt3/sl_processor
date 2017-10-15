@@ -46,6 +46,11 @@ public:
         result+=s + "\n";
         continue;
       }
+      if((s=loopInstrToString(code[i])) != "invalid")
+      {
+        result+=s + "\n";
+        continue;
+      }
       if(code[i] == 0xFFFF)
       {
         result+="nop\n";
@@ -239,6 +244,16 @@ public:
     if((code&0xFFC) == 0xF100)
     {
       return "neg result";
+    }
+    
+    return "invalid";
+  }
+  
+  static std::string loopInstrToString(uint16_t code)
+  {
+    if((code&0xFFC0) == 0xF140)
+    {
+      return "loop result";
     }
     
     return "invalid";
