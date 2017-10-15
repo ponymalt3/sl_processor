@@ -142,6 +142,12 @@ void CodeGen::_Instr::patchGotoTarget(int32_t target)
   //Error::expect(target < 512) << "jump target out of range " << (target);
 }
 
+uint32_t CodeGen::_Instr::getGotoTarget()
+{
+  int32_t offset=(code_>>2)&0x1FF;
+  return (code_&0x800)?-offset:offset;
+}
+
 CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream,0),defaultSymbols_(stream,0)
 {
   loopDepth_=0;

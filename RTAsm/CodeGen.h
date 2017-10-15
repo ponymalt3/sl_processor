@@ -277,6 +277,9 @@ protected:
     void patchConstant(uint32_t value,bool patch2ndWord);
     void patchGotoTarget(int32_t target);
 
+    
+    uint32_t getGotoTarget();
+    
     uint16_t code_;
     uint16_t symRef_;
   };
