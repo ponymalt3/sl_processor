@@ -768,20 +768,31 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   }
   
   for(uint32_t i=0;i<size;)
+
+void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
+{  
+  for(int32_t i=startAddr;i<=endAddr;)
   {
-    instrs_[targetAddr+i]=instrs_[getCurCodeAddr()+i];
-    Error::expect(instrs_[targetAddr+i].isGoto() == false) << "cant move goto instruction";
+    if(instrs_[i].isGoto())
+    {
+      int32_t gotoAddr=i+instrs_[i].getGotoTarget();
+      
+      if(gotoAddr < startAddr || gotoAddr > (endAddr+1))
+      {
+        instrs_[i].patchGotoTarget(instrs_[i].getGotoTarget()-offset);
+      }
+    }
     
     if(instrs_[i].isLoadAddr() && instrs_[i].symRef_ == RefLoad)
     {
-      bool load2=(i+1)<size && instrs_[i+1].isLoadAddr();
-      bool load3=(i+2)<size && instrs_[i+2].isLoadAddr();
+      bool load2=(i+1)<endAddr && instrs_[i+1].isLoadAddr();
+      bool load3=(i+2)<endAddr && instrs_[i+2].isLoadAddr();
       
       qfp32_t v=_Instr::restoreValueFromLoad(instrs_[i],
                                              load2?instrs_[i+1]:_Instr({0,0}),
                                              load3?instrs_[i+2]:_Instr({0,0}));
       
-      v=v-int32_t(startAddr-targetAddr);
+      v=v+offset;
       
       instrs_[i].patchConstant(v.toRaw(),false);
       

@@ -226,6 +226,7 @@ protected:
 
   void writeCode(uint32_t code,uint32_t ref=SymbolMap::InvalidLink);
   void moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr);
+  void rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset);
 
   struct _Instr
   {
