@@ -130,10 +130,14 @@ public:
   {
     _LoopFrame();
     _LoopFrame(const Label *labCont,const Label *labBreak,const _Operand *counter);
+    
+    bool isComplex();
+    void markComplex();
 
     const Label *labCont_;
     const Label *labBreak_;
     const _Operand *counter_;
+    bool isComplex_;
   };
 
   CodeGen(Stream &stream);
@@ -162,6 +166,7 @@ public:
 
   void createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand &counter);
   void removeLoopFrame();
+  bool isLoopFrameComplex();
 
   void storageAllocationPass(uint32_t size,uint32_t numParams);
   
