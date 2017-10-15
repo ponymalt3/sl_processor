@@ -321,31 +321,44 @@ void RTParser::parseLoopStatement(Stream &stream)
   
   CodeGen::TmpStorage storage(codeGen_);
   
-  _Operand destLoopCount=op;
-  if(destLoopCount.type_ != _Operand::TY_SYMBOL)
-  {
-    destLoopCount=storage.allocate();
-    codeGen_.instrMov(destLoopCount,op);
-  }  
-  
+  //create loop frame with storage for loopCounter 
   _Operand loopCounter=storage.allocate();
-  codeGen_.instrMov(loopCounter,_Operand(qfp32::fromRealQfp32(_qfp32_t(0))));
-  
   codeGen_.createLoopFrame(cont,end,loopCounter);
 
   beg.setLabel();
 
   parseStatements(stream);
-
-  cont.setLabel();
   
-  //inc counter
-  codeGen_.instrOperation(_Operand(qfp32::fromRealQfp32(qfp32_t(1))),loopCounter,'+',storage);
-  codeGen_.instrMov(loopCounter,_Operand::createResult());
+  if(codeGen_.isLoopFrameComplex() == false)
+  {
+    //use more efficient loop    
+    codeGen_.insertCodeBefore(beg)->instrLoop(op);    
+    cont.setLabel();
+    codeGen_.instrGoto(beg);
+  }
+  else
+  {
+    //standard loop; create loop counter and generate initializing
+    
+    _Operand destLoopCount=op;
+    if(destLoopCount.type_ != _Operand::TY_SYMBOL)
+    {
+      destLoopCount=storage.allocate();
+      codeGen_.insertCodeBefore(beg)->instrMov(destLoopCount,op);
+    }
   
-  //compare
-  codeGen_.instrCompare(_Operand::createResult(),destLoopCount,CodeGen::CMP_MODE_LT,1,false,storage);
-  codeGen_.instrGoto(beg);
+    codeGen_.insertCodeBefore(beg)->instrMov(loopCounter,_Operand(qfp32::fromRealQfp32(_qfp32_t(0))));
+    
+    cont.setLabel();
+  
+    //inc counter
+    codeGen_.instrOperation(_Operand(qfp32::fromRealQfp32(qfp32_t(1))),loopCounter,'+',storage);
+    codeGen_.instrMov(loopCounter,_Operand::createResult());
+  
+    //compare
+    codeGen_.instrCompare(_Operand::createResult(),destLoopCount,CodeGen::CMP_MODE_LT,1,false,storage);
+    codeGen_.instrGoto(beg);
+  }
 
   end.setLabel();
 
