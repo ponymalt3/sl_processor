@@ -528,11 +528,13 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
 
 void CodeGen::pushSymbolMap(SymbolMap &currentSymbolMap)
 {
+  Error::expect(symbolMaps_.full() == false) << "SymbolMaps stack overflow" << ErrorHandler::FATAL;
   symbolMaps_.push(currentSymbolMap);
 }
 
 void CodeGen::popSymbolMap()
 {
+  Error::expect(symbolMaps_.empty() == false) << "SymbolMaps stack underflow" << ErrorHandler::FATAL;
   symbolMaps_.pop();
 }
 
