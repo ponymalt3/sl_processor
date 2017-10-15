@@ -745,29 +745,56 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
 
 void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr)
 {
-  if(startAddr == targetAddr)
+  if(startAddr == targetAddr || size == 0)
   {
     return;
   }
   
   Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not engough instr buffer space" << ErrorHandler::FATAL;  
-  Error::expect(targetAddr < startAddr) << "code can only be moved backwards" << ErrorHandler::FATAL;
   
-  //move code to tmp
-  for(uint32_t i=0;i<size;++i)
+  uint32_t size2=abs(startAddr-targetAddr);
+  
+  uint32_t blockStart=0;
+  uint32_t blockTarget=0;
+  if(startAddr < targetAddr)
   {
-    instrs_[getCurCodeAddr()+i]=instrs_[startAddr+i];
+    blockStart=startAddr+size;//memmove(instrs_+startAddr,instrs_+startAddr+size,sizeof(_Instr)*size2);
+    blockTarget=startAddr;//rebaseCode(startAddr,startAddr+size2-1,-size);
+  }
+  else
+  {
+    blockStart=targetAddr;//memmove(instrs_+targetAddr+size,instrs_+targetAddr,sizeof(_Instr)*size2);
+    blockTarget=targetAddr+size;//rebaseCode(targetAddr+size,targetAddr+size+size2-1,size);
   }
   
-  uint32_t j=0;
-  for(int32_t i=startAddr-1;i>=(int32_t)targetAddr;--i)
-  {
-    instrs_[i+size]=instrs_[i];
-    Error::expect(instrs_[i].isGoto() == false) << "cant move goto instruction";
-    Error::expect(instrs_[i].isLoadAddr() == false || instrs_[i].symRef_ != RefLoad) << "cant move load code addr instruction";
-  }
+  memcpy(instrs_+getCurCodeAddr(),instrs_+startAddr,sizeof(_Instr)*size);
   
-  for(uint32_t i=0;i<size;)
+  memmove(instrs_+blockTarget,instrs_+blockStart,sizeof(_Instr)*size2);
+  rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
+    
+  memcpy(instrs_+targetAddr,instrs_+getCurCodeAddr(),sizeof(_Instr)*size);
+  rebaseCode(targetAddr,targetAddr+size-1,targetAddr-startAddr);
+  
+  //rebase labels
+  for(uint32_t i=0;i<32;++i)
+  {
+    if(activeLabels_[i] == 0)
+    {
+      continue;
+    }
+    
+    uint32_t a=activeLabels_[i]->labelAddr_;
+    
+    if(a >= startAddr && a < (startAddr+size))
+    {
+      //activeLabels_[i]->rebase(targetAddr,targetAddr+size-1,targetAddr-startAddr);
+    }
+    else
+    {
+      //activeLabels_[i]->rebase(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
+    }
+  }
+}
 
 void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
 {  
