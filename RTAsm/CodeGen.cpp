@@ -144,7 +144,6 @@ void CodeGen::_Instr::patchGotoTarget(int32_t target)
 
 CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream,0),defaultSymbols_(stream,0)
 {
-  usedRefs_=0;
   loopDepth_=0;
   codeAddr_=0;
   labelIdBitMap_=0x7FFFFFFF;
