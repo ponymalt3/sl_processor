@@ -626,6 +626,3 @@ void RTParser::parseFunctionDecl(Stream &stream)
   Token token=stream.readToken();
   Error::expect(token.getType() == Token::TOK_END) << stream << "expect 'END' at the end of a function";
 }
-  
-  
-  

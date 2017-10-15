@@ -125,5 +125,3 @@ uint32_t Error::getNumErrors()
 {
   return handler_.errors_;
 }
-
-

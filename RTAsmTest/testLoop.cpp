@@ -82,7 +82,7 @@ MTEST(testLoop,test_that_loop_in_loop_with_index_access_and_var_count_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-
+  
   tester.loadCode();
   tester.execute();
    
