@@ -115,6 +115,17 @@ void CodeGen::_LoopFrame::markComplex()
   isComplex_=true;
 }
 
+CodeGen::CodeGenDelegate::~CodeGenDelegate()
+{
+  uint32_t blockSize=codeGen_.getCurCodeAddr()-startAddr_;
+  codeGen_.moveCodeBlock(startAddr_,blockSize,target_.labelAddr_);
+  target_.labelAddr_+=blockSize;
+}
+
+CodeGen::CodeGenDelegate::CodeGenDelegate(CodeGen &codeGen,Label &target):codeGen_(codeGen),target_(target)
+{
+  startAddr_=codeGen_.getCurCodeAddr();
+}
 
 void CodeGen::_Instr::patchIrsOffset(uint32_t irsOffset)
 {
@@ -577,6 +588,11 @@ void CodeGen::popSymbolMap()
 {
   Error::expect(symbolMaps_.empty() == false) << "SymbolMaps stack underflow" << ErrorHandler::FATAL;
   symbolMaps_.pop();
+}
+
+CodeGen::CodeGenDelegate CodeGen::insertCodeBefore(Label &label)
+{
+  return CodeGenDelegate(*this,label);
 }
 
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)

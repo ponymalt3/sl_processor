@@ -139,7 +139,24 @@ public:
     const _Operand *counter_;
     bool isComplex_;
   };
-
+  
+  class CodeGenDelegate
+  {
+  public:
+    friend class CodeGen;
+    ~CodeGenDelegate();
+    
+    operator CodeGenInterface&() { return codeGen_; }
+    CodeGenInterface* operator->() {  return &codeGen_; }
+  protected:
+    CodeGenDelegate(CodeGen &codeGen,Label &target);
+    CodeGenDelegate(const CodeGenDelegate&);
+    
+    CodeGen &codeGen_;
+    uint32_t startAddr_;
+    Label &target_;
+  };
+  
   CodeGen(Stream &stream);
 
   void instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage);
@@ -211,6 +228,8 @@ public:
   
   void pushSymbolMap(SymbolMap &currentSymbolMap);
   void popSymbolMap();
+  
+  CodeGenDelegate insertCodeBefore(Label &label);
 
 protected:
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
@@ -277,7 +296,6 @@ protected:
     void patchIrsOffset(uint32_t irsOffset);
     void patchConstant(uint32_t value,bool patch2ndWord);
     void patchGotoTarget(int32_t target);
-
     
     uint32_t getGotoTarget();
     
@@ -293,6 +311,7 @@ protected:
 
   uint32_t codeAddr_;
   _Instr instrs_[512];
+ 
   SymStack<4> symbolMaps_;
   Stream &stream_;
   SymbolMap functions_;
