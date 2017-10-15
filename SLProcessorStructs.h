@@ -78,14 +78,6 @@ struct _Decode
   uint32_t incAD1_ : 1;
 };
 
-struct _MemAddr
-{
-  uint32_t memAD0_ : 16;
-  uint32_t memAD1_ : 16;
-  uint32_t addrNext_[2];
-  uint32_t memExt_ : 1;
-};
-
 struct _MemFetch1
 {
   uint32_t externalData_;

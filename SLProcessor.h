@@ -103,7 +103,7 @@ protected:
   _MemFetch1 memFetch1() const;
   _MemFetch2 memFetch2(const _Decode &decComb) const;
   _DecodeEx decodeEx(const _Decode &decodeComb,const _Exec &execComb,const _MemFetch1 &mem1,const _MemFetch2 &mem2,uint32_t extMemStall);
-  _Exec execute(uint32_t extMemStall);
+  _Exec execute(uint32_t extMemStall,const _Decode &decComb);
 
   _StallCtrl control(uint32_t stallDecEx,uint32_t stallExec,uint32_t condExec,uint32_t flushPipeline) const;
   _State updateState(const _Decode &decComb,uint32_t execNext,uint32_t setPcEnable,uint32_t pcValue) const;

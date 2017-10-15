@@ -492,7 +492,7 @@ _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_
   return stateNext;
 }
 
-_Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
+_Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after falling edge
 {
   _Exec exec;
 
@@ -516,7 +516,6 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
     exec.munit_.result_=state_.result_^0x80000000;
     exec.munit_.complete_=1;
   }
-    
 
   uint32_t data=state_.result_;//decEx_.b_;
 
@@ -584,7 +583,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
 
   _CodeFetch codeNext=codeFetch();
   _Decode decodeNext=decodeInstr();
-  _Exec execNext=execute(extMemStall);
+  _Exec execNext=execute(extMemStall,decodeNext);
   
   //************************************ at falling edge **********************************************
   portF2_.update();
