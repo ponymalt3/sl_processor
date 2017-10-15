@@ -241,7 +241,7 @@ public:
   
   static std::string negInstrToString(uint16_t code)
   {
-    if((code&0xFFC) == 0xF100)
+    if((code&0xFFC0) == 0xF100)
     {
       return "neg result";
     }
