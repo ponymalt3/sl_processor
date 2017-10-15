@@ -19,42 +19,42 @@ void swap(_T &a,_T &b)
   b=t;
 } 
 
-CodeGen::Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
+Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
   labelRef_=codeGen_.getLabelId();
   codeAddr_=codeGen_.getCurCodeAddr();
   labelAddr_=0;
 }
 
-CodeGen::Label::~Label()
+Label::~Label()
 {
-  if(labelRef_ != NoRef)
+  if(labelRef_ != CodeGen::NoRef)
     deleteLabel();
 }
 
-void CodeGen::Label::setLabel()
+void Label::setLabel()
 {
-  Error::expect(labelRef_ != NoRef) << "invalid label" << ErrorHandler::FATAL;
+  Error::expect(labelRef_ != CodeGen::NoRef) << "invalid label" << ErrorHandler::FATAL;
   //codeGen_.updateLabel(*this);
   labelAddr_=codeGen_.getCurCodeAddr();
 }
 
-void CodeGen::Label::deleteLabel()
+void Label::deleteLabel()
 {
   codeGen_.patchAndReleaseLabelId(*this,codeAddr_);
-  labelRef_=NoRef;
+  labelRef_=CodeGen::NoRef;
 }
 
-CodeGen::TmpStorage::TmpStorage(CodeGen &codeGen):codeGen_(codeGen)
+TmpStorage::TmpStorage(CodeGen &codeGen):codeGen_(codeGen)
 {
-  symbolRef_=NoRef;
+  symbolRef_=CodeGen::NoRef;
   size_=0;
   blockBegin_=codeGen_.getCurCodeAddr();
 }
 
-_Operand CodeGen::TmpStorage::allocate()
+_Operand TmpStorage::allocate()
 {
-  if(symbolRef_ == NoRef)
+  if(symbolRef_ == CodeGen::NoRef)
     symbolRef_=codeGen_.allocateTmpStorage();
 
   ++size_;
@@ -63,7 +63,7 @@ _Operand CodeGen::TmpStorage::allocate()
   return _Operand::createSymAccess(symbolRef_,size_-1);
 }
 
-_Operand CodeGen::TmpStorage::preloadConstValue(qfp32 value)
+_Operand TmpStorage::preloadConstValue(qfp32 value)
 {
   //loads a constant into irs and move code to begin of block (block starts where TmpStorage is created)
   uint16_t codeBlockStart=codeGen_.getCurCodeAddr();
@@ -78,13 +78,13 @@ _Operand CodeGen::TmpStorage::preloadConstValue(qfp32 value)
   return op;
 }
 
-void CodeGen::TmpStorage::preloadCode(uint32_t codeAddr,uint32_t size)
+void TmpStorage::preloadCode(uint32_t codeAddr,uint32_t size)
 {
   codeGen_.moveCodeBlock(codeAddr,size,blockBegin_);
   blockBegin_+=size;
 }
 
-_Operand CodeGen::TmpStorage::getArrayBaseOffset()
+_Operand TmpStorage::getArrayBaseOffset()
 {
   return _Operand::createSymAccess(symbolRef_,0xFFFF);
 }

@@ -40,9 +40,77 @@ protected:
   SymbolMap **sp_;
 };
 
-class CodeGen : public Error
+
+class CodeGen;
+
+class Label : public Error
 {
 public:
+  friend class CodeGen;
+  friend class CodeGenDelegate;
+
+  Label(CodeGen &codeGen);
+  ~Label();
+
+  void setLabel();
+  void deleteLabel();
+
+  uint32_t getLabelReference() const { return labelRef_; }
+
+protected:
+  CodeGen &codeGen_;
+  uint16_t labelRef_;
+  uint16_t codeAddr_;
+  uint16_t labelAddr_;
+};
+
+class TmpStorage
+{
+public:
+  friend class CodeGen;
+
+  TmpStorage(CodeGen &codeGen);
+
+  _Operand allocate();
+  _Operand preloadConstValue(qfp32 value);
+  void preloadCode(uint32_t codeAddr,uint32_t size);
+  _Operand getArrayBaseOffset();
+  
+protected:
+  uint32_t getSymbolReference() const { return symbolRef_; }
+
+  CodeGen &codeGen_;
+  uint16_t symbolRef_;
+  uint16_t size_;
+  uint16_t blockBegin_;
+};
+
+class CodeGenInterface
+{
+public:  
+  virtual void instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage) =0;
+  virtual void instrMov(const _Operand &opa,const _Operand &opb) =0;
+  virtual void instrNeg(const _Operand &opa) =0;
+  virtual void instrLoop(const _Operand &opa) =0;
+  virtual void instrBreak() =0;
+  virtual void instrContinue() =0;
+  virtual void instrGoto(const Label &label) =0;
+  virtual void instrGoto2() =0;
+  virtual void instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage) =0;
+  virtual void instrSignal(uint32_t target) =0;
+  virtual void instrWait() =0;
+  virtual void instrNop() =0;
+};
+
+class CodeGen : public Error, public CodeGenInterface
+{
+public:
+  friend class Label;
+  friend class TmpStorage;
+  
+  typedef ::Label Label;
+  typedef ::TmpStorage TmpStorage;
+  
   enum 
   {
     CMP_MODE_EQ=SLCode::CmpMode::CMP_EQ,
@@ -55,47 +123,6 @@ public:
   enum {EXEC_MODE_1CYC,EXEC_MODE_3CYC};
   enum {MaxLoopDepth=6,LoopStorageIndex=0,NoLoopFrame=-1};
   enum {NoRef=0xFFFF,NoLabel=NoRef,RefLoad=0xFFFE,RefLabelOffset=0xFFC0};
-
-  class Label : public Error
-  {
-  public:
-    friend class CodeGen;
-
-    Label(CodeGen &codeGen);
-    ~Label();
-
-    void setLabel();
-    void deleteLabel();
-
-    uint32_t getLabelReference() const { return labelRef_; }
-  
-  protected:
-    CodeGen &codeGen_;
-    uint16_t labelRef_;
-    uint16_t codeAddr_;
-    uint16_t labelAddr_;
-  };
-
-  class TmpStorage
-  {
-  public:
-    friend class CodeGen;
-
-    TmpStorage(CodeGen &codeGen);
-
-    _Operand allocate();
-    _Operand preloadConstValue(qfp32 value);
-    void preloadCode(uint32_t codeAddr,uint32_t size);
-    _Operand getArrayBaseOffset();
-    
-  protected:
-    uint32_t getSymbolReference() const { return symbolRef_; }
-
-    CodeGen &codeGen_;
-    uint16_t symbolRef_;
-    uint16_t size_;
-    uint16_t blockBegin_;
-  };
 
   struct _LoopFrame
   {
