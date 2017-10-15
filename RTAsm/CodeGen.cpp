@@ -375,6 +375,8 @@ void CodeGen::instrNeg(const _Operand &opa)
 
 void CodeGen::instrLoop(const _Operand &opa)
 {
+  instrMov(_Operand::createResult(),opa);
+  writeCode(SLCode::Loop::create());
 }
 
 void CodeGen::instrBreak()
