@@ -214,7 +214,7 @@ protected:
   uint32_t allocateTmpStorage();
   void changeStorageSize(const TmpStorage &storage,uint32_t size);
 
-  uint32_t getLabelId();
+  uint32_t getLabelId(Label* label);
   void patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart);
 
   void writeCode(uint32_t code,uint32_t ref=SymbolMap::InvalidLink);
@@ -278,7 +278,7 @@ protected:
   _LoopFrame loopFrames_[MaxLoopDepth];
 
   uint32_t labelIdBitMap_;
-  uint16_t usedRefs_;
+  Label* activeLabels_[32];
 
   uint32_t codeAddr_;
   _Instr instrs_[512];

@@ -21,7 +21,7 @@ void swap(_T &a,_T &b)
 
 Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
-  labelRef_=codeGen_.getLabelId();
+  labelRef_=codeGen_.getLabelId(this);
   codeAddr_=codeGen_.getCurCodeAddr();
   labelAddr_=0;
 }
@@ -141,6 +141,11 @@ CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream)
 
   //allocate first symbol for temp loop storage
   symbolMaps_.top().createSymbolNoToken(MaxLoopDepth);
+  
+  for(uint32_t i=0;i<32;++i)
+  {
+    activeLabels_[i]=0;
+  }
 }
 
 void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage)
@@ -620,7 +625,7 @@ uint32_t CodeGen::allocateTmpStorage()
   return symbolMaps_.top().createSymbolNoToken(1,true);
 }
 
-uint32_t CodeGen::getLabelId()
+uint32_t CodeGen::getLabelId(Label* label)
 {
   Error::expect(labelIdBitMap_ != 0) << "no more label ids available" << ErrorHandler::FATAL;
   
@@ -632,6 +637,8 @@ uint32_t CodeGen::getLabelId()
   }
   
   labelIdBitMap_&=~(1<<freeBitPos);
+  
+  activeLabels_[freeBitPos]=label;
 
   return freeBitPos + RefLabelOffset;
 }
@@ -664,6 +671,7 @@ void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
 
   //release label id
   labelIdBitMap_|=1<<(labelRef&0x1F);
+  activeLabels_[(labelRef&0x1F)]=0;
 }
 
 void CodeGen::changeStorageSize(const TmpStorage &storage,uint32_t size)
