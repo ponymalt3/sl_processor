@@ -308,7 +308,7 @@ _MemFetch2 SLProcessor::memFetch2(const _Decode &decComb) const
   return memFetch;
 }
 
-_DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _Exec &execComb,const _MemFetch1 &mem1,const _MemFetch2 &mem2,uint32_t extMemStall)
+_DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1,const _MemFetch2 &mem2,uint32_t extMemStall)
 {
   _DecodeEx decodeEx;
 
@@ -424,7 +424,7 @@ _StallCtrl SLProcessor::control(uint32_t stallDecEx,uint32_t stallExec,uint32_t 
   return {stallDecEx,stallExec,flushPipeline,enNext};
 }
 
-_State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_t setPcEnable,uint32_t pcValue) const
+_State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uint32_t setPcEnable,uint32_t pcValue) const
 {
   _State stateNext;
   
@@ -590,11 +590,11 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   //************************************ after falling edge *******************************************
   
   _MemFetch2 mem2=memFetch2(decodeNext);
-  _DecodeEx decExNext=decodeEx(decodeNext,execNext,mem1Next,mem2,extMemStall);
+  _DecodeEx decExNext=decodeEx(decodeNext,mem1Next,mem2,extMemStall);
 
   //controls
   _StallCtrl stall=control(decExNext.stall_,execNext.stall_,execNext.execNext_,execNext.flush_);
-  _State stateNext=updateState(decodeNext,stall.stallDecEx_,setPcEnable,pcValue);
+  _State stateNext=updateState(decodeNext,execNext,setPcEnable,pcValue);
 
   portExt_.update();
   portR0_.update();
