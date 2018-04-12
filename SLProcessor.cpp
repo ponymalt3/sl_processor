@@ -311,8 +311,6 @@ _MemFetch2 SLProcessor::memFetch2(const _Decode &decComb) const
 _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1,const _MemFetch2 &mem2,uint32_t extMemStall)
 {
   _DecodeEx decodeEx;
-
-  decodeEx.result_=execComb.munit_.result_;
   
   decodeEx.mux0_=decodeComb.muxA_;
 
