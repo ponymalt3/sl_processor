@@ -615,9 +615,9 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
     int32_t test=(int32_t)(a.abs());
     switch(decEx_.wbReg_)
     {
-    case SLCode::REG_AD0: stateNext.addr_[0]=(int32_t)(a.abs()); break;
-    case SLCode::REG_AD1: stateNext.addr_[1]=(int32_t)(a.abs()); break;
-    case SLCode::REG_IRS: stateNext.irs_=(int32_t)(a.abs()); break;
+    case SLCode::REG_AD0: stateNext.addr_[0]=execNext.intResult_; break;
+    case SLCode::REG_AD1: stateNext.addr_[1]=execNext.intResult_; break;
+    case SLCode::REG_IRS: stateNext.irs_=execNext.intResult_; break;
     }
   }
   
