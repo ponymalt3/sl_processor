@@ -30,6 +30,7 @@ MTEST(TestOp,testOpWithOperandsResultAndIRS)
   proc.run(7);
   
   EXPECT(proc.readMemory(6) == (value-value2).toRaw());
+  proc.expectThatMemIs(6,value-value2);
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA0)
@@ -60,6 +61,7 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA0)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad0) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad0,value-value2);
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA0AndIncAddr)
@@ -91,6 +93,7 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA0AndIncAddr)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad0+1,value-value2);
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA1)
@@ -121,6 +124,7 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA1)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad1,value-value2);
 }
 
 MTEST(TestOp,testOpWithOperandsResultAndDATA1AndIncAddr)
@@ -152,6 +156,7 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA1AndIncAddr)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad1+1,value-value2);
 }
 
 MTEST(TestOp,testOpWithOperandsDATA0WithAddrIncAndIRS)
@@ -183,6 +188,7 @@ MTEST(TestOp,testOpWithOperandsDATA0WithAddrIncAndIRS)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad0+1,value-value2);
 }
 
 MTEST(TestOp,testOpWithOperandsDATA1WithAddrIncAndIRS)
@@ -214,6 +220,7 @@ MTEST(TestOp,testOpWithOperandsDATA1WithAddrIncAndIRS)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad1+1) == (value2-value).toRaw());
+  proc.expectThatMemIs(ad1+1,value2-value);
 }
 
 
@@ -254,6 +261,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall1)
   proc.run(10);
   
   EXPECT(proc.readMemory(5) == (value-value2).toRaw());
+  proc.expectThatMemIs(5,value-value2);
 }
 
 MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall2)
@@ -291,6 +299,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall2)
   proc.run(10);
   
   EXPECT(proc.readMemory(5) == (value-value2).toRaw());
+  proc.expectThatMemIs(5,value-value2);
 }
 
 MTEST(TestOp,testOpWithMemoryAndIRSWithNoIncExpectStall)
@@ -323,6 +332,7 @@ MTEST(TestOp,testOpWithMemoryAndIRSWithNoIncExpectStall)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad0) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad0,value-value2);
 }
 
 MTEST(TestOp,testOpWithResultAndMemoryWithNoIncExpectStall)
@@ -353,6 +363,7 @@ MTEST(TestOp,testOpWithResultAndMemoryWithNoIncExpectStall)
   proc.run(8);
   
   EXPECT(proc.readMemory(ad0) == (ad0-value).toRaw());
+  proc.expectThatMemIs(ad0,ad0-value);
 }
 
 
@@ -394,6 +405,8 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpA)
   
   EXPECT(proc.readMemory(ad0) == (value-value2).toRaw());
   EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad0,value-value2);
+  proc.expectThatMemIs(ad1+1,value-value2);
 }
 
 MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpB)
@@ -433,6 +446,8 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpB)
   
   EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
   EXPECT(proc.readMemory(ad1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad0+1,value-value2);
+  proc.expectThatMemIs(ad1,value-value2);
 }
 
 MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
@@ -473,6 +488,8 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
   
   EXPECT(proc.readMemory(ad0+1) == (value-value2).toRaw());
   EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad0+1,value-value2);
+  proc.expectThatMemIs(ad1+1,value-value2);
 }
 
 
@@ -501,6 +518,7 @@ MTEST(TestOp,testOpAddition)
   proc.run(6);
   
   EXPECT(proc.readMemory(6) == (value2+value).toRaw());
+  proc.expectThatMemIs(6,value2+value);
 }
 
 MTEST(TestOp,testOpSubstract)
@@ -527,6 +545,7 @@ MTEST(TestOp,testOpSubstract)
   proc.run(6);
   
   EXPECT(proc.readMemory(6) == (value2-value).toRaw());
+  proc.expectThatMemIs(6,value2-value);
 }
 
 MTEST(TestOp,testOpMultiply)
@@ -553,6 +572,7 @@ MTEST(TestOp,testOpMultiply)
   proc.run(6);
   
   EXPECT(proc.readMemory(6) == (value2*value).toRaw());
+  proc.expectThatMemIs(6,value2*value);
 }
 
 MTEST(TestOp,testOpDivide)
@@ -579,4 +599,5 @@ MTEST(TestOp,testOpDivide)
   proc.run(35);
   
   EXPECT(proc.readMemory(6) == (value2/value).toRaw());
+  proc.expectThatMemIs(6,value2/value);
 }

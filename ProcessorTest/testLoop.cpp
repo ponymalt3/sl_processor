@@ -44,6 +44,7 @@ MTEST(TestLoop,test_that_minimal_overhead_loop_works)
   proc.run(76);
   
   EXPECT(proc.readMemory(10) == result.toRaw());
+  proc.expectThatMemIs(10,result);
 }
 
 MTEST(TestLoop,test_that_minimal_overhead_with_param_zero_executes_once)
@@ -82,4 +83,5 @@ MTEST(TestLoop,test_that_minimal_overhead_with_param_zero_executes_once)
   proc.run(11);
   
   EXPECT(proc.readMemory(10) == result.toRaw());
+  proc.expectThatMemIs(10,result);
 }

@@ -29,6 +29,7 @@ MTEST(TestMov,testMovToAD0RegFromResult)
   proc.run(6);//include one cycle stall
   
   EXPECT(proc.readMemory(ad0) == value.toRaw());
+  proc.expectThatMemIs(ad0,value);
 }
 
 MTEST(TestMov,testMovToAD1RegFromResult)
@@ -55,6 +56,7 @@ MTEST(TestMov,testMovToAD1RegFromResult)
   proc.run(6);
   
   EXPECT(proc.readMemory(ad1) == value.toRaw());
+  proc.expectThatMemIs(ad1,value);
 }
 
 MTEST(TestMov,MovToAD0FromResultAndInc)
@@ -85,6 +87,8 @@ MTEST(TestMov,MovToAD0FromResultAndInc)
   
   EXPECT(proc.readMemory(ad0) == value.toRaw());
   EXPECT(proc.readMemory(ad0+1) == value.toRaw());
+  proc.expectThatMemIs(ad0,value);
+  proc.expectThatMemIs(ad0+1,value);
 }
 
 MTEST(TestMov,MovToAD1FromResultAndInc)
@@ -114,7 +118,9 @@ MTEST(TestMov,MovToAD1FromResultAndInc)
   proc.run(7);
   
   EXPECT(proc.readMemory(ad1) == value.toRaw());
-  EXPECT(proc.readMemory(ad1) == value.toRaw());
+  EXPECT(proc.readMemory(ad1+1) == value.toRaw());
+  proc.expectThatMemIs(ad1,value);
+  proc.expectThatMemIs(ad1+1,value);
 }
 
 MTEST(TestMov,testMovToAD0FromResultStallsWhenAD0IsWrittenBefore)
@@ -146,6 +152,10 @@ MTEST(TestMov,testMovToAD0FromResultStallsWhenAD0IsWrittenBefore)
   EXPECT(proc.readMemory(ad0) == ad0.toRaw());
   EXPECT(proc.readMemory(ad0+1) == ad0.toRaw());
   EXPECT(proc.readMemory(ad0+2) == 0);
+  
+  proc.expectThatMemIs(ad0,ad0);
+  proc.expectThatMemIs(ad0+1,ad0);
+  proc.expectThatMemIs(ad0+2,0);
 }
 
 MTEST(TestMov,testMovToAD1FromResultStallsWhenAD1IsWrittenBefore)
@@ -177,6 +187,10 @@ MTEST(TestMov,testMovToAD1FromResultStallsWhenAD1IsWrittenBefore)
   EXPECT(proc.readMemory(ad1) == ad1.toRaw());
   EXPECT(proc.readMemory(ad1+1) == ad1.toRaw());
   EXPECT(proc.readMemory(ad1+2) == 0);
+  
+  proc.expectThatMemIs(ad1,ad1);
+  proc.expectThatMemIs(ad1+1,ad1);
+  proc.expectThatMemIs(ad1+2,0);
 }
 
 MTEST(TestMov,testMovToAD0FromResultDoesNotStallWhenAD1IsWrittenBefore)
@@ -206,6 +220,9 @@ MTEST(TestMov,testMovToAD0FromResultDoesNotStallWhenAD1IsWrittenBefore)
   
   EXPECT(proc.readMemory(ad0) == ad0.toRaw());
   EXPECT(proc.readMemory(ad0+1) == ad0.toRaw());
+  
+  proc.expectThatMemIs(ad0,ad0);
+  proc.expectThatMemIs(ad0+1,ad0);
 }
 
 MTEST(TestMov,testMovToAD1FromResultDoesNotStallWhenAD0IsWrittenBefore)
@@ -235,6 +252,8 @@ MTEST(TestMov,testMovToAD1FromResultDoesNotStallWhenAD0IsWrittenBefore)
   
   EXPECT(proc.readMemory(ad1) == ad1.toRaw());
   EXPECT(proc.readMemory(ad1+1) == ad1.toRaw());
+  proc.expectThatMemIs(ad1,ad1);
+  proc.expectThatMemIs(ad1+1,ad1);
 }
 
 MTEST(TestMov,test_that_mov_to_Result_from_AD0_works_and_expect_stall)
@@ -263,6 +282,7 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD0_works_and_expect_stall)
   proc.run(7);
   
   EXPECT(proc.readMemory(5) == value.toRaw());
+  proc.expectThatMemIs(5,value);
 }
 
 MTEST(TestMov,test_that_mov_to_Result_from_AD0_with_inc_works_and_expect_stall)
@@ -294,6 +314,8 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD0_with_inc_works_and_expect_stall)
   
   EXPECT(proc.readMemory(ad0+1) == value.toRaw());
   EXPECT(proc.readMemory(ad0+2) == 0);
+  proc.expectThatMemIs(ad0+1,value);
+  proc.expectThatMemIs(ad0+2,0);
 }
 
 
@@ -323,6 +345,7 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD1_works_and_expect_stall)
   proc.run(7);
   
   EXPECT(proc.readMemory(5) == value.toRaw());
+  proc.expectThatMemIs(5,value);
 }
 
 MTEST(TestMov,test_that_mov_to_Result_from_AD1_with_inc_works_and_expect_stall)
@@ -354,6 +377,8 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD1_with_inc_works_and_expect_stall)
   
   EXPECT(proc.readMemory(ad1+1) == value.toRaw());
   EXPECT(proc.readMemory(ad1+2) == 0);
+  proc.expectThatMemIs(ad1+1,value);
+  proc.expectThatMemIs(ad1+2,0);
 }
 
 MTEST(TestMov,test_that_mov_to_Result_from_AD0_works_and_does_not_stall_when_AD1_is_written_before)
@@ -386,6 +411,8 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD0_works_and_does_not_stall_when_AD1
   
   EXPECT(proc.readMemory(ad0+1) == value.toRaw());
   EXPECT(proc.readMemory(ad0+2) == 0);
+  proc.expectThatMemIs(ad0+1,value);
+  proc.expectThatMemIs(ad0+2,0);
 }
 
 MTEST(TestMov,test_that_mov_to_Result_from_AD1_works_and_does_not_stall_when_AD0_is_written_before)
@@ -418,6 +445,8 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD1_works_and_does_not_stall_when_AD0
   
   EXPECT(proc.readMemory(ad1+1) == value.toRaw());
   EXPECT(proc.readMemory(ad1+2) == 0);
+  proc.expectThatMemIs(ad1+1,value);
+  proc.expectThatMemIs(ad1+2,0);
 }
 
 
@@ -443,6 +472,7 @@ MTEST(TestMov,test_that_mov_to_Result_from_IRS_works)
   proc.run(4);
   
   EXPECT(proc.readMemory(6) == value.toRaw());
+  proc.expectThatMemIs(6,value);
 }
 
 MTEST(TestMov,test_that_mov_to_IRS_from_Result_works)
@@ -466,6 +496,7 @@ MTEST(TestMov,test_that_mov_to_IRS_from_Result_works)
   proc.run(4);
   
   EXPECT(proc.readMemory(5) == value.toRaw());
+  proc.expectThatMemIs(5,value);
 }
 
 //NOT POSSIBLE ANYMORE: cause data mux for mem write is saved
@@ -502,4 +533,6 @@ MTEST(TestMov,test_that_mov_from_mem_AD0_to_mem_AD1_works_DISABLED)
   
   EXPECT(proc.readMemory(ad1+0) == value1.toRaw());
   EXPECT(proc.readMemory(ad1+1) == value1.toRaw());
+  proc.expectThatMemIs(ad1+0,value1);
+  proc.expectThatMemIs(ad1+1,value1);
 }

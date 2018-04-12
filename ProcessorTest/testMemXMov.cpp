@@ -63,6 +63,7 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works)
   proc.run(7);
   
   EXPECT(proc.readMemory(ad1) == value.toRaw());
+  proc.expectThatMemIs(ad1,value);
 }
 
 MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_with_inc_works)
@@ -96,6 +97,8 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_with_inc_works)
   
   EXPECT(proc.readMemory(5) == value.toRaw());
   EXPECT(proc.readMemory(ad1+1) == value.toRaw());
+  proc.expectThatMemIs(5,value);
+  proc.expectThatMemIs(ad1+1,value);
 }
 
 MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_with_inc_works)
@@ -127,6 +130,8 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_with_inc_works)
   
   EXPECT(proc.readMemory(ad1) == value.toRaw());
   EXPECT(proc.readMemory(ad1+1) == value.toRaw());
+  proc.expectThatMemIs(ad1,value);
+  proc.expectThatMemIs(ad1+1,value);
 }
 
 MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_is_in_progress)
@@ -162,6 +167,8 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_i
   
   EXPECT(proc.readMemory(ad1) == value.toRaw());
   EXPECT(proc.readMemory(5) == value2.toRaw());
+  proc.expectThatMemIs(ad1,value);
+  proc.expectThatMemIs(5,value2);
 }
 
 MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works_while_external_mem_is_stalled)
@@ -197,6 +204,7 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works_while_external_mem_is_s
   proc.execute(3);  
   
   EXPECT(proc.readMemory(5) == value.toRaw());
+  proc.expectThatMemIs(5,value);
 }
 
 MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_stalled)
@@ -229,6 +237,7 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_s
   proc.execute(2);  
   
   EXPECT(proc.readMemory(ad1) == value.toRaw());
+  proc.expectThatMemIs(ad1,value);
 }
 
 MTEST(TestMemXMov,test_that_change_AD1_is_blocked_while_external_mem_is_in_progress)
@@ -262,4 +271,5 @@ MTEST(TestMemXMov,test_that_change_AD1_is_blocked_while_external_mem_is_in_progr
   proc.execute(2);  
   
   EXPECT(proc.readMemory(ad1) == value.toRaw());
+  proc.expectThatMemIs(ad1,value);
 }

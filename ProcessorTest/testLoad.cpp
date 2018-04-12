@@ -23,6 +23,7 @@ MTEST(TestLoad,Load0)
   proc.run(4);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }
 
 MTEST(TestLoad,Load1)
@@ -44,6 +45,7 @@ MTEST(TestLoad,Load1)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }
   
 MTEST(TestLoad,Load2)
@@ -66,4 +68,5 @@ MTEST(TestLoad,Load2)
   proc.run(6);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }

@@ -40,6 +40,7 @@ MTEST(TestGoto,testSimpleForwardJump)
   proc.run(9);
   
   EXPECT(proc.readMemory(ad0) == value2.toRaw());
+  proc.expectThatMemIs(ad0,value2);
 }
 
 MTEST(TestGoto,testSimpleBackwardJump)
@@ -83,6 +84,9 @@ MTEST(TestGoto,testSimpleBackwardJump)
   
   EXPECT(proc.readMemory(ad0) == value.toRaw());
   EXPECT(proc.readMemory(ad0+1) == 0);
+  
+  proc.expectThatMemIs(ad0,value);
+  proc.expectThatMemIs(ad0+1,0);
 }
 
 MTEST(TestGoto,testConditionalGotoWithConditionIsTrue)
@@ -120,6 +124,7 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsTrue)
   proc.run(10);
   
   EXPECT(proc.readMemory(ad0) == value2.toRaw());
+  proc.expectThatMemIs(ad0,value2);
 }
 
 MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
@@ -161,4 +166,6 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
   
   EXPECT(proc.readMemory(ad0) == ad0.toRaw());
   EXPECT(proc.readMemory(ad0+1) == ad0.toRaw());
+  proc.expectThatMemIs(ad0,ad0);
+  proc.expectThatMemIs(ad0+1,ad0);
 }

@@ -28,6 +28,7 @@ MTEST(TestCmp,testEqualExpectTrue)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }
 
 MTEST(TestCmp,testEqualExpectFalse)
@@ -53,6 +54,7 @@ MTEST(TestCmp,testEqualExpectFalse)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == 0);
+  proc.expectThatMemIs(10,0);
 }
 
 MTEST(TestCmp,testNotEqualExpectTrue)
@@ -78,6 +80,7 @@ MTEST(TestCmp,testNotEqualExpectTrue)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }
 
 MTEST(TestCmp,testNotEqualExpectFalse)
@@ -103,6 +106,7 @@ MTEST(TestCmp,testNotEqualExpectFalse)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == 0);
+  proc.expectThatMemIs(10,0);
 }
 
 MTEST(TestCmp,testLessEqualExpectTrue)
@@ -128,6 +132,7 @@ MTEST(TestCmp,testLessEqualExpectTrue)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }
 
 MTEST(TestCmp,testLessEqualWithBothOperandsEqualExpectTrue)
@@ -153,6 +158,7 @@ MTEST(TestCmp,testLessEqualWithBothOperandsEqualExpectTrue)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }
 
 MTEST(TestCmp,testLessEqualExpectFalse)
@@ -178,6 +184,7 @@ MTEST(TestCmp,testLessEqualExpectFalse)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == 0);
+  proc.expectThatMemIs(10,0);
 }
 
 MTEST(TestCmp,testLessThanExpectTrue)
@@ -203,6 +210,7 @@ MTEST(TestCmp,testLessThanExpectTrue)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == value.toRaw());
+  proc.expectThatMemIs(10,value);
 }
 
 MTEST(TestCmp,testLessThanWithBothOperandsEqualExpectFalse)
@@ -228,6 +236,7 @@ MTEST(TestCmp,testLessThanWithBothOperandsEqualExpectFalse)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == 0);
+  proc.expectThatMemIs(10,0);
 }
 
 MTEST(TestCmp,testLessThanExpectFalse)
@@ -253,6 +262,7 @@ MTEST(TestCmp,testLessThanExpectFalse)
   proc.run(5);
   
   EXPECT(proc.readMemory(10) == 0);
+  proc.expectThatMemIs(10,0);
 }
 
 MTEST(TestCmp,testBlockAddrIncIfCondNotMet)
@@ -289,4 +299,7 @@ MTEST(TestCmp,testBlockAddrIncIfCondNotMet)
   
   EXPECT(proc.readMemory(10) == compare.toRaw());
   EXPECT(proc.readMemory(11) == 0);//no write
+  
+  proc.expectThatMemIs(10,compare);
+  proc.expectThatMemIs(11,0);
 }

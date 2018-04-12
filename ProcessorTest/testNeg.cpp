@@ -28,4 +28,5 @@ MTEST(TestNeg,test_that_negate_Result_works)
   proc.run(5);
   
   EXPECT(proc.readMemory(5) == (-value).toRaw());
+  proc.expectThatMemIs(5,-value);
 }

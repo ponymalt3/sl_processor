@@ -42,6 +42,7 @@ MTEST(TestGotoAbs,test_that_goto_with_abs_addr_works)
   proc.run(11);
   
   EXPECT(proc.readMemory(ad0) == value2.toRaw());
+  proc.expectThatMemIs(ad0,value2);
 }
 
 MTEST(TestGotoAbs,test_that_goto_flushes_pipeline_and_prevent_addr_inc)
@@ -80,4 +81,5 @@ MTEST(TestGotoAbs,test_that_goto_flushes_pipeline_and_prevent_addr_inc)
   proc.run(10);
   
   EXPECT(proc.readMemory(ad0) == value2.toRaw());
+  proc.expectThatMemIs(ad0,value2);
 }

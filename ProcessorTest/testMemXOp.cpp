@@ -38,6 +38,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_Result_works)
   proc.run(9);
   
   EXPECT(proc.readMemory(5) == (value-value2).toRaw());
+  proc.expectThatMemIs(5,value-value2);
 }
 
 MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_works)
@@ -76,6 +77,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_works)
   proc.run(11);
   
   EXPECT(proc.readMemory(5) == (value-value2).toRaw());
+  proc.expectThatMemIs(5,value-value2);
 }
 
 MTEST(TestMemXOp,test_that_sub_AD1_from_Result_with_inc_works)
@@ -108,6 +110,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_Result_with_inc_works)
   proc.run(9);
   
   EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad1+1,value-value2);
 }
 
 MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_with_inc_works)
@@ -146,6 +149,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_with_inc_works)
   proc.run(11);
   
   EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad1+1,value-value2);
 }
 
 MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_stalls_while_external_write_is_in_progress)
@@ -187,6 +191,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_stalls_while_external_write_is_in_pr
   proc.run(13);
   
   EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad1+1,value-value2);
 }
 
 
@@ -230,4 +235,5 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_stalls_while_external_mem_is_stalled
   proc.execute(4);  
   
   EXPECT(proc.readMemory(ad1+1) == (value-value2).toRaw());
+  proc.expectThatMemIs(ad1+1,value-value2);
 }

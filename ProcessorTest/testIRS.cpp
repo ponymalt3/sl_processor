@@ -37,6 +37,9 @@ MTEST(TestIRS,test_that_irs_addr_is_changed)
   
   EXPECT(proc.readMemory(offset) == value.toRaw());
   EXPECT(proc.readMemory(irs+offset) == value.toRaw());
+  
+  proc.expectThatMemIs(offset,value);
+  proc.expectThatMemIs(irs+offset,value);
 }
 
 MTEST(TestIRS,test_that_irs_addr_is_changed_with_big_value)
@@ -71,6 +74,9 @@ MTEST(TestIRS,test_that_irs_addr_is_changed_with_big_value)
   
   EXPECT(proc.readMemory(offset) == value.toRaw());
   EXPECT(proc.readMemory(irs+offset) == value.toRaw());
+  
+  proc.expectThatMemIs(offset,value);
+  proc.expectThatMemIs(irs+offset,value);
 }
 
 MTEST(TestIRS,test_that_irs_access_after_irs_changed_is_stalled)
@@ -106,4 +112,5 @@ MTEST(TestIRS,test_that_irs_access_after_irs_changed_is_stalled)
   proc.run(9);
   
   EXPECT(proc.readMemory(ad0) == value.toRaw());
+  proc.expectThatMemIs(ad0,value);
 }
