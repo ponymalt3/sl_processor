@@ -453,7 +453,7 @@ _State SLProcessor::updateState(const _Decode &decComb,uint32_t execNext,uint32_
     }
     else
     {
-      pcNext=(int32_t)(_qfp32_t::initFromRaw(state_.result_).abs());
+      pcNext=execNext.intResult_;// (int32_t)(_qfp32_t::initFromRaw(state_.result_).abs());
     }
   }
 
@@ -534,7 +534,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
     }
   }
   
-  exec.intResult_=(int32_t)(_qfp32_t::initFromRaw(decEx_.b_).abs());
+  exec.intResult_=(int32_t)(_qfp32_t::initFromRaw(decEx_.a_).abs());
 
   exec.execNext_=1;
 
@@ -623,7 +623,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   
   if(enable_(_State::S_EXEC) && decode_.loop_ == 1)
   {
-    stateNext.loopCount_=(int32_t)(_qfp32_t::initFromRaw(state_.result_).abs());
+    stateNext.loopCount_=execNext.intResult_;
     stateNext.loopCount_|=0x80000000;
   }
 
