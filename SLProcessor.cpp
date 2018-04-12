@@ -269,7 +269,7 @@ _Decode SLProcessor::decodeInstr() const
 
   //pre calculate jmp target
   decode.jmpBack_=(decode.cData_&0x200)?1:0;
-  decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)*(decode.jmpBack_?-1:1);
+  decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x3FF)+(((decode.cData_>>9)&1)*0xFFFFFC00);
   
   incAD2=incAD2 || (!bdata(15) && incAD);
 

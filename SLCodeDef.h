@@ -147,12 +147,12 @@ namespace SLCode
       if(relJump < 0)
       {
         backwardJmp=true;
-        relJump=-relJump;
+        //relJump=-relJump;
       }
 
       uint32_t muxA=MUX1_RESULT;
       uint32_t loopEnd=loopEndMarker;
-      uint32_t pcAdjust=(backwardJmp?0x200:0) + (relJump&0x1FF);
+      uint32_t pcAdjust=(relJump&0x3FF);
 
       return Code + (pcAdjust<<2) + (muxA<<1) + 1;
     }
