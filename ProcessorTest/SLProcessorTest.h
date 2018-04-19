@@ -29,8 +29,6 @@ public:
   {
     file_=std::fstream(filename,std::ios::trunc|std::ios::out);
     file_<<std::hex;
-    file_<<std::setw(8);
-    file_<<std::right;
     file_.fill('0');
   }
   
@@ -57,11 +55,11 @@ public:
     file_<<"\n";
   }
   
-  void runCycles(uint32_t cycles)
+  void runCycles(uint32_t cycles,bool stallExtMem=false)
   {
     if(file_.is_open())
     {
-      file_<<"0002"<<" "<<std::setw(8)<<(cycles)<<"\n";
+      file_<<(stallExtMem?"0005":"0002")<<" "<<std::setw(8)<<(cycles)<<"\n";
     }
   }
   
@@ -195,6 +193,8 @@ public:
   {
     for(uint32_t i=0;i<cycles;++i)
       processor_.update(1,0,0);
+    
+    getVdhlTestGenerator().runCycles(cycles,true);
   }
   
   void executeWithSetPc(uint32_t pcValue,uint32_t cycles=1)
