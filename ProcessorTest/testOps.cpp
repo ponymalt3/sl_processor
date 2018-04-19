@@ -569,7 +569,7 @@ MTEST(TestOp,testOpMultiply)
   proc.writeMemory(5,value.toRaw());
   proc.writeMemory(6,0);
   
-  proc.run(6);
+  proc.run(7);
   
   EXPECT(proc.readMemory(6) == (value2*value).toRaw());
   proc.expectThatMemIs(6,value2*value);
@@ -596,7 +596,7 @@ MTEST(TestOp,testOpDivide)
   proc.writeMemory(5,value.toRaw());
   proc.writeMemory(6,0);
   
-  proc.run(35);
+  proc.run(36);
   
   EXPECT(proc.readMemory(6) == (value2/value).toRaw());
   proc.expectThatMemIs(6,value2/value);

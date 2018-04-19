@@ -60,9 +60,9 @@ void SLArithUnit::addOperation(const _DecodeEx &decEx)
     pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_MOV;
     break;
   case SLCode::CMD_CMP:
-    pipeline_[(curCycle_+0)%32].result_=(extA-extB).toRaw();
-    pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_CMP;
-    break;      
+     pipeline_[(curCycle_+0)%32].result_=(extA-extB).toRaw();
+     pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_CMP;
+     break; 
   default:
     ;
   }
@@ -131,13 +131,14 @@ void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
       pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_SUB;
       break;
     case SLCode::CMD_MUL:
-      pipeline_[(curCycle_+1)%32].result_=(a*b).toRaw();
-      pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_MUL;
+      pipeline_[(curCycle_+2)%32].result_=(a*b).toRaw();
+      pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_MUL;
       break;
     case SLCode::CMD_DIV:
-      pipeline_[(curCycle_+30)%32].result_=(a/b).toRaw();
-      pipeline_[(curCycle_+30)%32].cmd_=SLCode::CMD_DIV;
+      pipeline_[(curCycle_+31)%32].result_=(a/b).toRaw();
+      pipeline_[(curCycle_+31)%32].cmd_=SLCode::CMD_DIV;
       break;
+    
     //case SLCode::CMD_MAC:
       //pipeline_[(curCycle_+2)%32].result_=(a*b).asUint;
       //pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_MUL;
