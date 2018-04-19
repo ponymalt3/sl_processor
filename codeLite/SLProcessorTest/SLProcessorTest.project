@@ -54,7 +54,6 @@
       <Linker Options="" Required="yes">
         <LibraryPath Value="$(UNIT_TEST_PP_SRC_DIR)/Debug"/>
         <LibraryPath Value="$(WorkspacePath)/SLProcessor/Debug"/>
-        <Library Value="libUnitTest++.a"/>
         <Library Value="libSLProcessor.a"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
