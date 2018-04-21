@@ -32,8 +32,8 @@ package body sl_dec_ex_p is
 
     decode_ex.mux0 := decode.mux_a;
 
-    decode_ex.mem0 := mem2.read_data(0);
-    decode_ex.mem1 := mem2.read_data(1);
+    --decode_ex.mem0 := mem2.read_data(0);
+    --decode_ex.mem1 := mem2.read_data(1);
     decode_ex.memX := mem1.external_data;
 
     decode_ex.wr_addr := mem2.wr_addr;

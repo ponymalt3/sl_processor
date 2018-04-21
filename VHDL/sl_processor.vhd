@@ -78,6 +78,8 @@ architecture rtl of sl_processor is
   signal alu_en2 : std_ulogic;
   signal multi_cycle_op : std_ulogic;
 
+  signal rp_stall : std_ulogic;
+
 begin  -- architecture rtl
 
   process (clk_i, reset_n_i) is
@@ -114,6 +116,7 @@ begin  -- architecture rtl
       rp0_din_i       => rp0_dout,
       rp1_addr_o      => rp1_addr,
       rp1_din_i       => rp1_dout,
+      rp_stall_o      => rp_stall,
       wp_addr_o       => wp_addr,
       wp_dout_o       => wp_din,
       wp_we_o         => wp_we,
@@ -146,7 +149,8 @@ begin  -- architecture rtl
       r1_complete_o => mem_complete_o,
       f1_addr_i     => rp1_addr_vec,
       f1_dout_o     => rp1_dout,
-      f1_complete_o => open);
+      f1_complete_o => open,
+      f_stall_i     => rp_stall);
 
   qfp_unit_1: entity work.qfp_unit
     generic map (

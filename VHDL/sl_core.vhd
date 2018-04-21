@@ -42,6 +42,7 @@ entity sl_core is
     rp0_din_i : in reg_raw_t;
     rp1_addr_o : out reg_addr_t;
     rp1_din_i : in reg_raw_t;
+    rp_stall_o : out std_ulogic;
     
     -- write port (positive edge)
     wp_addr_o : out reg_addr_t;
@@ -68,9 +69,12 @@ architecture rtl of sl_core is
   signal rp0_addr : reg_addr_t;
   signal rp1_addr : reg_addr_t;
 
+  alias mem0_reg : std_ulogic_vector(31 downto 0) is rp0_din_i;
+  alias mem1_reg : std_ulogic_vector(31 downto 0) is rp1_din_i;
+
 begin  -- architecture rtl
 
-  process (dec_next, proc, rp0_addr, rp1_addr) is
+  process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr) is
   begin  -- process
     ext_mem_addr_o <= proc.state.addr(1); -- read addr
     ext_mem_dout_o <= proc.state.result;
@@ -90,6 +94,8 @@ begin  -- architecture rtl
     rp0_addr <= proc.state.addr(to_integer(unsigned'("" & dec_next.mux_ad0)));
     rp1_addr <= proc.state.addr(to_integer(unsigned'("" & dec_next.mux_ad1)));
 
+    rp_stall_o <= ctrl_next.stall_decex;
+      
     rp0_addr_o <= rp0_addr;
     rp1_addr_o <= rp1_addr;
 
@@ -105,8 +111,8 @@ begin  -- architecture rtl
     
   end process;
 
-  alu_op_a_o <= proc.decex.mem0 when proc.decex.mux0 = MUX1_MEM else proc.state.result;
-  alu_op_b_o <= proc.decex.memX when proc.decex.wr_ext = '1' else proc.decex.mem1;
+  alu_op_a_o <= mem0_reg when proc.decex.mux0 = MUX1_MEM else proc.state.result;
+  alu_op_b_o <= proc.decex.memX when proc.decex.wr_ext = '1' else mem1_reg;
 
   process (clk_i, reset_n_i) is
   begin  -- process

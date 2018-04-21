@@ -28,7 +28,9 @@ entity multi_port_mem is
 
     f1_addr_i : in std_ulogic_vector(15 downto 0);
     f1_dout_o : out std_ulogic_vector(31 downto 0);
-    f1_complete_o : out std_ulogic);
+    f1_complete_o : out std_ulogic;
+
+    f_stall_i : in std_ulogic);
 
 end entity multi_port_mem;
 
@@ -53,26 +55,28 @@ begin  -- architecture rtl
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       state <= not state;
 
-      if r0_we_i = '1' and state = '0' then
-        mem(to_integer(unsigned(r0_addr_i))) <= r0_din_i;
-      end if;
-      
-      if r1_we_i = '1' and state = '0' then
-        mem(to_integer(unsigned(r1_addr_i))) <= r1_din_i;
+      if state = '0' then
+        mem0_dout <= mem(to_integer(unsigned(r0_addr_i)));
+        mem1_dout <= mem(to_integer(unsigned(r1_addr_i)));
+        
+        if r0_we_i = '1' then
+          mem(to_integer(unsigned(r0_addr_i))) <= r0_din_i;
+        end if;
+
+        if r1_we_i = '1' and state = '0' then
+          mem(to_integer(unsigned(r1_addr_i))) <= r1_din_i;
+        end if;
+      else
+        if f_stall_i = '0' then
+          f0_dout_o <= mem(to_integer(unsigned(f0_addr_i)));
+          f1_dout_o <= mem(to_integer(unsigned(f1_addr_i)));
+        end if;
       end if;
         
     end if;
   end process;
 
-  mem0_addr <= r0_addr_i when state = '0' else f0_addr_i;
-  mem1_addr <= r1_addr_i when state = '0' else f1_addr_i;
-
-  mem0_dout <= mem(to_integer(unsigned(mem0_addr)));
-  mem1_dout <= mem(to_integer(unsigned(mem1_addr)));
-
-  f0_dout_o <= mem0_dout;
   r1_dout_o <= mem1_dout;
-  f1_dout_o <= mem1_dout;
 
   r0_idle_o <= not state;
   f0_complete_o <= state;

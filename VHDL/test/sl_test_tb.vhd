@@ -253,9 +253,19 @@ begin  -- architecture Behav
         when X"000F" =>
           hread(l,data32);
           mem_addr <= unsigned(data32(15 downto 0));
+
+          wait for 1 ps;
           -- generate clock for memory
           reset_core_n <= '0';
 
+          sl_clk <= '1';
+          wait for 1 ns;
+          sl_clk <= '0';
+          wait for 1 ns;
+          sl_clk <= '1';
+          wait for 1 ns;
+          sl_clk <= '0';
+          wait for 1 ns;
           sl_clk <= '1';
           wait for 1 ns;
           sl_clk <= '0';
