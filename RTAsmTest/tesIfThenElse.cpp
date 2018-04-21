@@ -25,6 +25,8 @@ MTEST(testIfThenElse,test_that_then_branch_only_works_and_execute)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }
 
 MTEST(testIfThenElse,test_that_then_branch_only_works_and_not_execute_branch)
@@ -47,6 +49,8 @@ MTEST(testIfThenElse,test_that_then_branch_only_works_and_not_execute_branch)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }
 
 MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_then_branch)
@@ -71,6 +75,8 @@ MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_then_branch)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }
 
 MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_else_branch)
@@ -95,6 +101,8 @@ MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_else_branch)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }
 
 MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_then_branch)
@@ -118,6 +126,8 @@ MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_then_branc
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }
 
 MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_else_branch)
@@ -141,6 +151,8 @@ MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_else_branc
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }
 
 MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_then_branch)
@@ -164,6 +176,8 @@ MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_then_branc
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }
 
 MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_else_branch)
@@ -187,4 +201,6 @@ MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_else_branc
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("ok")) == qfp32_t(1).toRaw());
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(99).toRaw());
+  tester.expectSymbol("ok",1);
+  tester.expectSymbol("c",99);
 }

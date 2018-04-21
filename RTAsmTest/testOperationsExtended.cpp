@@ -19,6 +19,8 @@ MTEST(testOperationsExtended,test_that_const_sum_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(127).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+     
+  tester.expectSymbol("a",127);
 }
 
 MTEST(testOperationsExtended,test_that_mixed_sum_works)
@@ -40,6 +42,8 @@ MTEST(testOperationsExtended,test_that_mixed_sum_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(127).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+     
+  tester.expectSymbol("a",127);
 }
 
 MTEST(testOperationsExtended,test_that_substraction_chain_with_negates_works)
@@ -61,6 +65,8 @@ MTEST(testOperationsExtended,test_that_substraction_chain_with_negates_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(127).toRaw())
     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+
+  tester.expectSymbol("a",127);
 }
 
 MTEST(testOperationsExtended,test_that_operator_precedence_is_correct_with_const)
@@ -79,6 +85,8 @@ MTEST(testOperationsExtended,test_that_operator_precedence_is_correct_with_const
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == expect.toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+     
+  tester.expectSymbol("a",expect);
 }
 
 MTEST(testOperationsExtended,test_that_operator_precedence_is_correct_with_vars)
@@ -103,6 +111,8 @@ MTEST(testOperationsExtended,test_that_operator_precedence_is_correct_with_vars)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("g")) == expect.toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("g")));
+     
+  tester.expectSymbol("g",expect);
 }
 
 MTEST(testOperationsExtended,test_that_negate_with_const_works)
@@ -119,6 +129,8 @@ MTEST(testOperationsExtended,test_that_negate_with_const_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(-40).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+     
+  tester.expectSymbol("a",-40);
 }
 
 MTEST(testOperationsExtended,test_that_negate_with_var_works)
@@ -136,6 +148,8 @@ MTEST(testOperationsExtended,test_that_negate_with_var_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(-40).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+     
+  tester.expectSymbol("b",-40);
 }
 
 MTEST(testOperationsExtended,test_that_negate_with_mem_works)
@@ -155,6 +169,8 @@ MTEST(testOperationsExtended,test_that_negate_with_mem_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(-40).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+     
+  tester.expectSymbol("a",-40);
 }
 
 //internally for optimization operands should be swapped
@@ -177,6 +193,8 @@ MTEST(testOperationsSpecialBehaviour,test_that_add_var_const_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(11).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+     
+  tester.expectSymbol("a",11);
 }
 
 MTEST(testOperationsSpecialBehaviour,test_that_mul_var_const_works)
@@ -194,4 +212,6 @@ MTEST(testOperationsSpecialBehaviour,test_that_mul_var_const_works)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(40).toRaw())
      << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+     
+  tester.expectSymbol("a",40);
 }

@@ -27,4 +27,6 @@ MTEST(testLoopFast,test_that_fast_loop_is_generated_if_loop_body_is_not_complex)
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(5).toRaw())
     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
+    
+  tester.expectSymbol("a",5);
 }

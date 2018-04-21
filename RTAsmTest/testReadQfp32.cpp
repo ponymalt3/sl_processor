@@ -19,6 +19,7 @@ MTEST(testReadQfp32,test_that_positive_minimum_value_is_ok)
   tester.execute();
   
   EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(0.00000006).toRaw());  
+  tester.expectMemoryAt(4,0.00000006);
 }
 
 MTEST(testReadQfp32,test_that_positive_value_for_exp_0_is_ok)
@@ -34,7 +35,8 @@ MTEST(testReadQfp32,test_that_positive_value_for_exp_0_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(30.99999994).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(30.99999994).toRaw()); 
+  tester.expectMemoryAt(4,30.99999994); 
 }
 
 MTEST(testReadQfp32,test_that_positive_value_for_exp_1_is_ok)
@@ -51,6 +53,7 @@ MTEST(testReadQfp32,test_that_positive_value_for_exp_1_is_ok)
   tester.execute();
   
   EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(6034.33452).toRaw());  
+  tester.expectMemoryAt(4,6034.33452); 
 }
 
 MTEST(testReadQfp32,test_that_positive_value_for_exp_2_is_ok)
@@ -67,6 +70,7 @@ MTEST(testReadQfp32,test_that_positive_value_for_exp_2_is_ok)
   tester.execute();
   
   EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(113530.23438).toRaw());  
+  tester.expectMemoryAt(4,113530.23438); 
 }
 
 MTEST(testReadQfp32,test_that_positive_value_for_exp_3_is_ok)
@@ -82,7 +86,8 @@ MTEST(testReadQfp32,test_that_positive_value_for_exp_3_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(67823842).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(67823842).toRaw());
+  tester.expectMemoryAt(4,67823842); 
 }
 
 MTEST(testReadQfp32,test_that_positive_max_value_is_ok)
@@ -98,7 +103,8 @@ MTEST(testReadQfp32,test_that_positive_max_value_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(536870911).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(536870911).toRaw());
+  tester.expectMemoryAt(4,536870911);
 }
 
 MTEST(testReadQfp32,test_that_negative_minimum_value_is_ok)
@@ -114,7 +120,8 @@ MTEST(testReadQfp32,test_that_negative_minimum_value_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-0.00000006).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-0.00000006).toRaw());
+  tester.expectMemoryAt(4,-0.00000006);
 }
 
 MTEST(testReadQfp32,test_that_negative_value_for_exp_0_is_ok)
@@ -130,7 +137,8 @@ MTEST(testReadQfp32,test_that_negative_value_for_exp_0_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-0.674395978).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-0.674395978).toRaw());
+  tester.expectMemoryAt(4,-0.674395978);
 }
 
 MTEST(testReadQfp32,test_that_negative_value_for_exp_1_is_ok)
@@ -146,7 +154,8 @@ MTEST(testReadQfp32,test_that_negative_value_for_exp_1_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-439.874389648).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-439.874389648).toRaw());
+  tester.expectMemoryAt(4,-439.874389648); 
 }
 
 MTEST(testReadQfp32,test_that_negative_value_for_exp_2_is_ok)
@@ -162,7 +171,8 @@ MTEST(testReadQfp32,test_that_negative_value_for_exp_2_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-656875.875).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-656875.875).toRaw());
+  tester.expectMemoryAt(4,-656875.875);   
 }
 
 MTEST(testReadQfp32,test_that_negative_value_for_exp_3_is_ok)
@@ -178,7 +188,8 @@ MTEST(testReadQfp32,test_that_negative_value_for_exp_3_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-83465848).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-83465848).toRaw());
+  tester.expectMemoryAt(4,-83465848); 
 }
 
 MTEST(testReadQfp32,test_that_negative_max_value_is_ok)
@@ -194,7 +205,8 @@ MTEST(testReadQfp32,test_that_negative_max_value_is_ok)
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-536870911).toRaw());  
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(-536870911).toRaw()); 
+  tester.expectMemoryAt(4,-536870911);  
 }
 
 MTEST(testReadQfp32,test_that_qfp32_overflow_is_detected)
