@@ -20,7 +20,6 @@ architecture Behav of sl_test_tb is
   signal reset_n  : std_ulogic;
   signal reset_core_n : std_ulogic;
 
-  signal i : integer;
   file test_file : text;
   signal code_mem : code_mem_t(255 downto 0);
 
@@ -148,24 +147,24 @@ begin  -- architecture Behav
           for i in 0 to 255 loop
             mem_addr <= to_unsigned(i,16);
             sl_clk <= '1';
-            wait for 1 ns;
+            wait for 0.1 ns;
             sl_clk <= '0';
-            wait for 1 ns;
+            wait for 0.1 ns;
             sl_clk <= '1';
-            wait for 1 ns;
+            wait for 0.1 ns;
             sl_clk <= '0';
-            wait for 1 ns;
+            wait for 0.1 ns;
             mem_we <= '1';
             
             -- generate clock for memory
             sl_clk <= '1';
-            wait for 1 ns;
+            wait for 0.1 ns;
             sl_clk <= '0';
-            wait for 1 ns;
+            wait for 0.1 ns;
             sl_clk <= '1';
-            wait for 1 ns;
+            wait for 0.1 ns;
             sl_clk <= '0';
-            wait for 1 ns;
+            wait for 0.1 ns;
 
             mem_we <= '0';
           end loop;  -- i
