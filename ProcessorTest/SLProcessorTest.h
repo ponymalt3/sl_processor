@@ -132,12 +132,23 @@ public:
     codePort_.update();
   }
   
+  void writeCodeComplete(uint32_t validCodeWords)
+  {
+    uint32_t code[512];
+    for(uint32_t i=0;i<validCodeWords;++i)
+    {
+      code[i]=codePort_.read(i);
+    }
+    
+    getVdhlTestGenerator().addCode(code,validCodeWords);
+  }
+  
   void writeMemory(qfp32_t addr,uint32_t value)
   {
     writeMemory((int32_t)addr,value);
   }
   
-  void writeMemory(uint32_t addr,uint32_t value)
+  void writeMemory(uint32_t addr,uint32_t value,bool dontLogForVhdlTest=false)
   {
     if(addr >= localMem_.getSize())
     {
@@ -150,7 +161,10 @@ public:
       localPort_.update();
     }
     
-    getVdhlTestGenerator().writeMem(addr,value);
+    if(!dontLogForVhdlTest)
+    {
+      getVdhlTestGenerator().writeMem(addr,value);
+    }
   }
   
   uint32_t readMemory(qfp32_t addr)
