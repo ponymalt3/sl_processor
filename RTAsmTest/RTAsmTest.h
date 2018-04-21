@@ -16,7 +16,7 @@ public:
     //zero memory (at least first 256 words)
     for(uint32_t i=0;i<256;++i)
     {
-      proc_.writeMemory(i,0);
+      proc_.writeMemory(i,0,true);
     }  
   }
   
@@ -85,13 +85,30 @@ public:
     for(uint32_t i=codeGen_.getCurCodeAddr();i<codeGen_.getCurCodeAddr()+3;++i)
     {
       proc_.writeCode(i,0xFFFF);
-    }  
+    }
+    
+    proc_.writeCodeComplete(codeGen_.getCurCodeAddr()+3);
   }
   
   void execute()
   {    
     proc_.reset();
     proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
+  }
+  
+  void expectMemoryAt(qfp32_t addr,qfp32_t data)
+  {
+    proc_.expectThatMemIs(addr,data);
+  }
+  
+  void expectSymbol(const std::string &symbol,qfp32_t data)
+  {
+    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str()),data);
+  }
+  
+  void expectSymbolWithOffset(const std::string &symbol,int32_t offset,qfp32_t data)
+  {
+    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data);
   }
 
 protected:
