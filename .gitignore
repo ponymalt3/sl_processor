@@ -10,6 +10,9 @@
 **/.codelite*/**
 **/Makefile
 *.prefs
+*.bak
+**/work/*
+
 
 
 #Whitelist subdirectories
@@ -17,4 +20,5 @@
 #*.cproject
 #ignore temp files
 *~
+
 
