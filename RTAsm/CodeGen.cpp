@@ -10,6 +10,7 @@
 #include "Stream.h"
 #include "Error.h"
 #include "Operand.h"
+#include "string.h"
 
 template<typename _T>
 void swap(_T &a,_T &b)
@@ -155,8 +156,8 @@ void CodeGen::_Instr::patchGotoTarget(int32_t target)
 
 uint32_t CodeGen::_Instr::getGotoTarget()
 {
-  int32_t offset=(code_>>2)&0x1FF;
-  return (code_&0x800)?-offset:offset;
+  int32_t offset=((code_>>2)&0x1FF)+(0xFFFFFE00*((code_>>9)&1));
+  return offset;
 }
 
 CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream,0),defaultSymbols_(stream,0)

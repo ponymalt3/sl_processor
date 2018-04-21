@@ -202,8 +202,8 @@ public:
   {
     if((code&0xF001) == 0xA001)
     {
-      int32_t jmp=(code>>2)&0x1FF;      
-      return std::string() + "goto " + valueToString(addr+jmp*(((code>>2)&0x200)?-1:1)); 
+      int32_t jmp=((code>>2)&0x1FF)+(((code>>11)&1)*0xFFFFFE00);      
+      return std::string() + "goto " + valueToString(addr+jmp); 
     }
     
     if((code&0xF001) == 0xA000)
