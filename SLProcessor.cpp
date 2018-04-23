@@ -254,6 +254,8 @@ _Decode SLProcessor::decodeInstr() const
       case 5://LOOP
         decode.loop_=1;
         break;
+      default:
+        decode.muxA_=SLCode::MUX1_RESULT;
       }
     }
   }
