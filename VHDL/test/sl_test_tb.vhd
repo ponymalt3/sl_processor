@@ -269,15 +269,23 @@ begin  -- architecture Behav
           sl_clk <= '1';
           wait for 1 ns;
           sl_clk <= '0';
+          
+          if mem_complete = '1' then
+            mem_result := mem_dout;
+          end if;
+          
           wait for 1 ns;
           sl_clk <= '1';
           wait for 1 ns;
           sl_clk <= '0';
+          
+          if mem_complete = '1' then
+            mem_result := mem_dout;
+          end if;
+
           wait for 1 ns;
 
-          if mem_addr < to_unsigned(512,16) then
-            mem_result := mem_dout;
-          else
+          if mem_addr >= to_unsigned(512,16) then
             mem_result := ext_mem(to_integer(mem_addr));
           end if;
 

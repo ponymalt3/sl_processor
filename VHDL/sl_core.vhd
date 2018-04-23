@@ -12,6 +12,7 @@ use work.sl_dec_ex_p.all;
 use work.sl_execute_p.all;
 use work.sl_control_p.all;
 use work.sl_state_p.all;
+use work.sl_misc_p.all;
 
 entity sl_core is
   port (
@@ -40,6 +41,7 @@ entity sl_core is
     -- read ports (falling edge)
     rp0_addr_o : out reg_addr_t;
     rp0_din_i : in reg_raw_t;
+    rp0_en_o : out std_ulogic;
     rp1_addr_o : out reg_addr_t;
     rp1_din_i : in reg_raw_t;
     rp_stall_o : out std_ulogic;
@@ -95,6 +97,8 @@ begin  -- architecture rtl
     rp1_addr <= proc.state.addr(to_integer(unsigned'("" & dec_next.mux_ad1)));
 
     rp_stall_o <= ctrl_next.stall_decex;
+
+    rp0_en_o <= to_ulogic(dec_next.mux_a = MUX1_MEM);
       
     rp0_addr_o <= rp0_addr;
     rp1_addr_o <= rp1_addr;

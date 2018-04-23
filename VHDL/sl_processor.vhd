@@ -55,6 +55,7 @@ architecture rtl of sl_processor is
   signal ext_mem_stall : std_ulogic;
   signal rp0_addr      : reg_addr_t;
   signal rp0_dout       : reg_raw_t;
+  signal rp0_en         : std_ulogic;
   signal rp1_addr      : reg_addr_t;
   signal rp1_dout       : reg_raw_t;
   signal wp_addr       : reg_addr_t;
@@ -114,6 +115,7 @@ begin  -- architecture rtl
       ext_mem_stall_i => ext_mem_stall_i,
       rp0_addr_o      => rp0_addr,
       rp0_din_i       => rp0_dout,
+      rp0_en_o        => rp0_en,
       rp1_addr_o      => rp1_addr,
       rp1_din_i       => rp1_dout,
       rp_stall_o      => rp_stall,
@@ -128,29 +130,27 @@ begin  -- architecture rtl
   rp1_addr_vec <= To_StdULogicVector(std_logic_vector(rp1_addr(15 downto 0)));
   wp_addr_vec <= To_StdULogicVector(std_logic_vector(wp_addr(15 downto 0)));
   mem_addr_vec <= To_StdULogicVector(std_logic_vector(mem_addr_i));
-
+    
   multi_port_mem_1: entity work.multi_port_mem
     generic map (
       SizeInKBytes => 4)
     port map (
-      clk_i         => clk_i,
-      reset_n_i     => reset_n_i,
-      r0_addr_i     => wp_addr_vec,
-      r0_din_i      => wp_din,
-      r0_we_i       => wp_we,
-      r0_idle_o     => open,
-      f0_addr_i     => rp0_addr_vec,
-      f0_dout_o     => rp0_dout,
-      f0_complete_o => open,
-      r1_addr_i     => mem_addr_vec,
-      r1_din_i      => mem_din_i,
-      r1_dout_o     => mem_dout_o,
-      r1_we_i       => mem_we_i,
-      r1_complete_o => mem_complete_o,
-      f1_addr_i     => rp1_addr_vec,
-      f1_dout_o     => rp1_dout,
-      f1_complete_o => open,
-      f_stall_i     => rp_stall);
+      clk_i             => clk_i,
+      reset_n_i         => reset_n_i,
+      wport_addr_i      => wp_addr_vec,
+      wport_din_i       => wp_din,
+      wport_we_i        => wp_we,
+      rport0_addr_i     => rp0_addr_vec,
+      rport0_dout_o     => rp0_dout,
+      rport0_en_i       => rp0_en,
+      rwport_addr_i     => mem_addr_vec,
+      rwport_din_i      => mem_din_i,
+      rwport_dout_o     => mem_dout_o,
+      rwport_we_i       => mem_we_i,
+      rwport_complete_o => mem_complete_o,
+      rport1_addr_i     => rp1_addr_vec,
+      rport1_dout_o     => rp1_dout,
+      rport_stall_i     => rp_stall);
 
   qfp_unit_1: entity work.qfp_unit
     generic map (

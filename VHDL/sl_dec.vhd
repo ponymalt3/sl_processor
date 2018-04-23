@@ -115,7 +115,7 @@ package body sl_dec_p is
               decode.neg := '1';
             when 5 => -- LOOP
               decode.loop1 := '1';
-            when others => null;
+            when others => decode.mux_a := MUX1_RESULT;
           end case;
           
         when others => null;
