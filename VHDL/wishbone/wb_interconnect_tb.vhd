@@ -6,7 +6,7 @@
 -- Author     : malte  <malte@tp13>
 -- Company    : 
 -- Created    : 2018-04-29
--- Last update: 2018-05-11
+-- Last update: 2018-05-12
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -143,6 +143,8 @@ begin  -- architecture behav
     begin  -- process
       slaves_out_in(i).dat <= (others => '0');
       slaves_out_in(i).ack <= '0';
+      slaves_out_in(i).stall <= '0';
+      slaves_out_in(i).err <= '0';
       wait until rising_edge(clk) and slaves_out_out(i).cyc = '1' and slaves_out_out(i).stb = '1';
       slaves_out_in(i).ack <= '1';
       if slaves_out_out(i).we = '1' then
@@ -201,6 +203,8 @@ begin  -- architecture behav
       slave_data(1)(3) = X"1111DABC" and
       slave_data(2)(3) = X"2222CDAB"
       report "master 2 slave access not correct" severity error;
+
+    write(output,"all tests complete" & LF);
 
     wait;
   end process;

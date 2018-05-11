@@ -60,10 +60,11 @@ begin  -- architecture rtl
       --default output values
       master_in_o(i).dat <= (others => '0');
       master_in_o(i).ack <= '0';
+      master_in_o(i).err <= '0';
+      master_in_o(i).stall <= '1';
       
       if master_in_i(i).cyc = '1' and mask(i) = '1' then
         master_sel <= i;
-        exit;
       end if;
     end loop;  -- i
 
@@ -76,7 +77,7 @@ begin  -- architecture rtl
 
     if master_sel_reg < NumMaster then
       master_out_o <= master_in_i(master_sel_reg);
-      master_in_o(master_sel_reg) <= master_out_i;    
+      master_in_o(master_sel_reg) <= master_out_i;
     end if;
     
   end process;

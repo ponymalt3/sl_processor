@@ -21,6 +21,8 @@ package wishbone_p is
   type wb_master_ifc_in_t is record
     dat : std_ulogic_vector(31 downto 0);
     ack : std_ulogic;
+    err : std_ulogic;
+    stall : std_ulogic;
   end record wb_master_ifc_in_t;
 
   type wb_master_ifc_in_array_t is array (natural range <>) of wb_master_ifc_in_t;
@@ -216,8 +218,8 @@ begin  -- architecture rtl
   process (master_in_i, master_out_i) is
   begin  -- process
     slave_sel <= 0;
-    master_in_o <= ((others => '0'),'0');
-    
+    master_in_o <= ((others => '0'),'0','1','0');
+      
     for i in 0 to SlaveMap'length-1 loop
       master_out_o(i) <= master_in_i;
       master_out_o(i).cyc <= '0';
@@ -230,6 +232,7 @@ begin  -- architecture rtl
         exit;
       end if;
     end loop;  -- i
+
   end process;
 
 end architecture rtl;

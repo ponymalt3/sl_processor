@@ -27,9 +27,6 @@ architecture rtl of wb_master is
 
   type fsm_t is (ST_IDLE,ST_PENDING);
   signal state : fsm_t;
-  
-  signal timeout_counter : unsigned(4 downto 0);
-  signal timeout_error : std_ulogic;
 
 begin  -- architecture rtl
 
@@ -41,10 +38,9 @@ begin  -- architecture rtl
       dout_o <= (others => '0');
       complete_o <= '0';
       err_o <= '0';
-      timeout_counter <= to_unsigned(0,5);
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       complete_o <= '0';
-      err_o <= timeout_error;
+      err_o <= master_out_i.err;
       
       if en_i = '1' and state = ST_IDLE then
         state <= ST_PENDING;
@@ -54,11 +50,11 @@ begin  -- architecture rtl
         master_out_o.we <= we_i;
         master_out_o.stb <= '1';
         master_out_o.cyc <= '1';
-        timeout_counter <= to_unsigned(0,5);
       elsif state = ST_PENDING then
-        master_out_o.stb <= '0';
-        timeout_counter <= timeout_counter+1;
-        if master_out_i.ack = '1' or timeout_error = '1' then
+        if master_out_i.stall = '0' then
+          master_out_o.stb <= '0';
+        end if;
+        if master_out_i.ack = '1' or master_out_i.err = '1' then
           state <= ST_IDLE;
           dout_o <= master_out_i.dat;
           master_out_o.stb <= '0';
@@ -68,7 +64,5 @@ begin  -- architecture rtl
       end if;
     end if;
   end process;
-
-  timeout_error <= '1' when timeout_counter = to_unsigned(31,5) else '0';
-
+  
 end architecture rtl;
