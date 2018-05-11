@@ -36,8 +36,8 @@ package sl_misc_p is
     return natural;
 
   function log2 (
-    x : integer)
-    return integer;  
+    x : natural)
+    return natural;  
 
 end package sl_misc_p;
 
@@ -146,20 +146,25 @@ package body sl_misc_p is
   end function max;
 
   function log2 (
-    x : integer)
-    return integer is
+    x : natural)
+    return natural is
     
-    variable i : integer;
-    variable result : integer;
+    variable i : natural;
+    variable result : natural;
     
   begin  -- log2
-    i := 1;
-    result := x-1;
-    while result >= 2 loop
-      i := i+1;
-      result := result/2;
+    result := 0;
+
+    if x <= 1 then
+      return result;
+    end if;
+    
+    while x >= 2**result loop
+      result := result+1;
     end loop;
-    return i;    
+    
+    return result;
+    
   end log2;
 
   end package body sl_misc_p;
