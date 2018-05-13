@@ -29,7 +29,6 @@ begin  -- architecture rtl
 
   process (master_in_i, master_out_i) is
   begin  -- process
-    slave_sel <= 0;
     master_in_o <= ((others => '0'),'0','1','0');
       
     for i in 0 to SlaveMap'length-1 loop
