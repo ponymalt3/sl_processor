@@ -2,12 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library std;
-use std.textio.all;
-
 use work.wishbone_p.all;
 
-entity wb_interconnect is
+entity wb_ixs is
   
   generic (
     MasterConfig : wb_master_config_array_t;
@@ -22,9 +19,9 @@ entity wb_interconnect is
     slave_out_i : in wb_master_ifc_in_array_t(SlaveMap'length-1 downto 0);
     slave_out_o : out wb_master_ifc_out_array_t(SlaveMap'length-1 downto 0));
 
-end entity wb_interconnect;
+end entity wb_ixs;
 
-architecture rtl of wb_interconnect is
+architecture rtl of wb_ixs is
 
   type wb_master_ifc_in_matrix_t is array (natural range <>) of wb_master_ifc_in_array_t(SlaveMap'length-1 downto 0);
   type wb_master_ifc_out_matrix_t is array (natural range <>) of wb_master_ifc_out_array_t(SlaveMap'length-1 downto 0);
@@ -35,7 +32,7 @@ architecture rtl of wb_interconnect is
 begin  -- architecture rtl
 
   decode: for i in 0 to MasterConfig'length-1 generate
-    constant CurSlaveMap : wb_slave_config_array_t := wb_interconnect_get_connected_slaves(MasterConfig(i),SlaveMap);
+    constant CurSlaveMap : wb_slave_config_array_t := wb_config_get_connected_slaves(MasterConfig(i),SlaveMap);
     wb_ixs_decoder: entity work.wb_ixs_decoder
       generic map (
         SlaveMap => CurSlaveMap)
@@ -49,7 +46,7 @@ begin  -- architecture rtl
   end generate decode;
 
   arbiter: for i in 0 to SlaveMap'length-1 generate
-    constant CurMasterConfig : wb_master_config_array_t := wb_interconnect_get_masters_for_slave(SlaveMap(i).name,SlaveMap,MasterConfig);
+    constant CurMasterConfig : wb_master_config_array_t := wb_config_get_masters_for_slave(SlaveMap(i).name,SlaveMap,MasterConfig);
     signal m_in : wb_slave_ifc_in_array_t(CurMasterConfig'length-1 downto 0);
     signal m_out : wb_slave_ifc_out_array_t(CurMasterConfig'length-1 downto 0);
   begin

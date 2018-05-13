@@ -50,17 +50,17 @@ package wishbone_p is
 
   type wb_slave_config_array_t is array (natural range <>) of wb_slave_config_t;
 
-  function wb_interconnect_get_connected_slaves (
+  function wb_config_get_connected_slaves (
     master              : wb_master_config_t;
     complete_slave_list : wb_slave_config_array_t)
     return wb_slave_config_array_t;
 
-  function wb_interconnect_find_slave (
+  function wb_config_find_slave (
     slave_name : string;
     slave_list : wb_slave_config_array_t)
     return wb_slave_config_t;
 
-  function wb_interconnect_get_masters_for_slave (
+  function wb_config_get_masters_for_slave (
     slave_name : string;
     slave_list : wb_slave_config_array_t;
     master_list : wb_master_config_array_t)
@@ -100,7 +100,7 @@ package body wishbone_p is
     return (result,to_unsigned(addr,32),to_unsigned(size,32),255);
   end function;
 
-  function wb_interconnect_find_slave (
+  function wb_config_find_slave (
     slave_name : string;
     slave_list : wb_slave_config_array_t)
     return wb_slave_config_t is
@@ -117,7 +117,7 @@ package body wishbone_p is
     return result;    
   end function;
 
-  function wb_interconnect_get_masters_for_slave (
+  function wb_config_get_masters_for_slave (
     slave_name : string;
     slave_list : wb_slave_config_array_t;
     master_list : wb_master_config_array_t)
@@ -130,12 +130,12 @@ package body wishbone_p is
     write(output,"enumerating master for slave " & slave_name & LF); 
     num_master := 0;
     for i in 0 to master_list'length-1 loop
-      slave_id := wb_interconnect_find_slave(slave_name,wb_interconnect_get_connected_slaves(master_list(i),slave_list)).id;
+      slave_id := wb_config_find_slave(slave_name,wb_config_get_connected_slaves(master_list(i),slave_list)).id;
       if slave_id /= 255 then
         result(num_master) := master_list(i);
         result(num_master).id := i;
         result(num_master).rel_slave_pos := slave_id;
-        --write(output,"  id: " & integer'image(result(num_master).id) & "  slave pos: " & integer'image(result(num_master).rel_slave_pos) & LF); 
+        write(output,"  id: " & integer'image(result(num_master).id) & "  slave pos: " & integer'image(result(num_master).rel_slave_pos) & LF); 
         num_master := num_master+1;        
       end if;
     end loop;  -- i
@@ -145,7 +145,7 @@ package body wishbone_p is
     return result(num_master-1 downto 0);
   end function;
   
-  function wb_interconnect_get_connected_slaves (
+  function wb_config_get_connected_slaves (
     master              : wb_master_config_t;
     complete_slave_list : wb_slave_config_array_t)
     return wb_slave_config_array_t is
@@ -158,23 +158,22 @@ package body wishbone_p is
     file output : text open write_mode is "STD_OUTPUT";
     
   begin
-
-    write(output,"enumerating master " & integer'image(master.id) & LF);    
+    -- write(output,"enumerating master " & integer'image(master.id) & LF);    
     cur_slave := 0;     
     pos := 1;
     while master.connected_slaves(pos) /= NUL loop
       i := 1;
       while master.connected_slaves(pos) /= NUL and master.connected_slaves(pos) /= ' ' loop
-        write(output,"pos. " & integer'image(pos) & "  i: " & integer'image(i) & "  str length: " & integer'image(master.connected_slaves'length) & LF);
+        -- write(output,"pos. " & integer'image(pos) & "  i: " & integer'image(i) & "  str length: " & integer'image(master.connected_slaves'length) & LF);
         slave_name(i) := master.connected_slaves(pos);
         i := i+1;
         pos := pos+1;
       end loop;
       pos := pos+1;
 
-      write(output,"  found slave " & slave_name(1 to i) & LF);     
+      -- write(output,"  found slave " & slave_name(1 to i) & LF);     
 
-      slaves(cur_slave) := wb_interconnect_find_slave(slave_name(1 to i),complete_slave_list);
+      slaves(cur_slave) := wb_config_find_slave(slave_name(1 to i),complete_slave_list);
       assert slaves(cur_slave).id /= 255 report "  slave " & slave_name & " not found in slave list" severity error;
       cur_slave := cur_slave+1;
     end loop;

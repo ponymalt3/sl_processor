@@ -100,7 +100,7 @@ architecture behav of wb_interconnect_tb is
 begin  -- architecture behav
 
   -- component instantiation
-  DUT: entity work.wb_interconnect
+  DUT: entity work.wb_ixs
     generic map (
       MasterConfig => MasterConfig,
       SlaveMap     => SlaveMap)
