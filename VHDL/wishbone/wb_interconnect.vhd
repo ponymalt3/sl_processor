@@ -36,7 +36,7 @@ begin  -- architecture rtl
 
   decode: for i in 0 to MasterConfig'length-1 generate
     constant CurSlaveMap : wb_slave_config_array_t := wb_interconnect_get_connected_slaves(MasterConfig(i),SlaveMap);
-    wb_interconnect_decoder_1: entity work.wb_interconnect_decoder
+    wb_ixs_decoder: entity work.wb_ixs_decoder
       generic map (
         SlaveMap => CurSlaveMap)
       port map (
