@@ -48,7 +48,7 @@ begin  -- architecture rtl
         end if;
       end if;
 
-      if master_sel_valid = '1' then
+      if master_sel_valid = '0' then
         mask <= (others => '1');
       end if;
       
