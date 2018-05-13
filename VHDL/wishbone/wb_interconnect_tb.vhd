@@ -6,7 +6,7 @@
 -- Author     : malte  <malte@tp13>
 -- Company    : 
 -- Created    : 2018-04-29
--- Last update: 2018-05-12
+-- Last update: 2018-05-13
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -203,6 +203,84 @@ begin  -- architecture behav
       slave_data(1)(3) = X"1111DABC" and
       slave_data(2)(3) = X"2222CDAB"
       report "master 2 slave access not correct" severity error;
+
+    -- multi master access; should be handled in parallel
+    wait until rising_edge(clk);
+    wait for 1 ps;
+    m_out(0).addr <= to_unsigned(4,32);
+    m_out(0).en <= '1';
+    m_out(0).we <= '1';
+    m_out(0).dout <= X"0000B123";
+
+    m_out(1).addr <= to_unsigned(132,32);
+    m_out(1).en <= '1';
+    m_out(1).we <= '1';
+    m_out(1).dout <= X"0000C123";
+
+    m_out(2).addr <= to_unsigned(260,32);
+    m_out(2).en <= '1';
+    m_out(2).we <= '1';
+    m_out(2).dout <= X"0000D123";
+
+    wait until rising_edge(clk);
+    wait for 1 ps;
+    m_out(0).en <= '0';
+    m_out(1).en <= '0';
+    m_out(2).en <= '0';
+    
+    wait until rising_edge(clk);
+    wait for 1 ps;
+
+    assert slave_data(0)(4) = X"0000B123" and
+      slave_data(1)(4) = X"1111C123" and
+      slave_data(2)(4) = X"2222D123"
+      report "parallel multi master access does not work correctly" severity error;
+
+    
+    -- multi master access; must be handled sequential
+    wait until rising_edge(clk);
+    wait for 1 ps;
+    m_out(0).addr <= to_unsigned(133,32);
+    m_out(0).en <= '1';
+    m_out(0).we <= '1';
+    m_out(0).dout <= X"0000B999";
+
+    m_out(1).addr <= to_unsigned(134,32);
+    m_out(1).en <= '1';
+    m_out(1).we <= '1';
+    m_out(1).dout <= X"0000C999";
+
+    m_out(2).addr <= to_unsigned(135,32);
+    m_out(2).en <= '1';
+    m_out(2).we <= '1';
+    m_out(2).dout <= X"0000D999";
+
+    wait until rising_edge(clk);
+    wait for 1 ps;
+    
+    wait until rising_edge(clk);
+    wait for 1 ps;
+
+    assert slave_data(1)(7) = X"1111D999" report "sequential multi master access: expected master 2 to be granted access first" severity error;
+
+    wait until rising_edge(clk);
+    wait for 1 ps;
+    wait until rising_edge(clk);
+    wait for 1 ps;
+
+    assert slave_data(1)(6) = X"1111C999" report "sequential multi master access: expected master 1 to be granted access second" severity error;
+
+    wait until rising_edge(clk);
+    wait for 1 ps;
+    wait until rising_edge(clk);
+    wait for 1 ps;
+
+    assert slave_data(1)(5) = X"1111B999" report "sequential multi master access: expected master 0 to be granted access last" severity error;
+
+    m_out(0).en <= '0';
+    m_out(1).en <= '0';
+    m_out(2).en <= '0';
+
 
     write(output,"all tests complete" & LF);
 

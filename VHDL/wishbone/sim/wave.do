@@ -2,7 +2,7 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /wb_interconnect_tb/clk
 add wave -noupdate /wb_interconnect_tb/reset_n
-add wave -noupdate -expand -subitemconfig {/wb_interconnect_tb/m_in(0) -expand} /wb_interconnect_tb/m_in
+add wave -noupdate -expand -subitemconfig {/wb_interconnect_tb/m_in(2) -expand /wb_interconnect_tb/m_in(1) -expand /wb_interconnect_tb/m_in(0) -expand} /wb_interconnect_tb/m_in
 add wave -noupdate -expand -subitemconfig {/wb_interconnect_tb/m_out(0) {-height 16 -childformat {{/wb_interconnect_tb/m_out(0).addr -radix unsigned} {/wb_interconnect_tb/m_out(0).dout -radix hexadecimal}} -expand} /wb_interconnect_tb/m_out(0).addr {-height 16 -radix unsigned} /wb_interconnect_tb/m_out(0).dout {-height 16 -radix hexadecimal}} /wb_interconnect_tb/m_out
 add wave -noupdate -expand -subitemconfig {/wb_interconnect_tb/slave_in(1) -expand} /wb_interconnect_tb/slave_in
 add wave -noupdate -expand -subitemconfig {/wb_interconnect_tb/slave_out(1) -expand} /wb_interconnect_tb/slave_out
@@ -31,11 +31,19 @@ add wave -noupdate /wb_interconnect_tb/master(0)/wb_master_1/state
 add wave -noupdate -divider dec
 add wave -noupdate /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/clk_i
 add wave -noupdate /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/reset_n_i
-add wave -noupdate -expand /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_in_i
+add wave -noupdate -childformat {{/wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_in_i.adr -radix unsigned}} -expand -subitemconfig {/wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_in_i.adr {-height 16 -radix unsigned}} /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_in_i
 add wave -noupdate /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_in_o
 add wave -noupdate /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_i
 add wave -noupdate -expand -subitemconfig {/wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_o(1) -expand /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_o(0) {-height 16 -childformat {{/wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_o(0).adr -radix unsigned} {/wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_o(0).dat -radix hexadecimal}} -expand} /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_o(0).adr {-height 16 -radix unsigned} /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_o(0).dat {-height 16 -radix hexadecimal}} /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/master_out_o
 add wave -noupdate /wb_interconnect_tb/DUT/decode(0)/wb_interconnect_decoder_1/slave_sel
+add wave -noupdate -divider dec2
+add wave -noupdate /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/clk_i
+add wave -noupdate /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/reset_n_i
+add wave -noupdate -childformat {{/wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_in_i.adr -radix unsigned} {/wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_in_i.dat -radix hexadecimal}} -expand -subitemconfig {/wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_in_i.adr {-height 16 -radix unsigned} /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_in_i.dat {-height 16 -radix hexadecimal}} /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_in_i
+add wave -noupdate /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_in_o
+add wave -noupdate /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_out_i
+add wave -noupdate /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/master_out_o
+add wave -noupdate /wb_interconnect_tb/DUT/decode(2)/wb_interconnect_decoder_1/slave_sel
 add wave -noupdate -divider arbiter
 add wave -noupdate -expand -subitemconfig {/wb_interconnect_tb/DUT/arbiter(0)/m_in(0) -expand} /wb_interconnect_tb/DUT/arbiter(0)/m_in
 add wave -noupdate /wb_interconnect_tb/DUT/arbiter(0)/m_out
@@ -59,7 +67,7 @@ add wave -noupdate /wb_interconnect_tb/DUT/arbiter(1)/wb_interconnect_arbiter_1/
 add wave -noupdate /wb_interconnect_tb/DUT/arbiter(1)/wb_interconnect_arbiter_1/master_sel_reg
 add wave -noupdate /wb_interconnect_tb/DUT/arbiter(1)/wb_interconnect_arbiter_1/mask
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {410001 ps} 1} {{Cursor 2} {200000 ps} 0}
+WaveRestoreCursors {{Cursor 1} {1009704 ps} 1} {{Cursor 2} {1049377 ps} 0}
 quietly wave cursor active 2
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -75,4 +83,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {512010 ps}
+WaveRestoreZoom {0 ps} {8192192 ps}
