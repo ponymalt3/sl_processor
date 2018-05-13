@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 use work.wishbone_p.all;
 
-entity wb_interconnect_arbiter is
+entity wb_ixs_arbiter is
   
   generic (
     MasterConfig : wb_master_config_array_t);
@@ -17,15 +17,17 @@ entity wb_interconnect_arbiter is
     master_out_i  : in wb_master_ifc_in_t;
     master_out_o  : out wb_master_ifc_out_t);
 
-end entity wb_interconnect_arbiter;
+end entity wb_ixs_arbiter;
 
-architecture rtl of wb_interconnect_arbiter is
+architecture rtl of wb_ixs_arbiter is
 
   constant NumMaster : natural := MasterConfig'length;
-
-  signal master_sel : integer range 0 to 32;
-  signal master_sel_reg : integer range 0 to 32;
+  
   signal mask : std_ulogic_vector(NumMaster-1 downto 0);
+  signal master_sel : unsigned(4 downto 0);
+  signal master_sel_reg : unsigned(4 downto 0);
+  signal master_sel_valid : std_ulogic;
+  signal master_sel_valid_reg : std_ulogic;
   
 begin  -- architecture rtl
 
@@ -33,29 +35,32 @@ begin  -- architecture rtl
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       mask <= (others => '1');
-      master_sel_reg <= NumMaster;
+      master_sel_reg <= to_unsigned(0,5);
+      master_sel_valid_reg <= '0';
     elsif falling_edge(clk_i) then  -- falling clock edge
 
       master_sel_reg <= master_sel;
+      master_sel_valid_reg <= master_sel_valid;
       
       if master_sel /= master_sel_reg then
-        if master_sel_reg < NumMaster then
-          mask(master_sel_reg) <= '0';
+        if master_sel_valid_reg = '1' then
+          mask(to_integer(master_sel_reg)) <= '0';
         end if;
       end if;
 
-      if master_sel = NumMaster then
+      if master_sel_valid = '1' then
         mask <= (others => '1');
       end if;
       
     end if;
   end process;
 
-  process (mask, master_in_i, master_out_i, master_sel_reg) is
+  process (mask, master_in_i, master_out_i, master_sel_reg, master_sel_valid_reg) is
   begin  -- process
 
-    master_sel <= NumMaster;
-    for i in 0 to NumMaster-1 loop
+    master_sel <= to_unsigned(0,5);
+    master_sel_valid <= '0';
+    for i in NumMaster-1 downto 0 loop
       
       --default output values
       master_in_o(i).dat <= (others => '0');
@@ -64,7 +69,8 @@ begin  -- architecture rtl
       master_in_o(i).stall <= '1';
       
       if master_in_i(i).cyc = '1' and mask(i) = '1' then
-        master_sel <= i;
+        master_sel <= to_unsigned(i,5);
+        master_sel_valid <= '1';
       end if;
     end loop;  -- i
 
@@ -75,9 +81,9 @@ begin  -- architecture rtl
     master_out_o.sel <= (others => '0');
     master_out_o.stb <= '0';
 
-    if master_sel_reg < NumMaster then
-      master_out_o <= master_in_i(master_sel_reg);
-      master_in_o(master_sel_reg) <= master_out_i;
+    if master_sel_valid_reg = '1' then
+      master_out_o <= master_in_i(to_integer(master_sel_reg));
+      master_in_o(to_integer(master_sel_reg)) <= master_out_i;
     end if;
     
   end process;

@@ -59,7 +59,7 @@ begin  -- architecture rtl
       decode_ifc_in(CurMasterConfig(j).id)(CurMasterConfig(j).rel_slave_pos) <= m_out(j);
     end generate arbiter_input;
     
-    wb_interconnect_arbiter_1: entity work.wb_interconnect_arbiter
+    wb_ixs_arbiter: entity work.wb_ixs_arbiter
       generic map (
         MasterConfig => CurMasterConfig)
       port map (
