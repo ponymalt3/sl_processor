@@ -261,7 +261,7 @@ begin  -- architecture behav
     wait until rising_edge(clk);
     wait for 1 ps;
 
-    assert slave_data(1)(7) = X"1111D999" report "sequential multi master access: expected master 2 to be granted access first" severity error;
+    assert slave_data(1)(5) = X"1111B999" report "sequential multi master access: expected master 0 to be granted access first" severity error;
 
     wait until rising_edge(clk);
     wait for 1 ps;
@@ -275,7 +275,7 @@ begin  -- architecture behav
     wait until rising_edge(clk);
     wait for 1 ps;
 
-    assert slave_data(1)(5) = X"1111B999" report "sequential multi master access: expected master 0 to be granted access last" severity error;
+    assert slave_data(1)(7) = X"1111D999" report "sequential multi master access: expected master 2 to be granted access last" severity error;
 
     m_out(0).en <= '0';
     m_out(1).en <= '0';
