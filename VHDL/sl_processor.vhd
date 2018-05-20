@@ -7,6 +7,7 @@ use work.qfp32_unit_p.all;
 use work.qfp32_misc_p.all;
 use work.qfp32_add_p.all;
 use work.qfp_p.all;
+use work.wishbone_p.all;
 
 entity sl_processor is
   
@@ -19,18 +20,11 @@ entity sl_processor is
     code_addr_o : out unsigned(15 downto 0);
     code_data_i : in std_ulogic_vector(15 downto 0);
 
-    ext_mem_addr_o : out unsigned(31 downto 0);
-    ext_mem_dout_o : out std_ulogic_vector(31 downto 0);
-    ext_mem_din_i : in std_ulogic_vector(31 downto 0);
-    ext_mem_rw_o : out std_ulogic;
-    ext_mem_en_o : out std_ulogic;
-    ext_mem_stall_i : in std_ulogic;
+    ext_master_i : in  wb_master_ifc_in_t;
+    ext_master_o : out wb_master_ifc_out_t;
 
-    mem_addr_i : in unsigned(15 downto 0);
-    mem_din_i : in std_ulogic_vector(31 downto 0);
-    mem_dout_o : out std_ulogic_vector(31 downto 0);
-    mem_we_i : in std_ulogic;
-    mem_complete_o : out std_ulogic;
+    mem_slave_i : in  wb_slave_ifc_in_t;
+    mem_slave_o : out wb_slave_ifc_out_t;
 
     executed_addr_o : out unsigned(15 downto 0));
 
@@ -46,12 +40,6 @@ architecture rtl of sl_processor is
   signal alu_op_b      : reg_raw_t;
   signal alu_data      : sl_alu_t;
   signal cp_addr       : reg_pc_t;
-  signal ext_mem_addr  : reg_addr_t;
-  signal ext_mem_dout  : reg_raw_t;
-  signal ext_mem_din   : reg_raw_t;
-  signal ext_mem_rw    : std_ulogic;
-  signal ext_mem_en    : std_ulogic;
-  signal ext_mem_stall : std_ulogic;
   signal rp0_addr      : reg_addr_t;
   signal rp0_dout       : reg_raw_t;
   signal rp0_en         : std_ulogic;
@@ -80,6 +68,21 @@ architecture rtl of sl_processor is
 
   signal rp_stall : std_ulogic;
 
+  signal ext_mem_addr : unsigned(31 downto 0);
+  signal ext_mem_dout : std_ulogic_vector(31 downto 0);
+  signal ext_mem_din : std_ulogic_vector(31 downto 0);
+  signal ext_mem_rw : std_ulogic;
+  signal ext_mem_en : std_ulogic;
+  signal ext_mem_stall : std_ulogic;
+  signal wb_master_complete : std_ulogic;
+
+  signal mem_we : std_ulogic;
+  signal mem_complete : std_ulogic;
+  signal mem_slave_ack : std_ulogic;
+
+  signal ext_mem_en_2 : std_ulogic;
+  signal ext_mem_disable : std_ulogic;
+
 begin  -- architecture rtl
 
   process (clk_i, reset_n_i) is
@@ -104,12 +107,12 @@ begin  -- architecture rtl
       alu_i           => alu_data,
       cp_addr_o       => cp_addr,
       cp_din_i        => code_data_i,
-      ext_mem_addr_o  => ext_mem_addr_o,
-      ext_mem_dout_o  => ext_mem_dout_o,
-      ext_mem_din_i   => ext_mem_din_i,
-      ext_mem_rw_o    => ext_mem_rw_o,
-      ext_mem_en_o    => ext_mem_en_o,
-      ext_mem_stall_i => ext_mem_stall_i,
+      ext_mem_addr_o  => ext_mem_addr,
+      ext_mem_dout_o  => ext_mem_dout,
+      ext_mem_din_i   => ext_mem_din,
+      ext_mem_rw_o    => ext_mem_rw,
+      ext_mem_en_o    => ext_mem_en,
+      ext_mem_stall_i => ext_mem_stall,
       rp0_addr_o      => rp0_addr,
       rp0_din_i       => rp0_dout,
       rp0_en_o        => rp0_en,
@@ -126,7 +129,6 @@ begin  -- architecture rtl
   rp0_addr_vec <= To_StdULogicVector(std_logic_vector(rp0_addr(15 downto 0)));
   rp1_addr_vec <= To_StdULogicVector(std_logic_vector(rp1_addr(15 downto 0)));
   wp_addr_vec <= To_StdULogicVector(std_logic_vector(wp_addr(15 downto 0)));
-  mem_addr_vec <= To_StdULogicVector(std_logic_vector(mem_addr_i));
     
   multi_port_mem_1: entity work.multi_port_mem
     generic map (
@@ -141,13 +143,32 @@ begin  -- architecture rtl
       rport0_dout_o     => rp0_dout,
       rport0_en_i       => rp0_en,
       rwport_addr_i     => mem_addr_vec,
-      rwport_din_i      => mem_din_i,
-      rwport_dout_o     => mem_dout_o,
-      rwport_we_i       => mem_we_i,
-      rwport_complete_o => mem_complete_o,
+      rwport_din_i      => mem_slave_i.dat,
+      rwport_dout_o     => mem_slave_o.dat,
+      rwport_we_i       => mem_we,
+      rwport_complete_o => mem_complete,
       rport1_addr_i     => rp1_addr_vec,
       rport1_dout_o     => rp1_dout,
       rport_stall_i     => rp_stall);
+
+  mem_addr_vec <= To_StdULogicVector(std_logic_vector(mem_slave_i.adr(15 downto 0)));
+  mem_we <= '1' when mem_slave_i.cyc = '1' and mem_slave_i.stb = '1' and mem_slave_i.we = '1' else '0';
+  mem_slave_o.ack <= mem_slave_ack;
+  mem_slave_o.stall <= not mem_slave_ack;
+  mem_slave_o.err <= '0';
+
+  process (clk_i, reset_n_i) is
+  begin  -- process
+    if reset_n_i = '0' then             -- asynchronous reset (active low)
+      mem_slave_ack <= '0';
+    elsif clk_i'event and clk_i = '1' then  -- rising clock edge
+      if mem_slave_i.cyc = '1' and mem_slave_i.stb = '1' and mem_complete = '0' then
+        mem_slave_ack <= '1';
+      else
+        mem_slave_ack <= '0';
+      end if;
+    end if;
+  end process;
 
   qfp_unit_1: entity work.qfp_unit
     generic map (
@@ -206,4 +227,45 @@ begin  -- architecture rtl
     end if;
   end process;
 
+  --wb_master_1: entity work.wb_master
+  --  port map (
+  --    clk_i        => clk_i,
+  --    reset_n_i    => reset_n_i,
+  --    addr_i       => ext_mem_addr,
+  --    din_i        => ext_mem_dout,
+  --    dout_o       => ext_mem_din,
+  --    en_i         => ext_mem_en_2,
+  --    we_i         => ext_mem_rw,
+  --    complete_o   => wb_master_complete,
+  --    err_o        => open,
+  --    master_out_i => ext_master_i,
+  --    master_out_o => ext_master_o);
+
+
+  ext_master_o <= (ext_mem_addr,ext_mem_dout,ext_mem_rw,"1111",ext_mem_en and not ext_mem_disable,ext_mem_en);
+  ext_mem_din <= ext_master_i.dat;
+
+  --ext_mem_en_2 <= '1' when ext_mem_en = '1' and ext_mem_disable = '0' else '0';
+
+  process (clk_i, reset_n_i) is
+  begin  -- process
+    if reset_n_i = '0' then             -- asynchronous reset (active low)
+      ext_mem_disable <= '0';
+    elsif clk_i'event and clk_i = '1' then  -- rising clock edge
+      if ext_master_i.stall = '0' then
+        ext_mem_disable <= '1';
+      end if;
+      --if ext_mem_en = '1' then
+      --  ext_mem_disable <= '1';
+      --end if;
+
+      if ext_master_i.ack = '1' or ext_master_i.err = '1' then--if wb_master_complete = '1' then
+        ext_mem_disable <= '0';
+        
+      end if;
+    end if;
+  end process;
+
+  ext_mem_stall <= not ext_master_i.ack;--wb_master_complete;
+  
 end architecture rtl;

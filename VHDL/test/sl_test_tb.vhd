@@ -7,6 +7,7 @@ library std;
 use std.textio.all;
 
 use work.sl_misc_p.all;
+use work.wishbone_p.all;
 
 entity sl_test_tb is
 end entity sl_test_tb;
@@ -30,18 +31,18 @@ architecture Behav of sl_test_tb is
   signal mem_din       : std_ulogic_vector(31 downto 0);
   signal mem_dout      : std_ulogic_vector(31 downto 0);
   signal mem_we        : std_ulogic;
+  signal mem_en        : std_ulogic;
   signal mem_complete  : std_ulogic;
   signal executed_addr : unsigned(15 downto 0);
 
-  signal ext_mem_addr  : unsigned(31 downto 0);
-  signal ext_mem_dout  : std_ulogic_vector(31 downto 0);
-  signal ext_mem_din   : std_ulogic_vector(31 downto 0);
-  signal ext_mem_rw    : std_ulogic;
-  signal ext_mem_en    : std_ulogic;
   signal ext_mem_stall : std_ulogic;
+  signal ext_mem : mem_t(511 downto 0);
+  signal ext_slave : wb_slave_ifc_out_t;
 
-  signal ext_mem : mem_t(1023 downto 0);
-  signal mem_we_2 : std_ulogic;
+  signal master_in : wb_master_ifc_in_array_t(1 downto 0);
+  signal master_out : wb_master_ifc_out_array_t(1 downto 0);
+  signal slave_in : wb_slave_ifc_in_array_t(1 downto 0);
+  signal slave_out : wb_slave_ifc_out_array_t(1 downto 0);
 
 begin  -- architecture Behav
 
@@ -52,44 +53,66 @@ begin  -- architecture Behav
       core_clk_en_i   => enable_core,
       code_addr_o     => code_addr,
       code_data_i     => code_data,
-      ext_mem_addr_o  => ext_mem_addr,
-      ext_mem_dout_o  => ext_mem_dout,
-      ext_mem_din_i   => ext_mem_din,
-      ext_mem_rw_o    => ext_mem_rw,
-      ext_mem_en_o    => ext_mem_en,
-      ext_mem_stall_i => ext_mem_stall,
-      mem_addr_i      => mem_addr,
-      mem_din_i       => mem_din,
-      mem_dout_o      => mem_dout,
-      mem_we_i        => mem_we_2,
-      mem_complete_o  => mem_complete,
+      ext_master_i    => master_in(0),
+      ext_master_o    => master_out(0),
+      mem_slave_i     => slave_in(0),
+      mem_slave_o     => slave_out(0),
       executed_addr_o => executed_addr);
-
-  mem_we_2 <= '1' when mem_we = '1' and mem_addr < to_unsigned(512,16) else '0';
 
   -- clock generation
   clk <= not clk after 10 ns;
 
   code_data <= code_mem(to_integer(code_addr));
 
-  process (clk, reset_n) is
+  wb_master_1: entity work.wb_master
+    port map (
+      clk_i        => sl_clk,
+      reset_n_i    => reset_n,
+      addr_i(15 downto 0) => mem_addr,
+      addr_i(31 downto 16) => X"0000",
+      din_i        => mem_din,
+      dout_o       => mem_dout,
+      en_i         => mem_en,
+      we_i         => mem_we,
+      complete_o   => mem_complete,
+      err_o        => open,
+      master_out_i => master_in(1),
+      master_out_o => master_out(1));
+
+  wb_ixs_1: entity work.wb_ixs
+    generic map (
+      MasterConfig => (wb_master("ext_mem"),wb_master("core_mem ext_mem")),
+      SlaveMap     => (wb_slave("core_mem",0,512),wb_slave("ext_mem",512,512)))
+    port map (
+      clk_i       => sl_clk,
+      reset_n_i   => reset_n,
+      master_in_i => master_out,
+      master_in_o => master_in,
+      slave_out_i => slave_out,
+      slave_out_o => slave_in);
+
+  process (sl_clk, reset_n) is
   begin  -- process
     if reset_n = '0' then               -- asynchronous reset (active low)
-      ext_mem_din <= (others => '0');
-    elsif clk'event and clk = '1' then  -- rising clock edge
-      if ext_mem_en = '1' then
-        if ext_mem_rw = '1' then
-          ext_mem(to_integer(ext_mem_addr)) <= ext_mem_dout;
+      ext_slave <= ((others => '0'),'0','0','0');
+    elsif sl_clk'event and sl_clk = '1' then  -- rising clock edge
+      ext_slave.ack <= slave_in(1).stb and not ext_mem_stall;
+      if slave_in(1).cyc = '1' and slave_in(1).stb = '1' then
+        if slave_in(1).we = '1' then
+          ext_mem(to_integer(slave_in(1).adr)) <= slave_in(1).dat;
         else
-          ext_mem_din <= ext_mem(to_integer(ext_mem_addr));
+          ext_slave.dat <= ext_mem(to_integer(slave_in(1).adr));
         end if;
       end if;
 
-      if mem_addr >= to_unsigned(512,16) and mem_we = '1' then
-        ext_mem(to_integer(mem_addr)) <= mem_din;        
+      -- sideload while proc master accessing this memory
+      if master_out(0).cyc = '1' and mem_we = '1' and mem_addr >= to_unsigned(512,32) then
+        ext_mem(to_integer(mem_addr)-512) <= mem_din;
       end if;
     end if;
   end process;
+
+  slave_out(1) <= (ext_slave.dat,ext_slave.ack,ext_slave.err,ext_mem_stall);
 
   -- waveform generation
   process
@@ -109,6 +132,7 @@ begin  -- architecture Behav
     mem_addr <= to_unsigned(0,16);
     mem_din <= (others => '0');
     mem_we <= '0';
+    mem_en <= '0';
 
     ext_mem_stall <= '0';
     
@@ -155,6 +179,7 @@ begin  -- architecture Behav
             sl_clk <= '0';
             wait for 0.1 ns;
             mem_we <= '1';
+            mem_en <= '1';
             
             -- generate clock for memory
             sl_clk <= '1';
@@ -167,6 +192,7 @@ begin  -- architecture Behav
             wait for 0.1 ns;
 
             mem_we <= '0';
+            mem_en <= '0';
           end loop;  -- i
 
           write(output,LF & "  clear mem complete");
@@ -236,6 +262,7 @@ begin  -- architecture Behav
           wait for 10 ns;
 
           mem_we <= '1';
+          mem_en <= '1';
 
           wait for 1 ns;
 
@@ -250,6 +277,7 @@ begin  -- architecture Behav
           enable_core <= '1';
 
           mem_we <= '0';
+          mem_en <= '0';
         when X"000F" =>
           hread(l,data32);
           mem_addr <= unsigned(data32(15 downto 0));
@@ -262,6 +290,9 @@ begin  -- architecture Behav
           wait for 1 ns;
           sl_clk <= '0';
           wait for 1 ns;
+
+          mem_en <= '1';
+
           sl_clk <= '1';
           wait for 1 ns;
           sl_clk <= '0';
@@ -269,6 +300,12 @@ begin  -- architecture Behav
           sl_clk <= '1';
           wait for 1 ns;
           sl_clk <= '0';
+          wait for 1 ns;
+          sl_clk <= '1';
+          wait for 1 ns;
+          sl_clk <= '0';
+
+          mem_en <= '0';
           
           if mem_complete = '1' then
             mem_result := mem_dout;
@@ -284,10 +321,6 @@ begin  -- architecture Behav
           end if;
 
           wait for 1 ns;
-
-          if mem_addr >= to_unsigned(512,16) then
-            mem_result := ext_mem(to_integer(mem_addr));
-          end if;
 
           hread(l,data32);
           
