@@ -14,7 +14,7 @@ entity sl_processor is
     clk_i     : in std_ulogic;
     reset_n_i : in std_ulogic;
 
-    reset_core_n_i : in std_ulogic;
+    core_clk_en_i : in std_ulogic;
 
     code_addr_o : out unsigned(15 downto 0);
     code_data_i : in std_ulogic_vector(15 downto 0);
@@ -38,8 +38,7 @@ end entity sl_processor;
 
 architecture rtl of sl_processor is
 
-  signal clk2 : std_ulogic;
-  signal reset_core_n : std_ulogic;
+  signal core_clk : std_ulogic;
 
   signal alu_en        : std_ulogic;
   signal alu_cmd       : std_ulogic_vector(2 downto 0);
@@ -86,20 +85,18 @@ begin  -- architecture rtl
   process (clk_i, reset_n_i) is
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
-      clk2 <= '1';
+      core_clk <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
-      if reset_core_n_i = '1' then
-        clk2 <= not clk2;
+      if core_clk_en_i = '1' then
+        core_clk <= not core_clk;
       end if;
     end if;
   end process;
 
-  reset_core_n <= reset_n_i;
-
   sl_core_1: entity work.sl_core
     port map (
-      clk_i           => clk2,
-      reset_n_i       => reset_core_n,
+      clk_i           => core_clk,
+      reset_n_i       => reset_n_i,
       alu_en_o        => alu_en,
       alu_cmd_o       => alu_cmd,
       alu_op_a_o      => alu_op_a,
@@ -156,7 +153,7 @@ begin  -- architecture rtl
     generic map (
       config => qfp_config_add+qfp_config_mul+qfp_config_div)
     port map (
-      clk_i      => clk2,
+      clk_i      => core_clk,
       reset_n_i  => reset_n_i,
       cmd_i      => qfp_cmd,
       ready_o    => qfp_ready,
@@ -195,11 +192,11 @@ begin  -- architecture rtl
 
   end process;
 
-  process (clk2, reset_n_i) is
+  process (core_clk, reset_n_i) is
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       qfp_idle <= '1';
-    elsif clk2'event and clk2 = '1' then  -- rising clock edge
+    elsif core_clk'event and core_clk = '1' then  -- rising clock edge
       if qfp_ready = '1' and alu_en2 = '1' and alu_cmd /= CMD_MOV then
         qfp_idle <= '0';
       end if;
