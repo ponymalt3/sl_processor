@@ -52,7 +52,8 @@ begin  -- architecture rtl
 
   m9k_1: entity work.m9k
     generic map (
-      SizeInKBytes => SizeInKBytes)
+      SizeInKBytes => SizeInKBytes,
+      SizeOfElementInBits => 32)
     port map (
       clk_i     => clk_i,
       reset_n_i => reset_n_i,
