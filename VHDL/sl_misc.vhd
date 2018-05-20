@@ -159,7 +159,7 @@ package body sl_misc_p is
       return result;
     end if;
     
-    while x >= 2**result loop
+    while x > 2**result loop
       result := result+1;
     end loop;
     
