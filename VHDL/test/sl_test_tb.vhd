@@ -18,7 +18,7 @@ architecture Behav of sl_test_tb is
 
   signal clk      : std_ulogic := '0';
   signal reset_n  : std_ulogic;
-  signal reset_core_n : std_ulogic;
+  signal enable_core : std_ulogic;
 
   file test_file : text;
   signal code_mem : code_mem_t(255 downto 0);
@@ -49,7 +49,7 @@ begin  -- architecture Behav
     port map (
       clk_i           => sl_clk,
       reset_n_i       => reset_n,
-      reset_core_n_i  => reset_core_n,
+      core_clk_en_i   => enable_core,
       code_addr_o     => code_addr,
       code_data_i     => code_data,
       ext_mem_addr_o  => ext_mem_addr,
@@ -104,7 +104,7 @@ begin  -- architecture Behav
     variable mem_result : std_ulogic_vector(31 downto 0);
   begin
     reset_n <= '0';
-    reset_core_n <= '0';
+    enable_core <= '0';
 
     mem_addr <= to_unsigned(0,16);
     mem_din <= (others => '0');
@@ -142,7 +142,7 @@ begin  -- architecture Behav
             code_mem(i) <= X"FFFF";
           end loop;  -- i
 
-          reset_core_n <= '0';
+          enable_core <= '0';
           mem_din <= (others => '0');
           for i in 0 to 255 loop
             mem_addr <= to_unsigned(i,16);
@@ -171,7 +171,7 @@ begin  -- architecture Behav
 
           write(output,LF & "  clear mem complete");
 
-          reset_core_n <= '1';
+          enable_core <= '1';
           reset_n <= '0';
           wait for 33 ns;
           reset_n <= '1';
@@ -223,7 +223,7 @@ begin  -- architecture Behav
 
           write(output,LF & "  write data " & to_hstring(mem_din) & " at addr " & integer'image(to_integer(mem_addr)));
 
-          reset_core_n <= '0';
+          enable_core <= '0';
 
           -- generate clock for memory
           sl_clk <= '1';
@@ -247,7 +247,7 @@ begin  -- architecture Behav
           wait for 10 ns;
           sl_clk <= '0';
           wait for 10 ns;
-          reset_core_n <= '1';
+          enable_core <= '1';
 
           mem_we <= '0';
         when X"000F" =>
@@ -256,7 +256,7 @@ begin  -- architecture Behav
 
           wait for 1 ps;
           -- generate clock for memory
-          reset_core_n <= '0';
+          enable_core <= '0';
 
           sl_clk <= '1';
           wait for 1 ns;
@@ -293,7 +293,7 @@ begin  -- architecture Behav
           
           assert mem_result = data32 report LF & "  expect FAILED " & to_hstring(mem_result) & " != " & to_hstring(data32) & LF severity error;
   
-          reset_core_n <= '1';
+          enable_core <= '1';
         when others => null;
       end case;
     end loop;
