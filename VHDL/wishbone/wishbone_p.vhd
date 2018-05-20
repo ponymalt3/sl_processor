@@ -30,8 +30,8 @@ package wishbone_p is
   subtype wb_slave_ifc_in_t is wb_master_ifc_out_t;
   subtype wb_slave_ifc_out_t is wb_master_ifc_in_t;
 
-  type wb_slave_ifc_out_array_t is array (natural range <>) of wb_slave_ifc_out_t;
-  type wb_slave_ifc_in_array_t is array (natural range <>) of wb_slave_ifc_in_t;
+  subtype wb_slave_ifc_in_array_t is wb_master_ifc_out_array_t;
+  subtype wb_slave_ifc_out_array_t is wb_master_ifc_in_array_t;
  
   type wb_master_config_t is record
     id        : natural;
@@ -162,11 +162,11 @@ package body wishbone_p is
     cur_slave := 0;     
     pos := 1;
     while master.connected_slaves(pos) /= NUL loop
-      i := 1;
+      i := 0;
       while master.connected_slaves(pos) /= NUL and master.connected_slaves(pos) /= ' ' loop
+        i := i+1;
         -- write(output,"pos. " & integer'image(pos) & "  i: " & integer'image(i) & "  str length: " & integer'image(master.connected_slaves'length) & LF);
         slave_name(i) := master.connected_slaves(pos);
-        i := i+1;
         pos := pos+1;
       end loop;
       pos := pos+1;
