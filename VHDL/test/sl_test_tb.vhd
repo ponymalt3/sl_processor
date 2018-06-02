@@ -42,8 +42,8 @@ architecture Behav of sl_test_tb is
 
   signal master_in : wb_master_ifc_in_array_t(1 downto 0);
   signal master_out : wb_master_ifc_out_array_t(1 downto 0);
-  signal slave_in : wb_slave_ifc_in_array_t(1 downto 0);
-  signal slave_out : wb_slave_ifc_out_array_t(1 downto 0);
+  signal slave_in : wb_slave_ifc_in_array_t(2 downto 0);
+  signal slave_out : wb_slave_ifc_out_array_t(2 downto 0);
 
 begin  -- architecture Behav
 
@@ -64,7 +64,6 @@ begin  -- architecture Behav
   -- clock generation
   clk <= not clk after 10 ns;
 
-  code_data <= code_mem(to_integer(code_addr));
 
   wb_master_1: entity work.wb_master
     port map (
@@ -83,8 +82,8 @@ begin  -- architecture Behav
 
   wb_ixs_1: entity work.wb_ixs
     generic map (
-      MasterConfig => (wb_master("ext_mem"),wb_master("core_mem ext_mem")),
-      SlaveMap     => (wb_slave("core_mem",0,512),wb_slave("ext_mem",512,512)))
+      MasterConfig => (wb_master("ext_mem"),wb_master("core_mem ext_mem code_mem")),
+      SlaveMap     => (wb_slave("core_mem",0,512),wb_slave("ext_mem",512,512),wb_slave("code_mem",1024,512)))
     port map (
       clk_i       => sl_clk,
       reset_n_i   => reset_n,
@@ -92,6 +91,27 @@ begin  -- architecture Behav
       master_in_o => master_in,
       slave_out_i => slave_out,
       slave_out_o => slave_in);
+
+  sl_code_mem_1: entity work.sl_code_mem
+    generic map (
+      SizeInKBytes => 1)
+    port map (
+      clk_i      => sl_clk,
+      reset_n_i  => reset_n,
+      p0_addr_i  => code_addr,
+      p0_code_o  => code_data,
+      p0_core_en_i => code_en,--enable_core,
+      p1_addr_i  => to_unsigned(0,16),
+      p1_code_o  => open,
+      p1_core_en_i => '0',
+      p2_addr_i  => to_unsigned(0,16),
+      p2_code_o  => open,
+      p2_core_en_i => '0',
+      p3_addr_i  => to_unsigned(0,16),
+      p3_code_o  => open,
+      p3_core_en_i => '0',
+      wb_slave_i => slave_in(2),
+      wb_slave_o => slave_out(2));
 
   process (sl_clk, reset_n) is
   begin  -- process
@@ -108,7 +128,7 @@ begin  -- architecture Behav
       end if;
 
       -- sideload while proc master accessing this memory
-      if master_out(0).cyc = '1' and mem_we = '1' and mem_addr >= to_unsigned(512,32) then
+      if master_out(0).cyc = '1' and mem_we = '1' and mem_addr >= to_unsigned(512,32) and mem_addr < to_unsigned(1024,32) then
         ext_mem(to_integer(mem_addr)-512) <= mem_din;
       end if;
     end if;
@@ -164,22 +184,38 @@ begin  -- architecture Behav
           end loop;
           write(output,"]: ");
 
+          enable_core <= '0';
+
           for i in 0 to code_mem'length-1 loop
-            code_mem(i) <= X"FFFF";
+            mem_addr <= to_unsigned(1024+i,16);
+            mem_din(15 downto 0) <= X"FFFF";
+            mem_we <= '1';
+            mem_en <= '1';
+            wait for 1 ps;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            mem_we <= '0';
+            mem_en <= '0';
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            wait for 1 ps;
           end loop;  -- i
 
-          enable_core <= '0';
           mem_din <= (others => '0');
           for i in 0 to 255 loop
             mem_addr <= to_unsigned(i,16);
-            sl_clk <= '1';
-            wait for 0.1 ns;
-            sl_clk <= '0';
-            wait for 0.1 ns;
-            sl_clk <= '1';
-            wait for 0.1 ns;
-            sl_clk <= '0';
-            wait for 0.1 ns;
             mem_we <= '1';
             mem_en <= '1';
             
@@ -188,13 +224,22 @@ begin  -- architecture Behav
             wait for 0.1 ns;
             sl_clk <= '0';
             wait for 0.1 ns;
+
+            mem_we <= '0';
+            mem_en <= '0';
+            
             sl_clk <= '1';
             wait for 0.1 ns;
             sl_clk <= '0';
             wait for 0.1 ns;
-
-            mem_we <= '0';
-            mem_en <= '0';
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
           end loop;  -- i
 
           write(output,LF & "  clear mem complete");
@@ -205,13 +250,38 @@ begin  -- architecture Behav
           reset_n <= '1';
         when X"0001" =>      
           j := 0;
+          enable_core <= '0';
           read_ok := true;
           while read_ok and dummy /= LF loop
             hread(l,data16);
-            code_mem(j) <= data16;
+            mem_addr <= to_unsigned(1024+j,16);
+            mem_din(15 downto 0) <= data16;
+            mem_we <= '1';
+            mem_en <= '1';
+            wait for 1 ps;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            mem_we <= '0';
+            mem_en <= '0';            
+            wait for 0.1 ns;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            sl_clk <= '1';
+            wait for 0.1 ns;
+            sl_clk <= '0';
+            wait for 0.1 ns;
+            --wait for 1 ps;
             read(l,dummy,read_ok);
             j:=j+1;
           end loop;
+          enable_core <= '1';
           write(output,LF & "  " & integer'image(j) & " code words loaded");
         when X"0002" | X"0005" =>
           if entry_type = X"0005" then
@@ -254,15 +324,6 @@ begin  -- architecture Behav
           enable_core <= '0';
 
           -- generate clock for memory
-          sl_clk <= '1';
-          wait for 10 ns;
-          sl_clk <= '0';
-          wait for 10 ns;
-          sl_clk <= '1';
-          wait for 10 ns;
-          sl_clk <= '0';
-          wait for 10 ns;
-
           mem_we <= '1';
           mem_en <= '1';
 
@@ -276,10 +337,20 @@ begin  -- architecture Behav
           wait for 10 ns;
           sl_clk <= '0';
           wait for 10 ns;
-          enable_core <= '1';
 
           mem_we <= '0';
           mem_en <= '0';
+
+          sl_clk <= '1';
+          wait for 10 ns;
+          sl_clk <= '0';
+          wait for 10 ns;
+          sl_clk <= '1';
+          wait for 10 ns;
+          sl_clk <= '0';
+          wait for 10 ns;
+
+          enable_core <= '1';
         when X"000F" =>
           hread(l,data32);
           mem_addr <= unsigned(data32(15 downto 0));
@@ -321,6 +392,11 @@ begin  -- architecture Behav
           if mem_complete = '1' then
             mem_result := mem_dout;
           end if;
+
+          wait for 1 ns;
+          sl_clk <= '1';
+          wait for 1 ns;
+          sl_clk <= '0';
 
           wait for 1 ns;
 
