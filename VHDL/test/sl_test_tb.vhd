@@ -26,6 +26,7 @@ architecture Behav of sl_test_tb is
 
   signal sl_clk        : std_ulogic := '0';
   signal code_addr     : unsigned(15 downto 0);
+  signal code_en : std_ulogic;
   signal code_data     : std_ulogic_vector(15 downto 0);
   signal mem_addr      : unsigned(15 downto 0);
   signal mem_din       : std_ulogic_vector(31 downto 0);
@@ -51,7 +52,8 @@ begin  -- architecture Behav
       clk_i           => sl_clk,
       reset_n_i       => reset_n,
       core_clk_en_i   => enable_core,
-      code_addr_o     => code_addr,
+      code_addr_next_o     => code_addr,
+      code_en_o       => code_en,
       code_data_i     => code_data,
       ext_master_i    => master_in(0),
       ext_master_o    => master_out(0),

@@ -17,7 +17,8 @@ entity sl_processor is
 
     core_clk_en_i : in std_ulogic;
 
-    code_addr_o : out unsigned(15 downto 0);
+    code_addr_next_o : out unsigned(15 downto 0);
+    code_en_o : out std_ulogic;
     code_data_i : in std_ulogic_vector(15 downto 0);
 
     ext_master_i : in  wb_master_ifc_in_t;
@@ -110,7 +111,8 @@ begin  -- architecture rtl
       alu_op_a_o      => alu_op_a,
       alu_op_b_o      => alu_op_b,
       alu_i           => alu_data,
-      cp_addr_o       => cp_addr,
+      cp_addr_next_o  => cp_addr_next,
+      cp_en_o         => code_en_o,
       cp_din_i        => code_data_i,
       ext_mem_addr_o  => ext_mem_addr,
       ext_mem_dout_o  => ext_mem_dout,
@@ -129,7 +131,7 @@ begin  -- architecture rtl
       wp_we_o         => wp_we,
       executed_addr_o => executed_addr_o);
 
-  code_addr_o <= unsigned(cp_addr);
+  code_addr_next_o <= unsigned(cp_addr_next);
 
   rp0_addr_vec <= To_StdULogicVector(std_logic_vector(rp0_addr(15 downto 0)));
   rp1_addr_vec <= To_StdULogicVector(std_logic_vector(rp1_addr(15 downto 0)));

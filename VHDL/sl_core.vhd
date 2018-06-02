@@ -27,7 +27,8 @@ entity sl_core is
     alu_i : in sl_alu_t;
 
     -- code mem
-    cp_addr_o : out reg_pc_t;
+    cp_addr_next_o : out reg_pc_t;
+    cp_en_o : out std_ulogic;
     cp_din_i : in std_ulogic_vector(15 downto 0);
     
     -- external full mem interface
@@ -74,9 +75,12 @@ architecture rtl of sl_core is
   alias mem0_reg : std_ulogic_vector(31 downto 0) is rp0_din_i;
   alias mem1_reg : std_ulogic_vector(31 downto 0) is rp1_din_i;
 
+  signal reset_1d : std_ulogic;
+  signal stall_decex_1d : std_ulogic;
+
 begin  -- architecture rtl
 
-  process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr) is
+  process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr, reset_1d, stall_decex_1d, state_next) is
   begin  -- process
     ext_mem_addr_o <= proc.state.addr(1); -- read addr
     ext_mem_dout_o <= proc.state.result;
@@ -107,7 +111,8 @@ begin  -- architecture rtl
       rp1_addr_o <= X"0000" & dec_next.irs_addr;
     end if;
 
-    cp_addr_o <= proc.state.pc;
+    cp_addr_next_o <= state_next.pc;
+    cp_en_o <= not reset_1d and not stall_decex_1d;
 
     -- alu
     alu_en_o <= proc.state.enable(S_EXEC);
@@ -126,7 +131,11 @@ begin  -- architecture rtl
       proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0');
       proc.decex <= ("000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0',(others => '0'),'0');
       proc.state <= (to_unsigned(0,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
+      reset_1d <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
+      -- special signals for code mem en
+      reset_1d <= '0';
+      stall_decex_1d <= ctrl_next.stall_decex;
 
       proc.state <= state_next;
       
