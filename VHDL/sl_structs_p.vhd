@@ -90,11 +90,7 @@ package sl_structs_p is
 
   type sl_decode_ex_t is record
     cmd : std_ulogic_vector(2 downto 0);
-    a : reg_raw_t;
-    b : reg_raw_t;
-
-    mem0 : reg_raw_t;
-    mem1 : reg_raw_t;
+    
     memX : reg_raw_t;
 
     mux0 : std_ulogic;

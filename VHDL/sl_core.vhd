@@ -124,12 +124,12 @@ begin  -- architecture rtl
       executed_addr_o <= to_unsigned(0,16);
       proc.fetch <= ((others => '0'),to_unsigned(0,16));
       proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0');
-      proc.decex <= ("000",(others => '0'),(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0',(others => '0'),'0');
-      proc.state <= (to_unsigned(0,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');  
+      proc.decex <= ("000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0',(others => '0'),'0');
+      proc.state <= (to_unsigned(0,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
 
       proc.state <= state_next;
-
+      
       if ctrl_next.stall_decex = '0' then
         proc.fetch <= fetch_next;
         proc.dec <= dec_next;
@@ -143,7 +143,7 @@ begin  -- architecture rtl
       if proc.state.enable(S_EXEC) = '1' then
         executed_addr_o <= proc.dec.cur_pc;
       end if;
-      
+
     end if;
   end process;
 

@@ -33,20 +33,21 @@ end entity sl_processor;
 architecture rtl of sl_processor is
 
   signal core_clk : std_ulogic;
+  signal core_clk_en_1d : std_ulogic;
 
   signal alu_en        : std_ulogic;
   signal alu_cmd       : std_ulogic_vector(2 downto 0);
   signal alu_op_a      : reg_raw_t;
   signal alu_op_b      : reg_raw_t;
   signal alu_data      : sl_alu_t;
-  signal cp_addr       : reg_pc_t;
+  signal cp_addr_next  : reg_pc_t;
   signal rp0_addr      : reg_addr_t;
-  signal rp0_dout       : reg_raw_t;
-  signal rp0_en         : std_ulogic;
+  signal rp0_dout      : reg_raw_t;
+  signal rp0_en        : std_ulogic;
   signal rp1_addr      : reg_addr_t;
-  signal rp1_dout       : reg_raw_t;
+  signal rp1_dout      : reg_raw_t;
   signal wp_addr       : reg_addr_t;
-  signal wp_din       : reg_raw_t;
+  signal wp_din        : reg_raw_t;
   signal wp_we         : std_ulogic;
 
   signal rp0_addr_vec      : std_ulogic_vector(15 downto 0);
@@ -89,9 +90,13 @@ begin  -- architecture rtl
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       core_clk <= '1';
+      core_clk_en_1d <= '0';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
+      core_clk_en_1d <= core_clk_en_i;
       if core_clk_en_i = '1' then
         core_clk <= not core_clk;
+      elsif core_clk_en_1d = '1' then
+        --assert core_clk = '0' report "core clk clock gating error; must always start/end on core_clk = 0" severity error;
       end if;
     end if;
   end process;
