@@ -411,7 +411,9 @@ bool RTParser::parseStatement(Stream &stream)
   {
     Token name=stream.readToken();
     assert(name.getType() == Token::TOK_NAME);
-    codeGen_.addReference(stream.createStringFromToken(name.getOffset(),name.getLength()),stream.readInt(false).value_);
+    int32_t value=stream.readInt(false).value_;
+    Error::expect(value >= 4) << stream << "irs addresses 0-3 are reserved for callstack management";
+    codeGen_.addReference(stream.createStringFromToken(name.getOffset(),name.getLength()),value);
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
     break;
   }

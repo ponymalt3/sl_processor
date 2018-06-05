@@ -326,3 +326,17 @@ MTEST(testSyntax,test_that_store_const3_in_irs_works)
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 0);
 }
+
+MTEST(testSyntax,test_that_refs_are_only_allowed_at_irs_addr_higher_than_4_expect_errors)
+{
+  RTProg test=R"(
+    ref a 0;
+    ref b 1;
+    ref c 2;
+    ref d 3;
+    f=a+b+c+d;
+  )";
+  
+  RTProgTester tester(test);
+  EXPECT(tester.parse().getNumErrors() == 4);
+}
