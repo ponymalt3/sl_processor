@@ -100,7 +100,7 @@ Stream& Stream::skipWhiteSpaces()
     while(asmText_[pos_] == '%')
     {
       ++pos_;
-      while(pos_ < length_ && asmText_[pos_++] != '%');
+      while(pos_ < length_ && (asmText_[pos_] != '%' || asmText_[pos_] != '\n')) ++pos_;
       ch=asmText_[pos_];
     }
     
