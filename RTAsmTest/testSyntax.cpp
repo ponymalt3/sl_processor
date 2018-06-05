@@ -340,3 +340,31 @@ MTEST(testSyntax,test_that_refs_are_only_allowed_at_irs_addr_higher_than_4_expec
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 4);
 }
+
+MTEST(testSyntax,test_that_loop_index_cant_be_written_inside_loop_expect_errors)
+{
+  RTProg test=R"(
+    loop(1)
+      i=10;
+      k=99; % should be ok
+    end
+  )";
+  
+  RTProgTester tester(test);
+  EXPECT(tester.parse().getNumErrors() == 5);
+}
+
+MTEST(testSyntax,test_that_different_loop_index_cant_be_written_inside_loop_expect_errors)
+{
+  RTProg test=R"(
+    loop(1)
+      loop(1)
+        i=0;
+        k=99;
+      end
+    end
+  )";
+  
+  RTProgTester tester(test);
+  EXPECT(tester.parse().getNumErrors() == 7);
+}

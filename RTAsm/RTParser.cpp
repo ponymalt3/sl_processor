@@ -482,6 +482,7 @@ bool RTParser::parseStatement(Stream &stream)
     codeGen_.instrGoto2();
     break;
   default:
+    Error::expect(token.getType() != Token::TOK_INDEX) << stream << "cant write/use " << token.getName(stream) << " loop index";
     stream.restorePos();//unexpected token dont remove from stream
     return false;
   }
