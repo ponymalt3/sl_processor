@@ -21,8 +21,8 @@ entity sl_processor is
 
     core_clk_en_i : in std_ulogic;
 
-    code_addr_next_o : out unsigned(15 downto 0);
-    code_en_o : out std_ulogic;
+    code_addr_o : out unsigned(15 downto 0);
+    code_re_o : out std_ulogic;
     code_data_i : in std_ulogic_vector(15 downto 0);
 
     ext_master_i : in  wb_master_ifc_in_t;
