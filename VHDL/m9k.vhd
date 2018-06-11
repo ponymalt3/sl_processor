@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.sl_misc_p.all;
+
 entity m9k is
   
   generic (
@@ -29,8 +31,9 @@ end entity m9k;
 architecture rtl of m9k is
 
   type mem_t is array (natural range <>) of std_ulogic_vector(SizeOfElementInBits-1 downto 0);
-
   shared variable mem : mem_t((SizeInKBytes*1024)/((SizeOfElementInBits+7)/8)-1 downto 0);
+
+  constant AddrWidth : natural := log2(mem'length);
 
   signal clk_gate_0 : std_ulogic;
   signal clk0 : std_ulogic;
@@ -56,10 +59,10 @@ begin  -- architecture rtl
   begin  -- process
     if clk0'event and clk0 = '1' then  -- rising clock edge
      
-     p0_dout_o <= mem(to_integer(unsigned(p0_addr_i)));
+     p0_dout_o <= mem(to_integer(unsigned(p0_addr_i(AddrWidth-1 downto 0))));
      
       if p0_we_i = '1' then
-        mem(to_integer(unsigned(p0_addr_i))) := p0_din_i;
+        mem(to_integer(unsigned(p0_addr_i(AddrWidth-1 downto 0)))) := p0_din_i;
       end if;
 
     end if;
@@ -71,10 +74,10 @@ begin  -- architecture rtl
   begin  -- process
     if clk1'event and clk1 = '1' then  -- rising clock edge
      
-      p1_dout_o <= mem(to_integer(unsigned(p1_addr_i)));
+      p1_dout_o <= mem(to_integer(unsigned(p1_addr_i(AddrWidth-1 downto 0))));
 
       if p1_we_i = '1' then
-        mem(to_integer(unsigned(p1_addr_i))) := p1_din_i;
+        mem(to_integer(unsigned(p1_addr_i(AddrWidth-1 downto 0)))) := p1_din_i;
       end if;
       
     end if;
