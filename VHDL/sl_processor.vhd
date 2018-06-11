@@ -45,7 +45,7 @@ architecture rtl of sl_processor is
   signal alu_op_a      : reg_raw_t;
   signal alu_op_b      : reg_raw_t;
   signal alu_data      : sl_alu_t;
-  signal cp_addr_next  : reg_pc_t;
+  signal cp_addr       : reg_pc_t;
   signal rp0_addr      : reg_addr_t;
   signal rp0_dout      : reg_raw_t;
   signal rp0_en        : std_ulogic;
@@ -107,6 +107,9 @@ begin  -- architecture rtl
   end process;
 
   sl_core_1: entity work.sl_core
+    generic map (
+      UseCodeAddrNext => UseCodeAddrNext,
+      ExtAddrThreshold => LocalMemSizeInKB*(1024/4))
     port map (
       clk_i           => core_clk,
       reset_n_i       => reset_n_i,
@@ -115,8 +118,8 @@ begin  -- architecture rtl
       alu_op_a_o      => alu_op_a,
       alu_op_b_o      => alu_op_b,
       alu_i           => alu_data,
-      cp_addr_next_o  => cp_addr_next,
-      cp_en_o         => code_en_o,
+      cp_addr_o       => cp_addr,
+      cp_re_o         => code_re_o,
       cp_din_i        => code_data_i,
       ext_mem_addr_o  => ext_mem_addr,
       ext_mem_dout_o  => ext_mem_dout,
@@ -135,7 +138,7 @@ begin  -- architecture rtl
       wp_we_o         => wp_we,
       executed_addr_o => executed_addr_o);
 
-  code_addr_next_o <= unsigned(cp_addr_next);
+  code_addr_o <= unsigned(cp_addr);
 
   rp0_addr_vec <= To_StdULogicVector(std_logic_vector(rp0_addr(15 downto 0)));
   rp1_addr_vec <= To_StdULogicVector(std_logic_vector(rp1_addr(15 downto 0)));
@@ -143,7 +146,7 @@ begin  -- architecture rtl
     
   multi_port_mem_1: entity work.multi_port_mem
     generic map (
-      SizeInKBytes => 4)
+      SizeInKBytes => LocalMemSizeInKB)
     port map (
       clk_i             => clk_i,
       reset_n_i         => reset_n_i,
