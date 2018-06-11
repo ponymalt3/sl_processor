@@ -88,11 +88,11 @@ begin  -- architecture rtl
   begin  -- process
     ext_mem_addr_o <= proc.state.addr(1); -- read addr
     ext_mem_dout_o <= proc.state.result;
-    ext_mem_en_o <= dec_next.mem_ex and dec_next.en_ad1;
+    ext_mem_en_o <= dec_next.mem_ex and dec_next.en_ad1 and not dec_next.en_mem;
     ext_mem_rw_o <= '0';
 
     if proc.decex.wr_en = '1' and proc.decex.wr_ext = '1' and proc.state.enable(S_EXEC) = '1' then
-      ext_mem_addr_o <= proc.decex.wr_addr;
+      ext_mem_addr_o <= proc.decex.wr_addr-to_unsigned(ExtAddrThreshold,32);
       ext_mem_en_o <= '1';
       ext_mem_rw_o <= '1';
     end if;

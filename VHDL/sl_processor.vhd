@@ -259,6 +259,6 @@ begin  -- architecture rtl
     end if;
   end process;
 
-  ext_mem_stall <= not ext_master_i.ack;--wb_master_complete;
+  ext_mem_stall <= not ext_master_i.ack and ext_mem_en;
   
 end architecture rtl;

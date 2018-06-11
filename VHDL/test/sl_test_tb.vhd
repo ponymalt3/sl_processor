@@ -46,6 +46,8 @@ architecture behav of sl_test_tb is
   signal slave_in : wb_slave_ifc_in_array_t(2 downto 0);
   signal slave_out : wb_slave_ifc_out_array_t(2 downto 0);
 
+  signal proc_master_out : wb_master_ifc_out_t;
+
 begin  -- architecture Behav
 
   sl_processor_1: entity work.sl_processor
@@ -61,10 +63,18 @@ begin  -- architecture Behav
       code_re_o       => code_en,
       code_data_i     => code_data,
       ext_master_i    => master_in(0),
-      ext_master_o    => master_out(0),
+      ext_master_o    => proc_master_out,
       mem_slave_i     => slave_in(0),
       mem_slave_o     => slave_out(0),
       executed_addr_o => executed_addr);
+
+  master_out(0) <= (
+    to_unsigned(1,23) & proc_master_out.adr(8 downto 0),
+    proc_master_out.dat,
+    proc_master_out.we,
+    proc_master_out.sel,
+    proc_master_out.stb,
+    proc_master_out.cyc);
 
   -- clock generation
   clk <= not clk after 10 ns;
