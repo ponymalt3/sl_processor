@@ -161,7 +161,7 @@ struct _Exec
 {
   //add/sub/mul 2 cycles
   _MUnit munit_;
-  uint32_t intResult_ : 16;
+  int32_t intResult_;
   uint32_t execNext_ : 1;
   uint32_t stall_ : 1;
   uint32_t flush_ : 1;
