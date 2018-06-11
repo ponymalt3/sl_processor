@@ -20,6 +20,7 @@ architecture behav of sl_test_tb is
   signal clk      : std_ulogic := '0';
   signal reset_n  : std_ulogic;
   signal enable_core : std_ulogic;
+  signal core_reset_n : std_ulogic;
 
   file test_file : text;
   signal code_mem : code_mem_t(255 downto 0);
@@ -48,12 +49,16 @@ architecture behav of sl_test_tb is
 begin  -- architecture Behav
 
   sl_processor_1: entity work.sl_processor
+    generic map (
+      LocalMemSizeInKB => 2,
+      UseCodeAddrNext  => true)
     port map (
       clk_i           => sl_clk,
       reset_n_i       => reset_n,
-      core_clk_en_i   => enable_core,
-      code_addr_next_o     => code_addr,
-      code_en_o       => code_en,
+      core_en_i       => enable_core,
+      core_reset_n_i  => core_reset_n,
+      code_addr_o     => code_addr,
+      code_re_o       => code_en,
       code_data_i     => code_data,
       ext_master_i    => master_in(0),
       ext_master_o    => master_out(0),
@@ -96,22 +101,26 @@ begin  -- architecture Behav
     generic map (
       SizeInKBytes => 1)
     port map (
-      clk_i      => sl_clk,
-      reset_n_i  => reset_n,
-      p0_addr_i  => code_addr,
-      p0_code_o  => code_data,
-      p0_core_en_i => code_en,--enable_core,
-      p1_addr_i  => to_unsigned(0,16),
-      p1_code_o  => open,
-      p1_core_en_i => '0',
-      p2_addr_i  => to_unsigned(0,16),
       p2_code_o  => open,
-      p2_core_en_i => '0',
-      p3_addr_i  => to_unsigned(0,16),
-      p3_code_o  => open,
-      p3_core_en_i => '0',
-      wb_slave_i => slave_in(2),
-      wb_slave_o => slave_out(2));
+      clk_i        => sl_clk,
+      reset_n_i    => reset_n,
+      p0_addr_i    => code_addr,
+      p0_code_o    => code_data,
+      p0_re_i      => code_en,
+      p0_reset_n_i => reset_n,
+      p1_addr_i    => to_unsigned(0,16),
+      p1_code_o    => open,
+      p1_re_i      => '0',
+      p1_reset_n_i => '0',
+      p2_addr_i    => code_addr,
+      p2_re_i      => code_en,
+      p2_reset_n_i => reset_n,
+      p3_addr_i    => to_unsigned(0,16),
+      p3_code_o    => open,
+      p3_re_i      => '0',
+      p3_reset_n_i => '0',
+      wb_slave_i   => slave_in(2),
+      wb_slave_o   => slave_out(2));
 
   process (sl_clk, reset_n) is
   begin  -- process
@@ -150,6 +159,7 @@ begin  -- architecture Behav
   begin
     reset_n <= '0';
     enable_core <= '0';
+    core_reset_n <= '1';
 
     mem_addr <= to_unsigned(0,16);
     mem_din <= (others => '0');
@@ -185,6 +195,12 @@ begin  -- architecture Behav
           write(output,"]: ");
 
           enable_core <= '0';
+
+          -- add additional cycle for mem system so that sync handling for core enable is also checked
+          wait for 1 ps;
+          sl_clk <= '1';
+          wait for 0.1 ns;
+          sl_clk <= '0';
 
           for i in 0 to code_mem'length-1 loop
             mem_addr <= to_unsigned(1024+i,16);
@@ -245,9 +261,9 @@ begin  -- architecture Behav
           write(output,LF & "  clear mem complete");
 
           enable_core <= '1';
-          reset_n <= '0';
+          core_reset_n <= '0';
           wait for 33 ns;
-          reset_n <= '1';
+          core_reset_n <= '1';
         when X"0001" =>      
           j := 0;
           enable_core <= '0';
@@ -311,6 +327,7 @@ begin  -- architecture Behav
             sl_clk <= '0';
             wait for 10ns;
           end loop;  -- i
+          write(output,"  complete");
         when X"0004" =>
           hread(l,data32);
           mem_addr <= unsigned(data32(15 downto 0));
