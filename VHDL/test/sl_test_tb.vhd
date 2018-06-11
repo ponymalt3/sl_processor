@@ -12,7 +12,7 @@ use work.wishbone_p.all;
 entity sl_test_tb is
 end entity sl_test_tb;
 
-architecture Behav of sl_test_tb is
+architecture behav of sl_test_tb is
 
   type code_mem_t is array (natural range <>) of std_ulogic_vector(15 downto 0);
   type mem_t is array (natural range <>) of std_ulogic_vector(31 downto 0);
@@ -314,6 +314,7 @@ begin  -- architecture Behav
         when X"0004" =>
           hread(l,data32);
           mem_addr <= unsigned(data32(15 downto 0));
+          
           hread(l,data32);
           mem_din <= data32;
 
@@ -415,4 +416,4 @@ begin  -- architecture Behav
     
   end process;
 
-end architecture Behav;
+end architecture behav;

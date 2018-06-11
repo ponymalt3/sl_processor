@@ -82,13 +82,11 @@ architecture rtl of sl_processor is
   signal ext_mem_rw : std_ulogic;
   signal ext_mem_en : std_ulogic;
   signal ext_mem_stall : std_ulogic;
-  signal wb_master_complete : std_ulogic;
-
+  
   signal mem_we : std_ulogic;
   signal mem_complete : std_ulogic;
   signal mem_slave_ack : std_ulogic;
 
-  signal ext_mem_en_2 : std_ulogic;
   signal ext_mem_disable : std_ulogic;
 
 begin  -- architecture rtl
@@ -243,25 +241,8 @@ begin  -- architecture rtl
     end if;
   end process;
 
-  --wb_master_1: entity work.wb_master
-  --  port map (
-  --    clk_i        => clk_i,
-  --    reset_n_i    => reset_n_i,
-  --    addr_i       => ext_mem_addr,
-  --    din_i        => ext_mem_dout,
-  --    dout_o       => ext_mem_din,
-  --    en_i         => ext_mem_en_2,
-  --    we_i         => ext_mem_rw,
-  --    complete_o   => wb_master_complete,
-  --    err_o        => open,
-  --    master_out_i => ext_master_i,
-  --    master_out_o => ext_master_o);
-
-
   ext_master_o <= (ext_mem_addr,ext_mem_dout,ext_mem_rw,"1111",ext_mem_en and not ext_mem_disable,ext_mem_en);
   ext_mem_din <= ext_master_i.dat;
-
-  --ext_mem_en_2 <= '1' when ext_mem_en = '1' and ext_mem_disable = '0' else '0';
 
   process (clk_i, reset_n_i) is
   begin  -- process
@@ -271,13 +252,9 @@ begin  -- architecture rtl
       if ext_master_i.stall = '0' then
         ext_mem_disable <= '1';
       end if;
-      --if ext_mem_en = '1' then
-      --  ext_mem_disable <= '1';
-      --end if;
 
-      if ext_master_i.ack = '1' or ext_master_i.err = '1' then--if wb_master_complete = '1' then
+      if ext_master_i.ack = '1' or ext_master_i.err = '1' then
         ext_mem_disable <= '0';
-        
       end if;
     end if;
   end process;
