@@ -9,7 +9,8 @@ use work.sl_misc_p.all;
 package sl_dec_p is
 
   function sl_dec (
-    proc : sl_processor_t)
+    proc : sl_processor_t;
+    ExtAddrThreshold : natural)
     return sl_decode_t;
 
 end package sl_dec_p;
@@ -17,7 +18,8 @@ end package sl_dec_p;
 package body sl_dec_p is
 
   function sl_dec (
-    proc : sl_processor_t)
+    proc : sl_processor_t;
+    ExtAddrThreshold : natural)
     return sl_decode_t is
 
     variable decode : sl_decode_t;
@@ -127,7 +129,7 @@ package body sl_dec_p is
       decode.mux_b := MUX2_MEM;
     end if;
 
-    decode.mem_ex := not decode.en_irs and to_ulogic(proc.state.addr(to_integer(unsigned'("" & decode.mux_ad1))) >= to_unsigned(512,16));
+    decode.mem_ex := not decode.en_irs and to_ulogic(proc.state.addr(to_integer(unsigned'("" & decode.mux_ad1))) >= to_unsigned(ExtAddrThreshold,16));
 
     decode.cur_pc := proc.fetch.pc;
     decode.irs_addr := proc.state.irs(15 downto 0)+((15 downto 9 => '0') & unsigned(data(10 downto 2))); -- irs offset

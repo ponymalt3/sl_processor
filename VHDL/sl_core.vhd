@@ -15,6 +15,10 @@ use work.sl_state_p.all;
 use work.sl_misc_p.all;
 
 entity sl_core is
+  generic (
+    UseCodeAddrNext : boolean := false;
+    ExtAddrThreshold : natural := 512);
+  
   port (
     clk_i           : in std_ulogic;
     reset_n_i       : in std_ulogic;
@@ -27,8 +31,8 @@ entity sl_core is
     alu_i : in sl_alu_t;
 
     -- code mem
-    cp_addr_next_o : out reg_pc_t;
-    cp_en_o : out std_ulogic;
+    cp_addr_o : out reg_pc_t;
+    cp_re_o : out std_ulogic;
     cp_din_i : in std_ulogic_vector(15 downto 0);
     
     -- external full mem interface
@@ -111,8 +115,13 @@ begin  -- architecture rtl
       rp1_addr_o <= X"0000" & dec_next.irs_addr;
     end if;
 
-    cp_addr_next_o <= state_next.pc;
-    cp_en_o <= not reset_1d and not stall_decex_1d;
+    cp_addr_o <= proc.state.pc;
+    
+    if UseCodeAddrNext then
+      cp_addr_o <= state_next.pc;
+    end if;
+    
+    cp_re_o <= not reset_1d and not stall_decex_1d;
 
     -- alu
     alu_en_o <= proc.state.enable(S_EXEC);
@@ -168,7 +177,7 @@ begin  -- architecture rtl
     end if;
     
     fetch_next <= (cp_din_i,proc.state.pc);
-    dec_next <= sl_dec(proc);
+    dec_next <= sl_dec(proc,ExtAddrThreshold);
     decex_next <= sl_dec_ex(proc,dec_next,mem1_next,mem2_next,ext_mem_stall_i);
     exec_next <= sl_execute(proc,dec_next,alu_i,ext_mem_stall_i);
     ctrl_next <= sl_control(proc,decex_next.stall,exec_next.stall,exec_next.exec_next,exec_next.flush);

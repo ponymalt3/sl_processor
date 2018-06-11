@@ -10,6 +10,10 @@ use work.qfp_p.all;
 use work.wishbone_p.all;
 
 entity sl_processor is
+
+  generic (
+    LocalMemSizeInKB : natural := 4;
+    UseCodeAddrNext  : boolean := false);
   
   port (
     clk_i     : in std_ulogic;
