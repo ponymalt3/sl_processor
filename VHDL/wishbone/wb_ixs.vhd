@@ -28,11 +28,12 @@ architecture rtl of wb_ixs is
 
   signal decode_ifc_in : wb_master_ifc_in_matrix_t(MasterConfig'length-1 downto 0);
   signal decode_ifc_out : wb_master_ifc_out_matrix_t(MasterConfig'length-1 downto 0);
-
+  
 begin  -- architecture rtl
 
   decode: for i in 0 to MasterConfig'length-1 generate
     constant CurSlaveMap : wb_slave_config_array_t := wb_config_get_connected_slaves(MasterConfig(i),SlaveMap);
+	begin
     wb_ixs_decoder: entity work.wb_ixs_decoder
       generic map (
         SlaveMap => CurSlaveMap)
@@ -46,7 +47,7 @@ begin  -- architecture rtl
   end generate decode;
 
   arbiter: for i in 0 to SlaveMap'length-1 generate
-    constant CurMasterConfig : wb_master_config_array_t := wb_config_get_masters_for_slave(SlaveMap(i).name,SlaveMap,MasterConfig);
+    constant CurMasterConfig : wb_master_config_array_t := wb_config_get_masters_for_slave(SlaveMap(i).hash,SlaveMap,MasterConfig);
     signal m_in : wb_slave_ifc_in_array_t(CurMasterConfig'length-1 downto 0);
     signal m_out : wb_slave_ifc_out_array_t(CurMasterConfig'length-1 downto 0);
   begin
