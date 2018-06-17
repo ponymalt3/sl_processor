@@ -26,7 +26,7 @@ end entity wb_ixs_decoder;
 architecture rtl of wb_ixs_decoder is
 
 begin  -- architecture rtl
-
+  
   process (master_in_i, master_out_i) is
   begin  -- process
     master_in_o <= ((others => '0'),'0','1','0');
@@ -39,7 +39,6 @@ begin  -- architecture rtl
       if master_in_i.adr >= SlaveMap(i).addr and master_in_i.adr < (SlaveMap(i).addr + SlaveMap(i).size) then
         master_out_o(i).cyc <= master_in_i.cyc;
         master_in_o <= master_out_i(i);
-        exit;
       end if;
     end loop;  -- i
 
