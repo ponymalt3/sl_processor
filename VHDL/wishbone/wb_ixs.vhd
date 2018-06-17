@@ -33,7 +33,7 @@ begin  -- architecture rtl
 
   decode: for i in 0 to MasterConfig'length-1 generate
     constant CurSlaveMap : wb_slave_config_array_t := wb_config_get_connected_slaves(MasterConfig(i),SlaveMap);
-	begin
+  begin
     wb_ixs_decoder: entity work.wb_ixs_decoder
       generic map (
         SlaveMap => CurSlaveMap)

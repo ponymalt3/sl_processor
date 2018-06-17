@@ -134,7 +134,8 @@ package body wishbone_p is
     file output : text open write_mode is "STD_OUTPUT";
   begin
     write(output,"slave:" & LF & "  " & name & " [" & integer'image(wb_hash(name)) & "]" & LF);
-    return (wb_hash(name),to_unsigned(addr,32),to_unsigned(addr,32),255);
+    assert size /= 0 report "slave addr range size cant be zero" severity error;
+    return (wb_hash(name),to_unsigned(addr,32),to_unsigned(size,32),255);
   end function;
 
   function wb_config_find_slave (
@@ -200,7 +201,7 @@ package body wishbone_p is
     i := 0;
     while i < slaves'length-1 and master.connected_slaves(i) /= 0 loop
       slaves(i) := wb_config_find_slave(master.connected_slaves(i),complete_slave_list);
-      assert slaves(i).id /= 255 report "  slave not found in slave list" severity error;
+      assert slaves(i).id /= 255 report "  slave not found in list" severity error;
       i := i+1;
     end loop;
 

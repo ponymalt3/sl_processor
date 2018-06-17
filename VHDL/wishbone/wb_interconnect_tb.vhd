@@ -75,7 +75,8 @@ architecture behav of wb_interconnect_tb is
   constant SlaveMap     : wb_slave_config_array_t := (
     wb_slave("slv1",0,10),
     wb_slave("mem0",128,10),
-    wb_slave("mem2",256,10));
+    wb_slave("mem2",256,10)  
+    );
       
   -- component ports
   signal clk      : std_ulogic := '0';
