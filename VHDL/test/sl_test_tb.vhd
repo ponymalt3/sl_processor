@@ -40,7 +40,8 @@ architecture behav of sl_test_tb is
   signal ext_mem_stall : std_ulogic;
   signal ext_mem : mem_t(511 downto 0);
   signal ext_slave : wb_slave_ifc_out_t;
-
+  signal ext_mem_pending : std_ulogic;
+  
   signal master_in : wb_master_ifc_in_array_t(1 downto 0);
   signal master_out : wb_master_ifc_out_array_t(1 downto 0);
   signal slave_in : wb_slave_ifc_in_array_t(2 downto 0);
@@ -136,14 +137,22 @@ begin  -- architecture Behav
   begin  -- process
     if reset_n = '0' then               -- asynchronous reset (active low)
       ext_slave <= ((others => '0'),'0','0','0');
+      ext_mem_pending <= '0';
     elsif sl_clk'event and sl_clk = '1' then  -- rising clock edge
-      ext_slave.ack <= slave_in(1).stb and not ext_mem_stall;
-      if slave_in(1).cyc = '1' and slave_in(1).stb = '1' then
-        if slave_in(1).we = '1' then
+      if slave_in(1).cyc = '1' and (slave_in(1).stb = '1' or ext_mem_pending = '1') then
+        ext_slave.ack <= not ext_mem_stall;
+         
+        if slave_in(1).we = '1' and ext_mem_pending = '0' then
           ext_mem(to_integer(slave_in(1).adr)) <= slave_in(1).dat;
         else
           ext_slave.dat <= ext_mem(to_integer(slave_in(1).adr));
         end if;
+      end if;
+
+      if slave_in(1).cyc = '1' and slave_in(1).stb = '1' then
+        ext_mem_pending <= '1';
+      elsif ext_mem_stall = '0' then
+        ext_mem_pending <= '0';
       end if;
 
       -- sideload while proc master accessing this memory
@@ -310,6 +319,7 @@ begin  -- architecture Behav
           enable_core <= '1';
           write(output,LF & "  " & integer'image(j) & " code words loaded");
         when X"0002" | X"0005" =>
+          ext_mem_stall <= '0';
           if entry_type = X"0005" then
             ext_mem_stall <= '1';
           end if;
@@ -322,8 +332,8 @@ begin  -- architecture Behav
             sl_clk <= '0';
             wait for 10ns;
           end loop;  -- i
-          ext_mem_stall <= '0';
         when X"0003" =>
+          ext_mem_stall <= '0';
           hread(l,data32);
           j := to_integer(unsigned(data32));
           write(output,LF & "  run until addr " & integer'image(j));
