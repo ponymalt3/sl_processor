@@ -49,6 +49,9 @@ architecture rtl of sl_cluster is
 
   signal ack : std_ulogic;
 
+  type mem_t is array (natural range <>) of std_logic_vector(31 downto 0);
+  signal mem : mem_t((SharedMemSizeInKB*1024/4)-1 downto 0);
+
 begin  -- architecture rtl
 
   wb_ixs_1: entity work.wb_ixs
@@ -67,6 +70,7 @@ begin  -- architecture rtl
         wb_slave("core3_mem",1024/4*(SharedMemSizeInKB+3*LocalMemSizeInKB),1024/4*LocalMemSizeInKB),
         wb_slave("ext_mem",1024/4*(SharedMemSizeInKB+4*LocalMemSizeInKB),64/4*1024),
         wb_slave("code_mem",1024/4*(SharedMemSizeInKB+4*LocalMemSizeInKB+64),1024/2*CodeMemSizeInKB)))
+
     port map (
       clk_i       => clk_i,
       reset_n_i   => reset_n_i,
@@ -141,7 +145,7 @@ begin  -- architecture rtl
       p0_en_i   => '1',
       p0_addr_i => shared_mem_addr,
       p0_din_i  => slave_in(0).dat,
-      p0_dout_o => shared_mem_dout,
+      p0_dout_o => open,--shared_mem_dout,
       p0_we_i   => shared_mem_we,
       p1_en_i   => '0',
       p1_addr_i => X"0000",
@@ -150,6 +154,18 @@ begin  -- architecture rtl
       p1_we_i   => '0');
 
   shared_mem_addr <= To_StdULogicVector(std_logic_vector(slave_in(0).adr(15 downto 0)));
+  process (clk_i) is
+  begin  -- process
+    if clk_i'event and clk_i = '1' then  -- rising clock edge
+     
+     shared_mem_dout <= To_StdULogicVector(mem(to_integer(slave_in(0).adr(15 downto 0))));
+     
+      if shared_mem_we = '1' then
+        mem(to_integer(slave_in(0).adr(15 downto 0))) <= std_logic_vector(slave_in(0).dat);
+      end if;
+
+    end if;
+  end process;
 
   process (clk_i, reset_n_i) is
   begin  -- process
@@ -161,6 +177,6 @@ begin  -- architecture rtl
   end process;
 
   slave_out(0) <= (shared_mem_dout,ack,'0','0');
-  shared_mem_we <= '1' when slave_in(0).stb = '1' and slave_in(0).cyc = '1' and slave_in(0).we = '1' else '0';  
+  shared_mem_we <= '1' when slave_in(0).stb = '1' and slave_in(0).cyc = '1' and slave_in(0).we = '1' else '0'; 
 
 end architecture rtl;
