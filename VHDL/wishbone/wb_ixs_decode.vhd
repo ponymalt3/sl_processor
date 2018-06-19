@@ -36,6 +36,8 @@ begin  -- architecture rtl
       master_out_o(i).cyc <= '0';
       master_out_o(i).adr <= (others => '0');
       master_out_o(i).adr(log2(to_integer(SlaveMap(i).size))-1 downto 0) <= master_in_i.adr(log2(to_integer(SlaveMap(i).size))-1 downto 0);
+      assert i = 0 or (SlaveMap(i-1).addr+SlaveMap(i-1).size) <= SlaveMap(i).addr report "slave list must be sorted ascending" severity error;
+      
       if master_in_i.adr >= SlaveMap(i).addr and master_in_i.adr < (SlaveMap(i).addr + SlaveMap(i).size) then
         master_out_o(i).cyc <= master_in_i.cyc;
         master_in_o <= master_out_i(i);
