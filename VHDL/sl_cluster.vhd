@@ -26,7 +26,8 @@ entity sl_cluster is
     master_i : in  wb_master_ifc_in_t;
     master_o : out wb_master_ifc_out_t;
     slave_i : in  wb_slave_ifc_in_t;
-    slave_o : out wb_slave_ifc_out_t);
+    slave_o : out wb_slave_ifc_out_t;
+    debug_o : out std_ulogic_vector(7 downto 0));
 
 end entity sl_cluster;
 
@@ -110,6 +111,8 @@ begin  -- architecture rtl
       wb_slave_i   => slave_in(6),
       wb_slave_o   => slave_out(6));
 
+  debug_o <= code_data(0)(3 downto 0) & To_StdULogicVector(std_logic_vector(code_addr(0)(3 downto 0)));
+
   proc: for i in 0 to 3 generate
     signal local_reset : std_ulogic_vector(3 downto 0);
   begin
@@ -133,25 +136,6 @@ begin  -- architecture rtl
         mem_slave_o     => slave_out(1+i),
         executed_addr_o => open);
   end generate proc;
-
-  -- shared mem
-  m9k_1: entity work.m9k
-    generic map (
-      SizeInKBytes        => SharedMemSizeInKB,
-      SizeOfElementInBits => 32)
-    port map (
-      clk_i     => clk_i,
-      reset_n_i => reset_n_i,
-      p0_en_i   => '1',
-      p0_addr_i => shared_mem_addr,
-      p0_din_i  => slave_in(0).dat,
-      p0_dout_o => open,--shared_mem_dout,
-      p0_we_i   => shared_mem_we,
-      p1_en_i   => '0',
-      p1_addr_i => X"0000",
-      p1_din_i  => (others => '0'),
-      p1_dout_o => open,
-      p1_we_i   => '0');
 
   shared_mem_addr <= To_StdULogicVector(std_logic_vector(slave_in(0).adr(15 downto 0)));
   process (clk_i) is
