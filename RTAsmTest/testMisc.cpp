@@ -32,3 +32,30 @@ MTEST(testMisc,test_that_local_mem_is_written_to_ext_mem)
   
   tester.expectMemoryAt(513,0);
 }
+
+MTEST(testMisc,test_that_loop_with_inc_write_to_ext_mem_works_correct)
+{
+  RTProg testCode=R"abc(
+    function main()
+      a1=512;
+      [a1]=234;
+
+      loop(3)
+        [a1]=[a1++]+1;
+      end
+    end
+
+    main();
+  )abc";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectMemoryAt(512,234);
+  tester.expectMemoryAt(513,235);
+  tester.expectMemoryAt(514,236);
+  tester.expectMemoryAt(515,237);
+}
