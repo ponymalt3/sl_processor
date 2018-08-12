@@ -6,7 +6,7 @@
 -- Author     : malte  <malte@tp13>
 -- Company    : 
 -- Created    : 2018-04-29
--- Last update: 2018-05-13
+-- Last update: 2018-08-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ begin  -- architecture behav
       if slaves_out_out(i).we = '1' then
         slave_data(i)(to_integer(slaves_out_out(i).adr))(15 downto 0) <= slaves_out_out(i).dat(15 downto 0);
       else
-        slaves_out_in(i).dat <= slave_data(i)(to_integer(slaves_out_out(i).adr))(15 downto 0);
+        slaves_out_in(i).dat(15 downto 0) <= slave_data(i)(to_integer(slaves_out_out(i).adr))(15 downto 0);
       end if;
       wait until rising_edge(clk);      
     end process;
@@ -204,6 +204,19 @@ begin  -- architecture behav
       slave_data(1)(3) = X"1111DABC" and
       slave_data(2)(3) = X"2222CDAB"
       report "master 2 slave access not correct" severity error;
+    
+
+    -- test that data is read correctly
+
+    master_access(129,X"00000000",result,'0',m_in(0),m_out(0));
+    assert result = X"0000DABC" report "read slave 0 at addr 129 returns wrong data" severity error;
+
+    master_access(130,X"00000000",result,'0',m_in(1),m_out(1));
+    assert result = X"0000DABC" report "read slave 1 at addr 130 returns wrong data" severity error;
+    
+    master_access(131,X"00000000",result,'0',m_in(2),m_out(2));
+    assert result = X"0000DABC" report "read slave 2 at addr 131 returns wrong data" severity error;
+    
 
     -- multi master access; should be handled in parallel
     wait until rising_edge(clk);
@@ -281,7 +294,6 @@ begin  -- architecture behav
     m_out(0).en <= '0';
     m_out(1).en <= '0';
     m_out(2).en <= '0';
-
 
     write(output,"all tests complete" & LF);
 
