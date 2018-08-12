@@ -30,6 +30,7 @@ MTEST(TestBugs,testOpWithOperandsResultAndIRS)
   proc.run(7);
   
   EXPECT(proc.readMemory(6) == (value-value2).toRaw());
+  proc.expectThatMemIs(6,value-value2);
 }
 
 // run all tests
