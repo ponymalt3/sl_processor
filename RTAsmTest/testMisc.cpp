@@ -5,15 +5,16 @@ class testMisc : public mtest::test
 {
 };
 
-MTEST(testMisc,test_that_local_mem_is_written_to_ext_mem)
+MTEST(testMisc,test_that_cluster_test_prgm_runs_on_sim_also)
 {
   RTProg testCode=R"abc(
     ref proc_id 4;
     def mem_size 512;
     def shared_size 2048;
     
-    a1=512+proc_id;
+    a1=512+proc_id*2;
     [a1]=proc_id;
+    [a1]=[a1++]+99;
     tt=0;
     loop(999)
       tt=tt+1;

@@ -6,7 +6,7 @@
 -- Author     : malte  <malte@tp13>
 -- Company    : 
 -- Created    : 2018-06-03
--- Last update: 2018-06-11
+-- Last update: 2018-08-11
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -90,15 +90,21 @@ architecture behav of sl_cluster_tb is
   type code_array_t is array (natural range <>) of std_ulogic_vector(15 downto 0);
   constant code : code_array_t := (
     X"b440",
-    X"2011",
+    X"9020",
+    X"b040",
+    X"4011",
+    X"2021",
     X"f024",
     X"8013",
     X"f085",
+    X"b40c",
+    X"b300",
+    X"c055",
+    X"f085",
     X"b000",
     X"9010",
-    X"b030",
-    X"be9f",
-    X"b0ff",
+    X"b47c",
+    X"b700",
     X"f140",
     X"b020",
     X"2011",
@@ -175,14 +181,14 @@ begin  -- architecture behav
 
     wait for 1 us;
 
-    bus_read(clk,proc_wbs_out,proc_wbs_in,1,result);
-    assert result = X"01000000" report "expect qfp value 1 at addr 1" severity error;
     bus_read(clk,proc_wbs_out,proc_wbs_in,2,result);
-    assert result = X"02000000" report "expect qfp value 2 at addr 2" severity error;
-    bus_read(clk,proc_wbs_out,proc_wbs_in,3,result);
-    assert result = X"03000000" report "expect qfp value 3 at addr 3" severity error;
+    assert result = X"01000000" report "expect qfp value 2 at addr 1" severity error;
     bus_read(clk,proc_wbs_out,proc_wbs_in,4,result);
-    assert result = X"04000000" report "expect qfp value 4 at addr 4" severity error;
+    assert result = X"02000000" report "expect qfp value 4 at addr 2" severity error;
+    bus_read(clk,proc_wbs_out,proc_wbs_in,6,result);
+    assert result = X"03000000" report "expect qfp value 6 at addr 3" severity error;
+    bus_read(clk,proc_wbs_out,proc_wbs_in,8,result);
+    assert result = X"04000000" report "expect qfp value 8 at addr 4" severity error;
 
     write(output,"all tests complete" & LF);
 
