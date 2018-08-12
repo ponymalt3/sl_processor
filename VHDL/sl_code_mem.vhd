@@ -83,7 +83,8 @@ begin  -- architecture rtl
       ack <= '0';
       p0_code_o <= (others => '0');
       p1_code_o <= (others => '0');
-      load_code_data_0 <= '0';
+      load_code_data_0 <= '1';
+      code_data_at_0 <= (others => '1');
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       
       if state = '0' then
