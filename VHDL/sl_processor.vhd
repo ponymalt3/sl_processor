@@ -41,6 +41,7 @@ architecture rtl of sl_processor is
   signal core_clk : std_ulogic;
   signal core_en_1d : std_ulogic;
   signal core_clk_state : std_ulogic;
+  signal core_clk_gate : std_ulogic;
 
   signal alu_en        : std_ulogic;
   signal alu_cmd       : std_ulogic_vector(2 downto 0);
@@ -94,13 +95,15 @@ begin  -- architecture rtl
   process (clk_i, reset_n_i) is
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
-      core_clk <= '1';
+      core_clk_gate <= '0';
       core_en_1d <= '0';
       core_clk_state <= '0';
+      core_clk <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       core_en_1d <= core_en_i;
       core_clk_state <= not core_clk_state;
         if (core_en_i = '1' and (core_en_1d = '1' or core_clk_state = '0')) or (core_en_i = '0' and core_en_1d = '1' and core_clk_state = '1') then
+          core_clk_gate <= not core_clk_gate;
           core_clk <= not core_clk;
       end if;
     end if;
@@ -111,8 +114,9 @@ begin  -- architecture rtl
       UseCodeAddrNext => UseCodeAddrNext,
       ExtAddrThreshold => LocalMemSizeInKB*(1024/4))
     port map (
-      clk_i           => core_clk,
+      clk_i           => clk_i,
       reset_n_i       => core_reset_n_i,
+      en_i            => core_clk_gate,
       alu_en_o        => alu_en,
       alu_cmd_o       => alu_cmd,
       alu_op_a_o      => alu_op_a,
@@ -188,8 +192,9 @@ begin  -- architecture rtl
     generic map (
       config => qfp_config_add+qfp_config_mul+qfp_config_div)
     port map (
-      clk_i      => core_clk,
+      clk_i      => clk_i,
       reset_n_i  => core_reset_n_i,
+      en_i       => core_clk_gate,
       cmd_i      => qfp_cmd,
       ready_o    => qfp_ready,
       start_i    => alu_en2,
@@ -227,16 +232,18 @@ begin  -- architecture rtl
 
   end process;
 
-  process (core_clk, core_reset_n_i) is
+  process (clk_i, core_reset_n_i) is
   begin  -- process
     if core_reset_n_i = '0' then             -- asynchronous reset (active low)
       qfp_idle <= '1';
-    elsif core_clk'event and core_clk = '1' then  -- rising clock edge
-      if qfp_ready = '1' and alu_en2 = '1' and alu_cmd /= CMD_MOV then
-        qfp_idle <= '0';
-      end if;
-      if qfp_complete = '1' then
-        qfp_idle <= '1';
+    elsif clk_i'event and clk_i = '1' then  -- rising clock edge
+      if core_clk_gate = '1' then
+        if qfp_ready = '1' and alu_en2 = '1' and alu_cmd /= CMD_MOV then
+          qfp_idle <= '0';
+        end if;
+        if qfp_complete = '1' then
+          qfp_idle <= '1';
+        end if;
       end if;
     end if;
   end process;

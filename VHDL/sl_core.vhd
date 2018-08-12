@@ -23,6 +23,8 @@ entity sl_core is
     clk_i           : in std_ulogic;
     reset_n_i       : in std_ulogic;
 
+    en_i            : in std_ulogic;
+
     -- alu
     alu_en_o : out std_ulogic;
     alu_cmd_o : out std_ulogic_vector(2 downto 0);
@@ -82,6 +84,8 @@ architecture rtl of sl_core is
   signal reset_1d : std_ulogic;
   signal stall_decex_1d : std_ulogic;
 
+  signal state_enable_reg : std_ulogic;
+
 begin  -- architecture rtl
 
   process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr, reset_1d, stall_decex_1d, state_next) is
@@ -132,6 +136,8 @@ begin  -- architecture rtl
   alu_op_a_o <= mem0_reg when proc.decex.mux0 = MUX1_MEM else proc.state.result;
   alu_op_b_o <= proc.decex.memX when proc.decex.wr_ext = '1' else mem1_reg;
 
+  state_enable_reg <= en_i;
+
   process (clk_i, reset_n_i) is
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
@@ -142,24 +148,27 @@ begin  -- architecture rtl
       proc.state <= (to_unsigned(0,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
       reset_1d <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
-      -- special signals for code mem en
-      reset_1d <= '0';
-      stall_decex_1d <= ctrl_next.stall_decex;
+      if state_enable_reg = '1' then
+        
+        -- special signals for code mem en
+        reset_1d <= '0';
+        stall_decex_1d <= ctrl_next.stall_decex;
 
-      proc.state <= state_next;
+        proc.state <= state_next;
       
-      if ctrl_next.stall_decex = '0' then
-        proc.fetch <= fetch_next;
-        proc.dec <= dec_next;
-        proc.decex <= decex_next;
-      else
-        -- dont change pc
-        proc.state.pc <= proc.state.pc;
-      end if;
+        if ctrl_next.stall_decex = '0' then
+          proc.fetch <= fetch_next;
+          proc.dec <= dec_next;
+          proc.decex <= decex_next;
+        else
+          -- dont change pc
+          proc.state.pc <= proc.state.pc;
+        end if;
 
-      -- instr retired
-      if proc.state.enable(S_EXEC) = '1' then
-        executed_addr_o <= proc.dec.cur_pc;
+        -- instr retired
+        if proc.state.enable(S_EXEC) = '1' then
+          executed_addr_o <= proc.dec.cur_pc;
+        end if;
       end if;
 
     end if;
