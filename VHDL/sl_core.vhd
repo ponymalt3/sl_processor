@@ -86,7 +86,7 @@ begin  -- architecture rtl
 
   process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr, reset_1d, stall_decex_1d, state_next) is
   begin  -- process
-    ext_mem_addr_o <= proc.state.addr(1); -- read addr
+    ext_mem_addr_o <= proc.state.addr(1)-to_unsigned(ExtAddrThreshold,32); -- read addr
     ext_mem_dout_o <= proc.state.result;
     ext_mem_en_o <= dec_next.mem_ex and dec_next.en_ad1 and not dec_next.en_mem;
     ext_mem_rw_o <= '0';
