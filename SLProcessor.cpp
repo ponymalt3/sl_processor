@@ -164,6 +164,7 @@ _Decode SLProcessor::decodeInstr() const
   decode.load_=0;
   decode.cmp_=0;
   decode.neg_=0;
+  decode.trunc_=0;
   decode.wait_=0;
   decode.signal_=0;
   decode.loop_=0;
@@ -253,6 +254,7 @@ _Decode SLProcessor::decodeInstr() const
 
       case 4://NEG
         decode.neg_=1;
+        decode.trunc_=bdata(2);
         decode.CMD_=8+bdata(5 downto 3);//cmd msb always set
         break;
         
@@ -356,6 +358,7 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1
   }
 
   decodeEx.neg_=decodeComb.neg_;
+  decodeEx.trunc_=decodeComb.trunc_;
   
   decodeEx.stall_=0;
 
@@ -518,6 +521,16 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
   if(enable_(_State::S_EXEC) && decEx_.neg_)
   {
     exec.munit_.result_=state_.result_^0x80000000;
+    exec.munit_.complete_=1;
+  }
+  
+  if(enable_(_State::S_EXEC) && decEx_.trunc_)
+  {
+    exec.munit_.result_=state_.result_&(~(0xFFFFFF>>(((state_.result_>>29)&0x3)*8)));
+    if((exec.munit_.result_&0x7FFFFFFF) == 0)
+    {
+      exec.munit_.result_=0;
+    }
     exec.munit_.complete_=1;
   }
 

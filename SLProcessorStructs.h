@@ -60,6 +60,7 @@ struct _Decode
   uint32_t load_ : 1;
   uint32_t cmp_ : 1;
   uint32_t neg_ : 1;
+  uint32_t trunc_ : 1;
   uint32_t wait_ : 1;
   uint32_t signal_ : 1;
   uint32_t loop_ : 1;
@@ -115,6 +116,7 @@ struct _DecodeEx
   uint32_t goto_ : 1;
   
   uint32_t neg_ : 1;
+  uint32_t trunc_ : 1;
   
   uint32_t load_ : 1;
   uint32_t loadData_ : 12;

@@ -76,6 +76,7 @@ package sl_structs_p is
     load : std_ulogic;
     cmp : std_ulogic;
     neg : std_ulogic;
+    trunc : std_ulogic;
     wait1 : std_ulogic;
     signal1 : std_ulogic;
     loop1 : std_ulogic;
@@ -110,6 +111,7 @@ package sl_structs_p is
     goto : std_ulogic;
 
     neg : std_ulogic;
+    trunc : std_ulogic;
 
     load : std_ulogic;
     load_data : std_ulogic_vector(11 downto 0);

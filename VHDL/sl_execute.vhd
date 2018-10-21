@@ -55,6 +55,14 @@ package body sl_execute_p is
       exec.complete := '1';
     end if;
 
+    if proc.state.enable(S_EXEC) = '1' and proc.decex.trunc = '1' then
+      exec.result := proc.state.result(31) & proc.state.result(30 downto 24) & (proc.state.result(23 downto 0) and not to_stdULogicVector(X"FFFFFF" srl (8*to_integer(unsigned(proc.state.result(30 downto 29))))));
+      if proc.state.result(30 downto 24) = "0000000" then
+        exec.result(31) := '0';
+      end if;
+      exec.complete := '1';
+    end if;
+
     exec.int_result := alu.int_result;
 
     exec.exec_next := '1';

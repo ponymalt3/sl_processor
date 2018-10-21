@@ -58,6 +58,7 @@ package body sl_dec_p is
     decode.load := '0';
     decode.cmp := '0';
     decode.neg := '0';
+    decode.trunc := '0';
     decode.wait1 := '0';
     decode.signal1 := '0';
     decode.loop1 := '0';
@@ -118,6 +119,7 @@ package body sl_dec_p is
               decode.signal1 := not data(10);
             when 4 => -- NEG
               decode.neg := '1';
+              decode.trunc := data(2);
               decode.cmd := '1' & data(5 downto 3);
             when 5 => -- LOOP
               decode.loop1 := '1';

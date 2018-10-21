@@ -52,6 +52,7 @@ package body sl_dec_ex_p is
 
     decode_ex.goto := decode.goto;
     decode_ex.neg := decode.neg;
+    decode_ex.trunc := decode.trunc;
 
     if proc.state.loop_count(28 downto 1) = X"0000000" and (proc.state.loop_count(31) = '1' or proc.state.loop_count(0) = '1') then
       decode_ex.goto := '0';
