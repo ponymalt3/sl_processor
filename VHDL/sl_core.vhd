@@ -83,12 +83,13 @@ architecture rtl of sl_core is
 
   signal reset_1d : std_ulogic;
   signal stall_decex_1d : std_ulogic;
+  signal disable_alu : std_ulogic;
 
   signal state_enable_reg : std_ulogic;
 
 begin  -- architecture rtl
 
-  process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr, reset_1d, stall_decex_1d, state_next) is
+  process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr, reset_1d, stall_decex_1d, state_next, disable_alu) is
   begin  -- process
     ext_mem_addr_o <= proc.state.addr(1)-to_unsigned(ExtAddrThreshold,32); -- read addr
     ext_mem_dout_o <= proc.state.result;
@@ -128,7 +129,7 @@ begin  -- architecture rtl
     cp_re_o <= not reset_1d and not stall_decex_1d;
 
     -- alu
-    alu_en_o <= proc.state.enable(S_EXEC);
+    alu_en_o <= proc.state.enable(S_EXEC) and not disable_alu;
     alu_cmd_o <= proc.decex.cmd;
     
   end process;
@@ -147,6 +148,7 @@ begin  -- architecture rtl
       proc.decex <= ("0000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0','0',(others => '0'),'0');
       proc.state <= (to_unsigned(0,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
       reset_1d <= '1';
+      disable_alu <= '0';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       if state_enable_reg = '1' then
         
@@ -168,6 +170,11 @@ begin  -- architecture rtl
         -- instr retired
         if proc.state.enable(S_EXEC) = '1' then
           executed_addr_o <= proc.dec.cur_pc;
+        end if;
+
+        disable_alu <= '1';
+        if alu_i.complete = '1' or proc.decex.cmd = CMD_MOV or proc.decex.cmd = CMD_INVALID then
+          disable_alu <= '0';
         end if;
       end if;
 
