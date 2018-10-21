@@ -41,7 +41,7 @@ public:
         result+=s + "\n";
         continue;
       }
-      if((s=negInstrToString(code[i])) != "invalid")
+      if((s=unaryInstrToString(code[i])) != "invalid")
       {
         result+=s + "\n";
         continue;
@@ -143,6 +143,8 @@ public:
       case 5: return "/";
       case 6: return "unused";
       case 7: return "unused";
+      case SLCode::CMD_SHFT: return "shft";
+      case SLCode::CMD_LOG2: return "log2";
       default: return "invalid";
     }
   }
@@ -239,11 +241,27 @@ public:
     return "invalid";
   }
   
-  static std::string negInstrToString(uint16_t code)
+  static std::string unaryInstrToString(uint16_t code)
   {
     if((code&0xFFC0) == 0xF100)
     {
-      return "neg result";
+      if(code&1)
+      {
+        return "result = neg result";
+      }
+      
+      if(code&4)
+      {
+        return "result = trunc result";
+      }
+      
+      switch(8+((code>>3)&0x7))
+      {
+      case SLCode::CMD_LOG2:
+        return "result = log2(result)";
+      default:
+        return "result = unkown operation";
+      }
     }
     
     return "invalid";
