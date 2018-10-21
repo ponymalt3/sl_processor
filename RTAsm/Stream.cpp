@@ -29,7 +29,7 @@ bool Stream::String::operator==(const char *str) const
       return false;
   }
 
-  return true;
+  return str[length_] == '\0';
 }
 
 bool Stream::String::operator==(const String &str) const
@@ -73,10 +73,13 @@ Stream::Stream(RTProg &rtProg):Error(rtProg.getErrorHandler())
 
 char Stream::peek()
 {
-  while(asmText_[pos_] == '%')
+  while(asmText_[pos_] == '%' || asmText_[pos_] == '#')
   {
     ++pos_;
-    while(pos_ < length_ && asmText_[pos_++] != '%');
+    while(pos_ < length_ && asmText_[pos_] != '%' && asmText_[pos_] != '\n') ++pos_;
+
+    
+    ++pos_;
     while(pos_ < length_ && (asmText_[pos_] == ' ' || asmText_[pos_] == '\n')) ++pos_;
   }
 
@@ -97,20 +100,23 @@ Stream& Stream::skipWhiteSpaces()
     char ch=asmText_[pos_];
     
     //remove comments
-    while(asmText_[pos_] == '%')
+    while(asmText_[pos_] == '%' || asmText_[pos_] == '#')
     {
       ++pos_;
-      while(pos_ < length_ && (asmText_[pos_] != '%' || asmText_[pos_] != '\n')) ++pos_;
-      ch=asmText_[pos_];
+      while(pos_ < length_ && asmText_[pos_] != '%' && asmText_[pos_] != '\n') ++pos_;
+      line_+=asmText_[pos_]=='\n';
+      ch=asmText_[++pos_];
     }
-    
-    if(ch ==' ' || ch == '\n')
+
+    if(ch == ' ' || ch == '\n')
     {
       ++pos_;
       line_+=ch=='\n';
     }
     else
+    {
       break;
+    }
   }
 
   return *this;
