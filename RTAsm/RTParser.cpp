@@ -656,6 +656,8 @@ void RTParser::parseFunctionDecl(Stream &stream)
   
   stream.skipWhiteSpaces().read();//discards ')'
   
+  uint32_t codeAddrBeg=codeGen_.getCurCodeAddr();
+  
   //pad to 8-word aligned code mem addr
   while(codeGen_.getCurCodeAddr()&7) codeGen_.instrNop();
   
@@ -676,6 +678,8 @@ void RTParser::parseFunctionDecl(Stream &stream)
   codeGen_.storageAllocationPass(512,4+numParameter);
   
   codeGen_.popSymbolMap();
+  
+  Error::info() << "function " << name.getName(stream) << " " << (codeGen_.getCurCodeAddr()-codeAddrBeg)<<" instrs";
   
   Token token=stream.readToken();
   Error::expect(token.getType() == Token::TOK_END) << stream << "expect 'END' at the end of a function";

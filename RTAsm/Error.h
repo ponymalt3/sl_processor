@@ -18,6 +18,7 @@ public:
   Error(ErrorHandler &handler);
 
   ErrorHandler& expect(bool expr);
+  ErrorHandler& info();
   uint32_t getNumErrors();// { return instance_.errors_; }
   
   ErrorHandler& getErrorHandler() { return handler_; }

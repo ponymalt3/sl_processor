@@ -121,6 +121,17 @@ ErrorHandler& Error::expect(bool expr)
   return handler_;
 }
 
+ErrorHandler& Error::info()
+{
+  if(handler_.newLinePending_)
+    std::cout<<"\n";
+
+  handler_.newLinePending_=false;
+  handler_.isFault_=true;//force output but dont increment error count
+  handler_.linePrinted_=true;
+  return handler_;
+}
+
 uint32_t Error::getNumErrors()
 {
   return handler_.errors_;
