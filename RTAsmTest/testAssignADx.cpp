@@ -28,7 +28,7 @@ MTEST(testAssignADx,test_that_def_const_assigned_to_addr0_and_deref_addr0_works)
 MTEST(testAssignADx,test_that_ref_assigned_to_addr0_and_deref_addr0_works)
 {
   RTProg testAssign=RTASM(
-    ref x 0;
+    ref x 4;
     a0=x;
     [a0]=x;
   );
@@ -37,7 +37,7 @@ MTEST(testAssignADx,test_that_ref_assigned_to_addr0_and_deref_addr0_works)
   EXPECT(tester.parse(1).getNumErrors() == 0);
   
   qfp32_t value=21;  
-  tester.getProcessor().writeMemory(0,value.toRaw());
+  tester.getProcessor().writeMemory(4,value.toRaw());
   
   tester.loadCode();
   tester.execute();

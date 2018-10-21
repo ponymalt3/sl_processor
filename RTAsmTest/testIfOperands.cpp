@@ -36,7 +36,7 @@ MTEST(testIfOperands,test_that_const_ref_operand_works)
 {
   RTProg testCode=RTASM(
     def x 4;
-    ref y 0;
+    ref y 4;
     ok=5;
     if(x == y)
       ok=1;
@@ -47,7 +47,7 @@ MTEST(testIfOperands,test_that_const_ref_operand_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse(1).getNumErrors() == 0);
-  tester.getProcessor().writeMemory(0,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(4,qfp32_t(4).toRaw());
 
   tester.loadCode();
   tester.execute();
@@ -59,7 +59,7 @@ MTEST(testIfOperands,test_that_const_ref_operand_works)
 MTEST(testIfOperands,test_that_ref_var_operand_works)
 {
   RTProg testCode=RTASM(
-    ref x 0;
+    ref x 4;
     y=4;
     ok=5;
     if(x == y)
@@ -71,7 +71,7 @@ MTEST(testIfOperands,test_that_ref_var_operand_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse(1).getNumErrors() == 0);
-  tester.getProcessor().writeMemory(0,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(4,qfp32_t(4).toRaw());
 
   tester.loadCode();
   tester.execute();

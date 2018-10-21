@@ -128,7 +128,7 @@ MTEST(testAssignment,test_that_def_const_assigned_to_array_works)
 MTEST(testAssignment,test_that_ref_assigned_to_array_works)
 {
   RTProg testAssign=RTASM(
-    ref x 1;
+    ref x 4;
     decl array 5;
     array(2)=x;
   );
@@ -140,7 +140,7 @@ MTEST(testAssignment,test_that_ref_assigned_to_array_works)
   EXPECT(addr == 8);
   
   qfp32_t expect=7; 
-  tester.getProcessor().writeMemory(1,expect.toRaw());
+  tester.getProcessor().writeMemory(4,expect.toRaw());
   
   tester.loadCode();
   tester.execute();
@@ -152,7 +152,7 @@ MTEST(testAssignment,test_that_ref_assigned_to_array_works)
 MTEST(testAssignment,test_that_array_assigned_to_ref_works)
 {
   RTProg testAssign=RTASM(
-    ref x 1;
+    ref x 4;
     decl array 5;
     array(4)=15;
     x=array(4);
@@ -162,13 +162,13 @@ MTEST(testAssignment,test_that_array_assigned_to_ref_works)
   EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
   EXPECT(tester.getIRSAddrOfSymbol("array") == 8);
   
-  tester.getProcessor().writeMemory(1,qfp32_t(7).toRaw());
+  tester.getProcessor().writeMemory(4,qfp32_t(7).toRaw());
   
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(1) == qfp32_t(15).toRaw());
-  tester.expectMemoryAt(1,15); 
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(15).toRaw());
+  tester.expectMemoryAt(4,15); 
 }
 
 MTEST(testAssignment,test_that_array_assigned_to_var_works)

@@ -10,7 +10,7 @@ MTEST(testSyntax,test_basic_features)
   RTProg test=RTASM(
     def const 1000;
     decl array 10;
-    ref r 1;
+    ref r 4;
 
     d=0;
     abc=0;
@@ -244,7 +244,7 @@ MTEST(testSyntax,test_array)
 {
   RTProg testDef=RTASM(
     def a 10;
-    ref param0 0;
+    ref param0 4;
 
     decl array 3;
 
