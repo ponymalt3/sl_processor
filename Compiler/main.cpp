@@ -15,7 +15,7 @@
 std::string resolveIncludes(const std::string &filename)
 {
   std::cout<<"filename: "<<(filename)<<"\n";
-  std::fstream f(filename);
+  std::fstream f(filename,std::ios::in);
   std::string data;
   
   f.seekg(0,std::ios::end);
@@ -26,7 +26,7 @@ std::string resolveIncludes(const std::string &filename)
   f.read(const_cast<char*>(data.c_str()),size);
   
   std::smatch m;
-  std::regex regex("include\((.*)\)");
+  std::regex regex("include\\((.*)\\)");
   while(std::regex_match(data,m,regex))
   {
     std::string toReplace=m[0].str();
@@ -275,16 +275,16 @@ int main(int argc, char **argv)
   UartInterface uart("/dev/ttyUSB0");
   SystemControl control(&uart);
   
-  if(!control.checkConnection())
+  if(!control.checkConnection() && (program || read || write || enableCores))
   {
     std::cout<<"System not connected/connection problem\n";
     return -1;
   }  
   
-  if(program)
+  if(program || compile)
   {
     std::string data=resolveIncludes(arg0);
-  
+    
     RTProg prog(data.c_str());
     Stream s(prog);
     CodeGen gen(s);
@@ -299,6 +299,11 @@ int main(int argc, char **argv)
     else
     {
       return -1;
+    }
+    
+    if(!program)
+    {
+      return 0;
     }
     
     if(!control.resetCores(0xFFFFFFFF))
