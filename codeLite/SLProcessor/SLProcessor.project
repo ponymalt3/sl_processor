@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="SLProcessor" InternalType="Console">
+<CodeLite_Project Name="SLProcessor" InternalType="Console" Version="10.0.0">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00010001N0005Debug000000000000]]>
@@ -24,7 +24,6 @@
   <VirtualDirectory Name="src">
     <File Name="../../SLArithUnit.cpp"/>
     <File Name="../../SLArithUnit.h"/>
-    <File Name="../../SLCodeDef.h"/>
     <File Name="../../SLProcessor.cpp"/>
     <File Name="../../SLProcessor.h"/>
     <File Name="../../SLProcessorStructs.h"/>
@@ -43,9 +42,9 @@
       <File Name="../../RTAsm/SymbolMap.cpp"/>
       <File Name="../../RTAsm/Token.h"/>
       <File Name="../../RTAsm/SymbolMap.h"/>
-      <File Name="../../RTAsm/Misc.h"/>
       <File Name="../../RTAsm/Alloc.h"/>
     </VirtualDirectory>
+    <File Name="../../SLCodeDef.h"/>
   </VirtualDirectory>
   <Settings Type="Static Library">
     <GlobalSettings>

@@ -90,7 +90,7 @@ namespace SLCode
     static uint32_t create(Operand a,Operand b,Command cmd,uint32_t irsOffset=0,bool incAddr=false,bool incAddr2=false)
     {
       //OP RESULT, [DATAx]  [IRS]       => code/1 ADDR0/1 A/1 OP/3 OFFSET/9 INC/1
-      //OP RESULT, [DATAx]  [DATAx]      => code/8 ADDR0/1 A/1 ADDR1/1 OP/3 INC/2 (B/1)
+      //OP RESULT, [DATAx]  [DATAx]      => code/4 ADDR0/1 A/1 ADDR1/1 OP/3 INC/2 (B/1)
 
       uint32_t muxAD0=(a==DEREF_AD0)?0:1;
       uint32_t muxAD1=(b==DEREF_AD0)?0:1;

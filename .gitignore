@@ -13,6 +13,9 @@
 *.bak
 **/work/*
 
+**/quartus/incremental_db*
+**/quartus/output_files*
+**/quartus/db*
 
 
 #Whitelist subdirectories
@@ -20,5 +23,6 @@
 #*.cproject
 #ignore temp files
 *~
+
 
 

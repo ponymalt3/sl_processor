@@ -23,7 +23,6 @@ architecture behav of sl_test_tb is
   signal core_reset_n : std_ulogic;
 
   file test_file : text;
-  signal code_mem : code_mem_t(1023 downto 0);
 
   signal sl_clk        : std_ulogic := '0';
   signal code_addr     : unsigned(15 downto 0);

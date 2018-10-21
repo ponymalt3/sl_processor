@@ -46,6 +46,7 @@
     <File Name="../../RTAsmTest/testAlloc.cpp"/>
     <File Name="../../RTAsmTest/testFunction.cpp"/>
     <File Name="../../RTAsmTest/testLoopFast.cpp"/>
+    <File Name="../../RTAsmTest/testMisc.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
   <Dependencies Name="Release"/>

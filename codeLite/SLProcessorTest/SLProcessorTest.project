@@ -28,13 +28,17 @@
     <File Name="../../ProcessorTest/testCmp.cpp"/>
     <File Name="../../ProcessorTest/testGoto.cpp"/>
     <File Name="../../ProcessorTest/testOps.cpp"/>
-    <File Name="../../ProcessorTest/testNeg.cpp"/>
     <File Name="../../ProcessorTest/testMemXMov.cpp"/>
     <File Name="../../ProcessorTest/testMemXOp.cpp"/>
     <File Name="../../ProcessorTest/testLoop.cpp"/>
     <File Name="../../ProcessorTest/testIRS.cpp"/>
     <File Name="../../ProcessorTest/testGotoAbs.cpp"/>
+    <File Name="../../ProcessorTest/testUnaryOps.cpp"/>
   </VirtualDirectory>
+  <Dependencies Name="Release"/>
+  <Dependencies Name="Debug">
+    <Project Name="SLProcessor"/>
+  </Dependencies>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -132,8 +136,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <Dependencies Name="Release"/>
-  <Dependencies Name="Debug">
-    <Project Name="SLProcessor"/>
-  </Dependencies>
 </CodeLite_Project>
