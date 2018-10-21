@@ -62,6 +62,14 @@ void SLArithUnit::addOperation(const _DecodeEx &decEx)
   case SLCode::CMD_CMP:
      pipeline_[(curCycle_+0)%32].result_=(extA-extB).toRaw();
      pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_CMP;
+     break;
+  case SLCode::CMD_LOG2:
+     pipeline_[(curCycle_+0)%32].result_=extA.log2().toRaw();
+     pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_LOG2;
+     break;
+  case SLCode::CMD_SHFT:
+     pipeline_[(curCycle_+0)%32].result_=extA.logicShift(extB).toRaw();
+     pipeline_[(curCycle_+0)%32].cmd_=SLCode::CMD_SHFT;
      break; 
   default:
     ;

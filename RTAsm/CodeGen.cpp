@@ -204,7 +204,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   }
   
   //if operands can swapped preload const
-  if(a.type_ == _Operand::TY_VALUE && b.type_ == _Operand::TY_RESULT && op != '/' && op != '-')
+  if(a.type_ == _Operand::TY_VALUE && b.type_ == _Operand::TY_RESULT && op != '/' && op != '-' && op != SLCode::CMD_SHFT)
   {
     a=tmpStorage.preloadConstValue(a.value_);
   }
@@ -214,7 +214,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   bool aIsIRS=a.type_ == _Operand::TY_RESOLVED_SYM;
   bool bIsIRS=b.type_ == _Operand::TY_RESOLVED_SYM;
 
-  if(((!aIsResult && bIsResult) || (aIsIRS && !bIsIRS)) && op != '/' && op != '-')//div/sub
+  if(((!aIsResult && bIsResult) || (aIsIRS && !bIsIRS)) && op != '/' && op != '-' && op != SLCode::CMD_SHFT)//div/sub/shft
   {
     swap(a,b);
     swap(aIsResult,bIsResult);
@@ -232,7 +232,6 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
 
   if(!a.isResult() && a.type_ != _Operand::TY_MEM)
   {
-    //loadOperandIntoResult(a);
     instrMov(_Operand::createResult(),a);
     a=_Operand::createResult();
   }
@@ -255,6 +254,13 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
 
   if(bIsIRS)
   {
+    //special case: for operations >= 8 no mem as first parameter a allowed when second is irs
+    if(a.type_ == _Operand::TY_MEM && op >= 8 && op < 15)
+    {
+      instrMov(_Operand::createResult(),a);
+      a=_Operand::createResult();
+    }
+    
     symRef=b.mapIndex_;
     irsOffset=b.arrayOffset_;
   }
@@ -677,6 +683,10 @@ SLCode::Command CodeGen::translateOperation(char op)
     case '*': return SLCode::Command::CMD_MUL;
     case '/': return SLCode::Command::CMD_DIV;
     default: 
+      if(op < 16)//probably already a command
+      {
+        return static_cast<SLCode::Command>(op);
+      }
       break;
   }
   return SLCode::Command::CMD_MOV;

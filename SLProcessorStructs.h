@@ -47,7 +47,7 @@ struct _Decode
   uint32_t enMEM_ : 1;
   uint32_t enIRS_ : 1;
   uint32_t enREG_ : 1;
-  uint32_t CMD_ : 3;
+  uint32_t CMD_ : 4;
   uint32_t wbREG_ : 2;
   uint32_t cData_ : 10;
   uint32_t cDataExt_ : 2;
@@ -91,7 +91,7 @@ struct _MemFetch2
 
 struct _DecodeEx
 {
-  uint32_t cmd_ : 3;
+  uint32_t cmd_ : 4;
   uint32_t a_;
   uint32_t b_;
   

@@ -44,7 +44,7 @@ architecture rtl of sl_processor is
   signal core_clk_gate : std_ulogic;
 
   signal alu_en        : std_ulogic;
-  signal alu_cmd       : std_ulogic_vector(2 downto 0);
+  signal alu_cmd       : std_ulogic_vector(3 downto 0);
   signal alu_op_a      : reg_raw_t;
   signal alu_op_b      : reg_raw_t;
   signal alu_data      : sl_alu_t;
@@ -190,7 +190,7 @@ begin  -- architecture rtl
 
   qfp_unit_1: entity work.qfp_unit
     generic map (
-      config => qfp_config_add+qfp_config_mul+qfp_config_div)
+      config => qfp_config_add+qfp_config_mul+qfp_config_div+qfp_config_math+qfp_config_logic)
     port map (
       clk_i      => clk_i,
       reset_n_i  => core_reset_n_i,
@@ -227,6 +227,8 @@ begin  -- architecture rtl
      when CMD_ADD => qfp_cmd <= (QFP_UNIT_ADD,QFP_SCMD_ADD); multi_cycle_op <= '1';
      when CMD_MUL => qfp_cmd <= (QFP_UNIT_MUL,"00"); multi_cycle_op <= '1';
      when CMD_DIV => qfp_cmd <= (QFP_UNIT_DIV,"00"); multi_cycle_op <= '1';
+     when CMD_LOG2 => qfp_cmd <= (QFP_UNIT_MATH,"00");
+     when CMD_SHFT => qfp_cmd <= (QFP_UNIT_LOGIC,"00");
      when others => qfp_cmd <= (QFP_UNIT_NONE,"00");
    end case;
 
@@ -238,7 +240,7 @@ begin  -- architecture rtl
       qfp_idle <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       if core_clk_gate = '1' then
-        if qfp_ready = '1' and alu_en2 = '1' and alu_cmd /= CMD_MOV then
+        if qfp_ready = '1' and alu_en2 = '1' and qfp_cmd.unit /= QFP_UNIT_NONE then
           qfp_idle <= '0';
         end if;
         if qfp_complete = '1' then

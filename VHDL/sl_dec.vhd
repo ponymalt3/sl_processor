@@ -66,10 +66,13 @@ package body sl_dec_p is
     decode.cmp_noX_cy := data(11);
 
     if data(15) = '0' then
-      decode.cmd := data(14 downto 12);
+      decode.cmd(2 downto 0) := data(14 downto 12);
       inc_ad0 := data(11);
       decode.en_irs := '1';
       decode.en_ad0 := to_ulogic(decode.mux_a = MUX1_MEM);
+      if decode.mux_a = MUX1_RESULT then
+        decode.cmd(3) := data(0);
+      end if;
     else
       case to_integer(unsigned(data(14 downto 12))) is
         when 0 => -- MOVIRS1
@@ -87,9 +90,9 @@ package body sl_dec_p is
           decode.load := '1';
           decode.mux_a := MUX1_RESULT;
         when 4 => -- OP
-          decode.cmd := data(7 downto 5);
+          decode.cmd := data(8 downto 5);
           inc_ad0 := data(4);
-          inc_ad1 := data(8);
+          inc_ad1 := data(9);
           decode.en_ad0 := to_ulogic(decode.mux_a = MUX1_MEM);
           decode.en_ad1 := '1';
         when 5 => -- CMP
@@ -115,6 +118,7 @@ package body sl_dec_p is
               decode.signal1 := not data(10);
             when 4 => -- NEG
               decode.neg := '1';
+              decode.cmd := '1' & data(5 downto 3);
             when 5 => -- LOOP
               decode.loop1 := '1';
             when others => decode.mux_a := MUX1_RESULT;

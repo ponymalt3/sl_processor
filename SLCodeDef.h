@@ -11,7 +11,7 @@
 namespace SLCode
 {
   enum Operand {REG_AD0=0,REG_AD1,REG_IRS,REG_RES,IRS,DEREF_AD0,DEREF_AD1,INVALID_OP};
-  enum Command {CMD_MOV=0,CMD_CMP,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES};
+  enum Command {CMD_MOV=0,CMD_CMP,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES,CMD_LOG2=8,CMD_SHFT,CMD_INVALID=15};
   enum CmpMode {CMP_EQ=0,CMP_NEQ,CMP_LT,CMP_LE};
 
   enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_IRS=1};
@@ -107,14 +107,23 @@ namespace SLCode
         incAD=incAD2;
         incAD2=t;
       }
+      
+      bool cmdExt=(cmd>>3)&1;
+      cmd=static_cast<SLCode::Command>(cmd&7);
 
       if(b == IRS)
       {
+        //encode 4. bit of cmd in incAD of addr is not used
+        if(muxA == MUX1_RESULT)
+        {
+          muxAD0=cmdExt;
+        }
+        
         return Code1 + (cmd<<12) + (incAD<<11) + (offset<<2) + (muxA<<1) + muxAD0;
       }
       else
       {
-        return Code2 + (incAD2<<8) + (cmd<<5) + (incAD<<4) + (muxB<<3) + (muxAD1<<2) + (muxA<<1) + muxAD0;
+        return Code2 + (incAD2<<9) + (cmdExt<<8) + (cmd<<5) + (incAD<<4) + (muxB<<3) + (muxAD1<<2) + (muxA<<1) + muxAD0;
       }
     }
   };

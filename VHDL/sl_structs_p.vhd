@@ -17,12 +17,15 @@ package sl_structs_p is
     mant : std_ulogic_vector(28 downto 0);
   end record req_qfp_t;
 
-  constant CMD_MOV : std_ulogic_vector(2 downto 0) := "000";
-  constant CMD_CMP : std_ulogic_vector(2 downto 0) := "001";
-  constant CMD_ADD : std_ulogic_vector(2 downto 0) := "010";
-  constant CMD_SUB : std_ulogic_vector(2 downto 0) := "011";
-  constant CMD_MUL : std_ulogic_vector(2 downto 0) := "100";
-  constant CMD_DIV : std_ulogic_vector(2 downto 0) := "101";
+  constant CMD_MOV : std_ulogic_vector(3 downto 0) := "0000";
+  constant CMD_CMP : std_ulogic_vector(3 downto 0) := "0001";
+  constant CMD_ADD : std_ulogic_vector(3 downto 0) := "0010";
+  constant CMD_SUB : std_ulogic_vector(3 downto 0) := "0011";
+  constant CMD_MUL : std_ulogic_vector(3 downto 0) := "0100";
+  constant CMD_DIV : std_ulogic_vector(3 downto 0) := "0101";
+  constant CMD_LOG2 : std_ulogic_vector(3 downto 0) := "1000";
+  constant CMD_SHFT : std_ulogic_vector(3 downto 0) := "1001";
+  constant CMD_INVALID : std_ulogic_vector(3 downto 0) := "1111";
 
   constant CMP_EQ : std_ulogic_vector(1 downto 0) := "00";
   constant CMP_NEQ : std_ulogic_vector(1 downto 0) := "01";
@@ -61,7 +64,7 @@ package sl_structs_p is
     en_mem : std_ulogic;
     en_irs : std_ulogic;
     en_reg : std_ulogic;
-    cmd : std_ulogic_vector(2 downto 0);
+    cmd : std_ulogic_vector(3 downto 0);
     wb_reg : std_ulogic_vector(1 downto 0);
     c_data : std_ulogic_vector(9 downto 0);
     c_data_ext : std_ulogic_vector(1 downto 0);
@@ -89,7 +92,7 @@ package sl_structs_p is
   end record sl_decode_t;
 
   type sl_decode_ex_t is record
-    cmd : std_ulogic_vector(2 downto 0);
+    cmd : std_ulogic_vector(3 downto 0);
     
     memX : reg_raw_t;
 

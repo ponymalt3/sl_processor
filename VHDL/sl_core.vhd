@@ -27,7 +27,7 @@ entity sl_core is
 
     -- alu
     alu_en_o : out std_ulogic;
-    alu_cmd_o : out std_ulogic_vector(2 downto 0);
+    alu_cmd_o : out std_ulogic_vector(3 downto 0);
     alu_op_a_o : out reg_raw_t;
     alu_op_b_o : out reg_raw_t;
     alu_i : in sl_alu_t;
@@ -144,7 +144,7 @@ begin  -- architecture rtl
       executed_addr_o <= to_unsigned(0,16);
       proc.fetch <= ((others => '0'),to_unsigned(0,16));
       proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0');
-      proc.decex <= ("000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0',(others => '0'),'0');
+      proc.decex <= ("0000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0',(others => '0'),'0');
       proc.state <= (to_unsigned(0,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
       reset_1d <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge

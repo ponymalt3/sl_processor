@@ -601,3 +601,29 @@ MTEST(TestOp,testOpDivide)
   EXPECT(proc.readMemory(6) == (value2/value).toRaw());
   proc.expectThatMemIs(6,value2/value);
 }
+
+MTEST(TestOp,testOpShift)
+{
+  qfp32_t value=-24.5;
+  qfp32_t value2=7;
+  
+  uint32_t code[]=
+  {
+    SLCode::Load::create1(value.toRaw()),
+    SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_SHFT,5),
+    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
+
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(5,value2.toRaw());
+  proc.writeMemory(6,0);
+  
+  proc.run(5);
+  
+  proc.expectThatMemIs(6,_qfp32_t(-24.5*128));
+}

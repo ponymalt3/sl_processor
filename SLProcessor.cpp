@@ -177,6 +177,10 @@ _Decode SLProcessor::decodeInstr() const
     incAD=bdata(11);
     decode.enIRS_=1;
     decode.enADr0_=decode.muxA_==SLCode::MUX1_MEM;
+    if(decode.muxA_ == SLCode::MUX1_RESULT)
+    {
+      decode.CMD_+=bdata(0)<<3;
+    }
   }
   else
   {
@@ -208,9 +212,9 @@ _Decode SLProcessor::decodeInstr() const
       break;
 
     case 4: //OP
-      decode.CMD_=bdata(7 downto 5);
+      decode.CMD_=bdata(8 downto 5);
       incAD=bdata(4);
-      incAD2=bdata(8);
+      incAD2=bdata(9);
       decode.enADr0_=decode.muxA_==SLCode::MUX1_MEM;
       decode.enADr1_=1;
       break;
@@ -249,6 +253,7 @@ _Decode SLProcessor::decodeInstr() const
 
       case 4://NEG
         decode.neg_=1;
+        decode.CMD_=8+bdata(5 downto 3);//cmd msb always set
         break;
         
       case 5://LOOP
