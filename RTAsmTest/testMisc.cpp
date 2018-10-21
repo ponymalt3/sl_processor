@@ -31,7 +31,8 @@ MTEST(testMisc,test_that_cluster_test_prgm_runs_on_sim_also)
   
   std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   
-  tester.expectMemoryAt(513,0);
+  tester.expectMemoryAt(514,_qfp32_t(1));
+  tester.expectMemoryAt(515,_qfp32_t(100));
 }
 
 MTEST(testMisc,test_that_loop_with_inc_write_to_ext_mem_works_correct)
