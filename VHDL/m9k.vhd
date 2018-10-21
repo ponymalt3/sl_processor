@@ -47,7 +47,7 @@ begin  -- architecture rtl
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       clk_gate_0 <= '1';
       clk_gate_1 <= '1';
-    elsif clk_i'event and clk_i = '0' then  -- rising clock edge
+    elsif clk_i'event and clk_i = '0' then  -- falling clock edge
       clk_gate_0 <= p0_en_i;
       clk_gate_1 <= p1_en_i;
     end if;
