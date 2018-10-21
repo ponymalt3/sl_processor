@@ -14,7 +14,7 @@ public:
   RTProgTester(RTProg prog):prog_(prog),s_(prog_),codeGen_(s_),parser_(codeGen_)
   {
     //zero memory (at least first 256 words)
-    for(uint32_t i=0;i<256;++i)
+    for(uint32_t i=0;i<512;++i)
     {
       proc_.writeMemory(i,0,true);
     }  
@@ -42,7 +42,7 @@ public:
   
   std::string getDisAsmString()
   {
-    uint16_t code[512];
+    uint16_t code[1024];
     
     for(uint32_t i=0;i<getCodeSize();++i)
     {
@@ -104,6 +104,11 @@ public:
   void expectSymbol(const std::string &symbol,qfp32_t data)
   {
     proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str()),data);
+  }
+  
+  void expectSymbol(const std::string &symbol,uint32_t offset,qfp32_t data)
+  {
+    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data);
   }
   
   void expectSymbolWithOffset(const std::string &symbol,int32_t offset,qfp32_t data)
