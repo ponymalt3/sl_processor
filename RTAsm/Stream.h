@@ -26,6 +26,10 @@ struct qfp32
   qfp32 operator-(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()-rhs.toRealQfp32()); }
   qfp32 operator*(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()*rhs.toRealQfp32()); }
   qfp32 operator/(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()/rhs.toRealQfp32()); }
+  
+  qfp32 log2() const { return fromRealQfp32(toRealQfp32().log2()); }
+  qfp32 trunc() const { return fromRealQfp32(toRealQfp32().trunc()); }
+  qfp32 logicShift(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32().logicShift(rhs.toRealQfp32())); }
 };
 
 class Token;

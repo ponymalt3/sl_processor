@@ -368,3 +368,141 @@ MTEST(testOperationsBasic,test_that_var_negate_works)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("c")) == qfp32_t(-4).toRaw());
   tester.expectSymbol("c",-4);
 }
+
+MTEST(testOperationsBasic,test_that_log2_operation_works)
+{
+  RTProg testCode=RTASM(
+    a=4096;
+    c=log2(a);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",12);
+}
+
+MTEST(testOperationsBasic,test_that_log2_operation_const_works)
+{
+  RTProg testCode=RTASM(
+    c=log2(128);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",7);
+}
+
+MTEST(testOperationsBasic,test_that_conversion_to_int_works)
+{
+  RTProg testCode=R"asm(
+    a=99.3456;
+    c=int(a);
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",99);
+}
+
+MTEST(testOperationsBasic,test_that_conversion_to_int_const_works)
+{
+  RTProg testCode=RTASM(
+    c=int(99.3456);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",99);
+}
+
+MTEST(testOperationsBasic,test_that_shift_operation_works)
+{
+  RTProg testCode=R"asm(
+    a=99;
+    b=7;
+    c=shft(a,b);
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",99*128);
+}
+
+MTEST(testOperationsBasic,test_that_shift_operation_with_const_params_works)
+{
+  RTProg testCode=R"asm(
+    c=shft(99,7);
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",99*128);
+}
+
+
+MTEST(testOperationsBasic,test_that_shift_operation_with_both_mem_works)
+{
+  RTProg testCode=R"asm(
+    a0=0;
+    a1=1;
+    c=shft([a0],[a1]);
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  _qfp32_t a=99;
+  _qfp32_t b=7;
+  tester.getProcessor().writeMemory(0,a.toRaw());
+  tester.getProcessor().writeMemory(1,b.toRaw());
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",99*128);
+}
+
+MTEST(testOperationsBasic,test_that_operator_group2_both_mem_operand_fix_is_handled_automatically)
+{
+  //shift operation belongs to group2; this group cant be used with to mem and irs operands directly
+  RTProg testCode=R"asm(
+    b=7;
+    a0=0;
+    c=shft([a0],b);
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  _qfp32_t a=99;
+  tester.getProcessor().writeMemory(0,a.toRaw());
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("c",99*128);
+}

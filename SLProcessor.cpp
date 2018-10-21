@@ -252,8 +252,8 @@ _Decode SLProcessor::decodeInstr() const
         decode.signal_=(~bdata(10))&1;
         break;
 
-      case 4://NEG
-        decode.neg_=1;
+      case 4://UNARY
+        decode.neg_=bdata(0);
         decode.trunc_=bdata(2);
         decode.CMD_=8+bdata(5 downto 3);//cmd msb always set
         break;

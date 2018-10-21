@@ -379,7 +379,7 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
   writeCode(SLCode::Mov::create(translateOperand(a),translateOperand(b),irsOffset,addrInc),symRef);
 }
 
-void CodeGen::instrNeg(const _Operand &opa)
+void CodeGen::instrUnaryOp(const _Operand &opa,uint32_t unaryOp)
 {
   _Operand a=resolveOperand(opa);
   
@@ -388,7 +388,11 @@ void CodeGen::instrNeg(const _Operand &opa)
     instrMov(_Operand::createResult(),a);
   }
   
-  writeCode(SLCode::Neg::create());
+  Error::expect(unaryOp == SLCode::UNARY_LOG2 ||
+                unaryOp == SLCode::UNARY_NEG ||
+                unaryOp == SLCode::UNARY_TRUNC) << "unary op internal error";
+  
+  writeCode(SLCode::UnaryOp::create(static_cast<SLCode::UnaryCommand>(unaryOp)));
 }
 
 void CodeGen::instrLoop(const _Operand &opa)

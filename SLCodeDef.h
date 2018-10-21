@@ -12,6 +12,7 @@ namespace SLCode
 {
   enum Operand {REG_AD0=0,REG_AD1,REG_IRS,REG_RES,IRS,DEREF_AD0,DEREF_AD1,INVALID_OP};
   enum Command {CMD_MOV=0,CMD_CMP,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES,CMD_LOG2=8,CMD_SHFT,CMD_INVALID=15};
+  enum UnaryCommand {UNARY_NEG,UNARY_LOG2,UNARY_TRUNC};
   enum CmpMode {CMP_EQ=0,CMP_NEQ,CMP_LT,CMP_LE};
 
   enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_IRS=1};
@@ -207,17 +208,27 @@ namespace SLCode
     static uint32_t create3(uint32_t value) { return create(constDataValue3(value)); }
   };
 
-  struct Neg
+  struct UnaryOp
   {
     enum {Code=0xF100,Bits=10};
 
-    static uint32_t create()
+    static uint32_t create(UnaryCommand ucmd)
     {
       //NEG RESULT         => code/16  (A/1)
 
       uint32_t muxA=MUX1_RESULT;
+      
+      bool isNeg=ucmd == UNARY_NEG;
+      bool isTrunc=ucmd == UNARY_TRUNC;
+      
+      uint32_t cmd=CMD_INVALID;
+      
+      if(ucmd == UNARY_LOG2)
+      {
+        cmd=CMD_LOG2;
+      }
 
-      return Code + (muxA<<1);
+      return Code + ((cmd&0x7)<<3) + (isTrunc<<2) + (muxA<<1) + isNeg;
     }
   };
 

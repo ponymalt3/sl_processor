@@ -92,7 +92,7 @@ class CodeGenInterface
 public:  
   virtual void instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage) =0;
   virtual void instrMov(const _Operand &opa,const _Operand &opb) =0;
-  virtual void instrNeg(const _Operand &opa) =0;
+  virtual void instrUnaryOp(const _Operand &opa,uint32_t unaryOp) =0;
   virtual void instrLoop(const _Operand &opa) =0;
   virtual void instrBreak() =0;
   virtual void instrContinue() =0;
@@ -161,7 +161,7 @@ public:
 
   void instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage);
   void instrMov(const _Operand &opa,const _Operand &opb);
-  void instrNeg(const _Operand &opa);
+  void instrUnaryOp(const _Operand &opa,uint32_t unaryOp);
   void instrLoop(const _Operand &opa);
   void instrBreak();
   void instrContinue();

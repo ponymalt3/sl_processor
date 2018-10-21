@@ -53,6 +53,57 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
 
   Error::expect(token.getType() == Token::TOK_NAME) << stream << "unexpected token " << token.getName(stream);
   
+  //check for intrinsic functions
+  if(token.getName(stream) == "log2" || token.getName(stream) == "int" || token.getName(stream) == "shft")
+  {
+    Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' for function call";
+    
+    _Operand result=_Operand::createResult();
+    _Operand param=parseExpr(stream);
+  
+    if(token.getName(stream) == "shft")
+    {
+      Error::expect(stream.skipWhiteSpaces().read() == ',') << stream << "expect two parameter for shft function";
+      _Operand param2=parseExpr(stream);
+      
+      if(param.type_ == _Operand::TY_VALUE && param2.type_ == _Operand::TY_VALUE)
+      {
+        result=_Operand(param.value_.logicShift(param2.value_));
+      }
+      else
+      {
+        TmpStorage tmp(codeGen_);
+        codeGen_.instrOperation(param,param2,SLCode::CMD_SHFT,tmp);
+      }
+    }
+    else if(token.getName(stream) == "log2")
+    {
+      if(param.type_ == _Operand::TY_VALUE)
+      {
+        result=_Operand(param.value_.log2());
+      }
+      else
+      {
+        codeGen_.instrUnaryOp(param,SLCode::UNARY_LOG2);
+      }
+    }
+    else if(token.getName(stream) == "int")
+    {
+      if(param.type_ == _Operand::TY_VALUE)
+      {
+        result=_Operand(param.value_.trunc());
+      }
+      else
+      {
+        codeGen_.instrUnaryOp(param,SLCode::UNARY_TRUNC);
+      }
+    }
+    
+    Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "expect ')'";
+    
+    return result;
+  }
+  
   if(codeGen_.findFunction(token.getName(stream)).flagsIsFunction_)
   {
     uint32_t codeBlockStart=codeGen_.getCurCodeAddr();
@@ -191,7 +242,7 @@ _Operand RTParser::parseExpr(Stream &stream)
         }
         else
         {
-          codeGen_.instrNeg(expr);
+          codeGen_.instrUnaryOp(expr,SLCode::UNARY_NEG);
           expr=_Operand::createResult();
         }
         neg=false;

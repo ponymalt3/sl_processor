@@ -117,8 +117,8 @@ package body sl_dec_p is
             when 3 => -- SIG
               decode.wait1 := data(10);
               decode.signal1 := not data(10);
-            when 4 => -- NEG
-              decode.neg := '1';
+            when 4 => -- UNARY
+              decode.neg := data(0);
               decode.trunc := data(2);
               decode.cmd := '1' & data(5 downto 3);
             when 5 => -- LOOP
