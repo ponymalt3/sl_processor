@@ -34,8 +34,11 @@ public:
     }
   }
   SymbolMap& top() { return *(sp_[-1]); }
-  bool full() const { return (sp_-stack_) == _Size; }
-  bool empty() const { return (sp_-stack_) == 0; }  
+  SymbolMap& get(uint32_t index) { return *(stack_[index]); }
+  
+  bool full() const { return size() == _Size; }
+  bool empty() const { return size() == 0; }
+  uint32_t size() const { return sp_-stack_; }
 
 protected:
   SymbolMap *stack_[_Size];

@@ -615,6 +615,17 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 
     if(createSymIfNotExists && symRef == SymbolMap::InvalidLink)
       symRef=symbolMaps_.top().createSymbol(name,0);//single element
+     
+    //check outer symbol map (if exist) and use if it is a constant
+    if(symRef == SymbolMap::InvalidLink && symbolMaps_.size() > 1)
+    {
+      SymbolMap &symMapOuter=symbolMaps_.get(symbolMaps_.size()-2);
+      uint32_t symRef=symMapOuter.findSymbol(name);
+      if(symRef != SymbolMap::InvalidLink && symMapOuter[symRef].flagConst_)
+      {
+        return _Operand(symMapOuter[symRef].constValue_);
+      }        
+    }
 
     Error::expect(symRef != SymbolMap::InvalidLink) << "symbol " << name << " not found" << ErrorHandler::FATAL;
 
