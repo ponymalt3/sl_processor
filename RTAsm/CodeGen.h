@@ -310,7 +310,7 @@ protected:
   Label* activeLabels_[32];
 
   uint32_t codeAddr_;
-  _Instr instrs_[512];
+  _Instr instrs_[4096];
  
   SymStack<4> symbolMaps_;
   Stream &stream_;

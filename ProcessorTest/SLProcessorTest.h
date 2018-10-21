@@ -96,7 +96,7 @@ class LoadAndSimulateProcessor
 public:
   LoadAndSimulateProcessor()
     : localMem_(512)
-    , codeMem_(256)
+    , codeMem_(1024)
     , extMem_(16*1024)
     , codePort_(codeMem_.createPort())
     , localPort_(localMem_.createPort())
@@ -109,7 +109,7 @@ public:
   template<const uint32_t CodeSize>
   LoadAndSimulateProcessor(uint32_t (&code)[CodeSize])
     : localMem_(512)
-    , codeMem_(256)
+    , codeMem_(1024)
     , extMem_(16*1024)
     , codePort_(codeMem_.createPort())
     , localPort_(localMem_.createPort())
@@ -134,7 +134,7 @@ public:
   
   void writeCodeComplete(uint32_t validCodeWords)
   {
-    uint32_t code[512];
+    uint32_t code[1024];
     for(uint32_t i=0;i<validCodeWords;++i)
     {
       code[i]=codePort_.read(i);
@@ -246,6 +246,15 @@ public:
   {
     EXPECT(readMemory(addr) == expectedValue);
     getVdhlTestGenerator().expect(addr,expectedValue);
+  }
+  void expectThatMemIs(uint32_t addr,int32_t expectedValue)
+  {
+    EXPECT(readMemory(addr) == (uint32_t)expectedValue);
+    getVdhlTestGenerator().expect(addr,expectedValue);
+  }
+  void expectThatMemIs(uint32_t addr,double expectedValue)
+  {
+    expectThatMemIs(addr,_qfp32_t(expectedValue));
   }
   static VHDLTestDataGenerator& getVdhlTestGenerator()
   {

@@ -23,7 +23,7 @@ architecture behav of sl_test_tb is
   signal core_reset_n : std_ulogic;
 
   file test_file : text;
-  signal code_mem : code_mem_t(255 downto 0);
+  signal code_mem : code_mem_t(1023 downto 0);
 
   signal sl_clk        : std_ulogic := '0';
   signal code_addr     : unsigned(15 downto 0);
@@ -99,7 +99,7 @@ begin  -- architecture Behav
   wb_ixs_1: entity work.wb_ixs
     generic map (
       MasterConfig => (wb_master("ext_mem"),wb_master("core_mem ext_mem code_mem")),
-      SlaveMap     => (wb_slave("core_mem",0,512),wb_slave("ext_mem",512,512),wb_slave("code_mem",1024,512)))
+      SlaveMap     => (wb_slave("core_mem",0,512),wb_slave("ext_mem",512,512),wb_slave("code_mem",1024,1024)))
     port map (
       clk_i       => sl_clk,
       reset_n_i   => reset_n,
@@ -110,7 +110,7 @@ begin  -- architecture Behav
 
   sl_code_mem_1: entity work.sl_code_mem
     generic map (
-      SizeInKBytes => 1)
+      SizeInKBytes => 2)
     port map (
       p2_code_o  => open,
       clk_i        => sl_clk,
@@ -221,7 +221,7 @@ begin  -- architecture Behav
           wait for 0.1 ns;
           sl_clk <= '0';
 
-          for i in 0 to code_mem'length-1 loop
+          for i in 0 to 1023 loop
             mem_addr <= to_unsigned(1024+i,16);
             mem_din(15 downto 0) <= X"FFFF";
             mem_we <= '1';
@@ -291,6 +291,7 @@ begin  -- architecture Behav
             hread(l,data16);
             mem_addr <= to_unsigned(1024+j,16);
             mem_din(15 downto 0) <= data16;
+            
             mem_we <= '1';
             mem_en <= '1';
             wait for 1 ps;
