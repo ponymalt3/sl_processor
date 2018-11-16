@@ -333,7 +333,7 @@ begin  -- architecture behav
     m_out(1).en <= '0';
     m_out(2).en <= '0';
 
-    wait for 1000 ns;
+    wait for 100 ns; -- wait until memory access is completed
 
     -- burst test
     data1 := (X"00000000",X"00000001",X"00000002",X"00000003",X"00000004",X"00000005",X"00000006",X"00000007");
