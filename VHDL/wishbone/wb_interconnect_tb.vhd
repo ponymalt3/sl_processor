@@ -6,7 +6,7 @@
 -- Author     : malte  <malte@tp13>
 -- Company    : 
 -- Created    : 2018-04-29
--- Last update: 2018-08-11
+-- Last update: 2018-11-16
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -38,13 +38,51 @@ architecture behav of wb_interconnect_tb is
     dout     : std_ulogic_vector(31 downto 0);
     en       : std_ulogic;
     we       : std_ulogic;
+    burst    : unsigned(5 downto 0);
   end record master_out_t;
 
   type master_in_t is record
     din      : std_ulogic_vector(31 downto 0);
+    dready   : std_ulogic;
     complete : std_ulogic;
     err      : std_ulogic;
   end record master_in_t;
+
+  type data_array_t is array (natural range <>) of std_ulogic_vector(31 downto 0);
+
+  procedure master_access_burst (
+    addr  : in  natural;
+    din   : in  data_array_t;
+    dout  : out data_array_t;
+    we    : in  std_ulogic;
+    burst : in unsigned(2 downto 0);
+    signal master_in : in master_in_t;
+    signal master_out : out master_out_t) is
+
+    variable index : natural := 0;
+    variable at_least_one_data_phase : boolean := false;
+  begin
+    master_out.addr <= to_unsigned(addr,32);
+    master_out.dout <= din(0);
+    master_out.en <= '1';
+    master_out.we <= we;
+    master_out.burst <= "000" & burst;
+
+    while master_in.complete = '0' or not at_least_one_data_phase loop
+      wait until master_in.dready = '1' or master_in.err = '1' or master_in.complete = '1';
+      wait for 1 ps;
+      if index < din'length then
+        dout(index) := master_in.din;
+      end if;
+      index := index+1;
+      if index < din'length then
+        master_out.dout <= din(index);
+      end if;
+      at_least_one_data_phase := true;
+    end loop;
+
+    master_out.en <= '0';
+  end procedure;
 
   procedure master_access (
     addr : in  natural;
@@ -53,18 +91,15 @@ architecture behav of wb_interconnect_tb is
     we   : in  std_ulogic;
     signal master_in : in master_in_t;
     signal master_out : out master_out_t) is
-  begin
-    master_out.addr <= to_unsigned(addr,32);
-    master_out.dout <= din;
-    master_out.en <= '1';
-    master_out.we <= we;
 
-    wait until master_in.complete = '1';
-    wait for 1 ps;
-    master_out.en <= '0';
-
-    dout := master_in.din;
+    variable din_array : data_array_t(0 downto 0);
+    variable dout_array : data_array_t(0 downto 0);
+  begin    
+    din_array(0) := din;
+    master_access_burst(addr,din_array,dout_array,we,to_unsigned(0,3),master_in,master_out);
+    dout := dout_array(0);
   end procedure;
+
 
   -- component generics
   constant MasterConfig : wb_master_config_array_t := (
@@ -129,7 +164,9 @@ begin  -- architecture behav
         din_i      => m_out(i).dout,
         dout_o     => m_in(i).din,
         en_i       => m_out(i).en,
+        burst_i    => m_out(i).burst,
         we_i       => m_out(i).we,
+        dready_o   => m_in(i).dready,
         complete_o => m_in(i).complete,
         err_o      => m_in(i).err,
         master_out_i => master_out_in,
@@ -159,6 +196,8 @@ begin  -- architecture behav
 
   process
     variable result : std_ulogic_vector(31 downto 0);
+    variable data1 : data_array_t(7 downto 0);
+    variable data2 : data_array_t(7 downto 0);
   begin
     reset_n <= '0';
     wait for 33 ns;
@@ -207,7 +246,6 @@ begin  -- architecture behav
     
 
     -- test that data is read correctly
-
     master_access(129,X"00000000",result,'0',m_in(0),m_out(0));
     assert result = X"0000DABC" report "read slave 0 at addr 129 returns wrong data" severity error;
 
@@ -294,6 +332,15 @@ begin  -- architecture behav
     m_out(0).en <= '0';
     m_out(1).en <= '0';
     m_out(2).en <= '0';
+
+    wait for 1000 ns;
+
+    -- burst test
+    data1 := (X"00000000",X"00000001",X"00000002",X"00000003",X"00000004",X"00000005",X"00000006",X"00000007");
+    master_access_burst(130,data1,data2,'1',to_unsigned(7,3),m_in(0),m_out(0));
+    master_access_burst(128,data1,data2,'0',to_unsigned(7,3),m_in(0),m_out(0));
+
+    assert data2 = (X"00000002",X"00000003",X"00000004",X"00000005",X"00000006",X"00000007",X"00000000",X"00000001") report "burst read failed" severity error;
 
     write(output,"all tests complete" & LF);
 

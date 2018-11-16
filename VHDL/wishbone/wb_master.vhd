@@ -14,7 +14,9 @@ entity wb_master is
     din_i      : in    std_ulogic_vector(31 downto 0);
     dout_o     : out   std_ulogic_vector(31 downto 0);
     en_i       : in    std_ulogic;
+    burst_i    : in    unsigned(5 downto 0) := to_unsigned(0,6);
     we_i       : in    std_ulogic;
+    dready_o   : out   std_ulogic;
     complete_o : out   std_ulogic;
     err_o      : out   std_ulogic;
     
@@ -28,41 +30,61 @@ architecture rtl of wb_master is
   type fsm_t is (ST_IDLE,ST_PENDING);
   signal state : fsm_t;
 
+  signal master_out : wb_master_ifc_out_t;
+  signal count : unsigned(2 downto 0);
+
 begin  -- architecture rtl
 
   process (clk_i, reset_n_i) is
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       state <= ST_IDLE;
-      master_out_o <= (to_unsigned(0,32),(others => '0'),'0',"0000",'0','0');
+      master_out <= (to_unsigned(0,32),(others => '0'),'0',"0000",'0','0');
       dout_o <= (others => '0');
       complete_o <= '0';
       err_o <= '0';
+      dready_o <= '0';
+      count <= to_unsigned(0,3);
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       complete_o <= '0';
       err_o <= master_out_i.err;
+      dready_o <= '0';
       
       if en_i = '1' and state = ST_IDLE then
         state <= ST_PENDING;
-        master_out_o.adr <= addr_i;
-        master_out_o.dat <= din_i;
-        master_out_o.sel <= (others => '1');
-        master_out_o.we <= we_i;
-        master_out_o.stb <= '1';
-        master_out_o.cyc <= '1';
+        count <= burst_i(2 downto 0);
+        dready_o <= we_i;
+        master_out.adr <= addr_i;
+        master_out.dat <= din_i;
+        master_out.sel <= (others => '1');
+        master_out.we <= we_i;
+        master_out.stb <= '1';
+        master_out.cyc <= '1';
       elsif state = ST_PENDING then
-        if master_out_i.stall = '0' then
-          master_out_o.stb <= '0';
+        if master_out_i.stall = '0' and count = to_unsigned(0,3) then
+          master_out.stb <= '0';    
         end if;
-        if master_out_i.ack = '1' or master_out_i.err = '1' then
-          state <= ST_IDLE;
+
+        dready_o <= master_out_i.ack;
+
+        if master_out_i.ack = '1' then
           dout_o <= master_out_i.dat;
-          master_out_o.stb <= '0';
-          master_out_o.cyc <= '0';
+          master_out.dat <= din_i;
+          master_out.adr(2 downto 0) <= master_out.adr(2 downto 0)+1;
+          count <= count-1;
+        end if;
+        
+        if (master_out_i.ack = '1' and count = to_unsigned(0,3)) or master_out_i.err = '1' then
+          state <= ST_IDLE;
+          master_out.stb <= '0';
+          master_out.cyc <= '0';
           complete_o <= '1';
+          dready_o <= not master_out.we;
         end if;
       end if;
     end if;
   end process;
+
+  master_out_o <= master_out;
   
 end architecture rtl;
