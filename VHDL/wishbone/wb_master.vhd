@@ -32,6 +32,7 @@ architecture rtl of wb_master is
 
   signal master_out : wb_master_ifc_out_t;
   signal count : unsigned(2 downto 0);
+  signal mask : unsigned(2 downto 0);
 
 begin  -- architecture rtl
 
@@ -45,6 +46,7 @@ begin  -- architecture rtl
       err_o <= '0';
       dready_o <= '0';
       count <= to_unsigned(0,3);
+      mask <= to_unsigned(0,3);
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       complete_o <= '0';
       err_o <= master_out_i.err;
@@ -53,6 +55,7 @@ begin  -- architecture rtl
       if en_i = '1' and state = ST_IDLE then
         state <= ST_PENDING;
         count <= burst_i(2 downto 0);
+        mask <= burst_i(2 downto 0);
         dready_o <= we_i;
         master_out.adr <= addr_i;
         master_out.dat <= din_i;
@@ -70,7 +73,7 @@ begin  -- architecture rtl
         if master_out_i.ack = '1' then
           dout_o <= master_out_i.dat;
           master_out.dat <= din_i;
-          master_out.adr(2 downto 0) <= master_out.adr(2 downto 0)+1;
+          master_out.adr(2 downto 0) <= (master_out.adr(2 downto 0)+1) and mask;
           count <= count-1;
         end if;
         
