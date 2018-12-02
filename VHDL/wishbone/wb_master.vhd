@@ -73,7 +73,7 @@ begin  -- architecture rtl
         if master_out_i.ack = '1' then
           dout_o <= master_out_i.dat;
           master_out.dat <= din_i;
-          master_out.adr(2 downto 0) <= (master_out.adr(2 downto 0)+1) and mask;
+          master_out.adr(2 downto 0) <= (master_out.adr(2 downto 0) and not mask) or ((master_out.adr(2 downto 0)+1) and mask);
           count <= count-1;
         end if;
         
