@@ -1,0 +1,4 @@
+[submodule "qfp"]
+	path = qfp
+	url = /home/malte/Documents/OpenCoresQFP32
+	branch = master
