@@ -190,7 +190,7 @@ begin  -- architecture rtl
 
   qfp_unit_1: entity work.qfp_unit
     generic map (
-      config => qfp_config_add+qfp_config_mul+qfp_config_div+qfp_config_math+qfp_config_logic)
+      config => qfp_config_add+qfp_config_mul+qfp_config_div+qfp_config_math)
     port map (
       clk_i      => clk_i,
       reset_n_i  => core_reset_n_i,
@@ -209,8 +209,8 @@ begin  -- architecture rtl
 
   alu_en2 <= '1' when alu_en = '1' and alu_cmd /= CMD_CMP else '0'; 
 
-  process (alu_cmd, multi_cycle_op, qfp_cmp_gt, qfp_cmp_z,
-           qfp_complete, qfp_idle, qfp_int_result, qfp_ready, qfp_result) is
+  process (alu_cmd, multi_cycle_op, qfp_cmp_gt, qfp_cmp_z, qfp_complete,
+           qfp_idle, qfp_int_result, qfp_ready, qfp_result) is
   begin  -- process
    alu_data.result <= qfp_result;
    alu_data.int_result <= qfp_int_result;
@@ -228,7 +228,7 @@ begin  -- architecture rtl
      when CMD_MUL => qfp_cmd <= (QFP_UNIT_MUL,"00"); multi_cycle_op <= '1';
      when CMD_DIV => qfp_cmd <= (QFP_UNIT_DIV,"00"); multi_cycle_op <= '1';
      when CMD_LOG2 => qfp_cmd <= (QFP_UNIT_MATH,"00");
-     when CMD_SHFT => qfp_cmd <= (QFP_UNIT_LOGIC,"00");
+     when CMD_SHFT => qfp_cmd <= (QFP_UNIT_MATH,"01");
      when others => qfp_cmd <= (QFP_UNIT_NONE,"00");
    end case;
 
