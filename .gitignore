@@ -23,6 +23,25 @@
 #*.cproject
 #ignore temp files
 *~
+*.bak
+**/quartus/*db/*
+**/output_files/*
+**/Debug/*
+**/work/*
+*.wlf
+**/transcript
+*.vstf
+*.mti
+*.list
+*.db
+*.settings/*
+*.session
+**/.build-debug/*
+**/.qsys_edit/*
+*.*#
+*.cnx
+*.qip
+**/greybox_tmp/*
 
 
 
