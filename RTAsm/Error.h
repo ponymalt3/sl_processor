@@ -8,34 +8,23 @@
 #define ERROR_H_
 
 #include <stdint.h>
-#include "Stream.h"
+#include <stdexcept>
+
+class ErrorHandler;
 
 class Error
 {
 public:
-  enum Type {FATAL};
+  Error(ErrorHandler &handler);
 
-  static Error& expect(bool expr);
-
-  Error& operator<<(const char *str);
-  Error& operator<<(const Stream::String &str);
-  Error& operator<<(uint32_t value);
-  Error& operator<<(const Stream &stream);
-  Error& operator<<(Type type);
-
-  static uint32_t getNumErrors();// { return instance_.errors_; }
+  ErrorHandler& expect(bool expr);
+  ErrorHandler& info();
+  uint32_t getNumErrors();// { return instance_.errors_; }
+  
+  ErrorHandler& getErrorHandler() { return handler_; }
 
 protected:
-  Error();
-  void printHeader();
-
-  static Error instance_;
-
-  bool isFault_;
-  bool linePrinted_;
-  bool newLinePending_;
-  uint32_t line_;
-  uint32_t errors_;
+  ErrorHandler &handler_;
 };
 
 #endif /* ERROR_H_ */

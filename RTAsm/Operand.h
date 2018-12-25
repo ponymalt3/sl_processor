@@ -14,8 +14,8 @@
 
 struct _Operand
 {
-  enum Type {TY_INVALID,TY_VALUE,TY_MEM,TY_SYMBOL,TY_RESULT,TY_INDEX,TY_IR_LOOP,TY_IR_ADDR0,TY_IR_ADDR1,TY_RESOLVED_SYM};
-  enum InternalReg {IR_ADR0,IR_ADR1,IR_LOOP};
+  enum Type {TY_INVALID,TY_VALUE,TY_MEM,TY_SYMBOL,TY_RESULT,TY_INDEX,TY_IR_IRS,TY_IR_ADDR0,TY_IR_ADDR1,TY_RESOLVED_SYM};
+  enum InternalReg {IR_ADR0,IR_ADR1,IR_IRS};
 
   _Operand(uint32_t regaIndex,bool addrInc)
   {
@@ -28,6 +28,7 @@ struct _Operand
   {
     type_=TY_VALUE;
     value_=value;
+    ref_=0xFFFF;
   }
 
   _Operand(uint32_t offset,uint32_t length,uint32_t index)
@@ -55,7 +56,7 @@ struct _Operand
     return _Operand(TY_RESULT);
   }
 
-  static _Operand createSymAccess(uint32_t mapIndex,uint32_t index)
+  static _Operand createSymAccess(uint32_t mapIndex,uint32_t index=0)
   {
     _Operand op(TY_RESOLVED_SYM);
     op.mapIndex_=mapIndex;
@@ -82,10 +83,18 @@ struct _Operand
   {
     return _Operand(name.getOffset(),name.getLength(),index);
   }
+  
+  static _Operand createConstWithRef(uint16_t ref,uint32_t loadsToGenerate=2)
+  {
+    float v=10.0f*(1<<(12*(loadsToGenerate-1)));
+    _Operand op(qfp32::fromRealQfp32(v));//need 2 loads
+    op.ref_=ref;
+    return op;
+  }
 
   bool isResult() const { return type_ == TY_RESULT; }
-  bool isArrayBaseAddr() const { return type_ == TY_RESOLVED_SYM && index_ == 0xFFFF; }
-  bool isInternalReg() const { return type_ == TY_IR_LOOP || type_ == TY_IR_ADDR0 || type_ == TY_IR_ADDR1; }
+  bool isArrayBaseAddr() const { return type_ == TY_RESOLVED_SYM && arrayOffset_ == 0xFFFF; }
+  bool isInternalReg() const { return type_ == TY_IR_IRS || type_ == TY_IR_ADDR0 || type_ == TY_IR_ADDR1; }
 
   uint16_t type_;
   union
@@ -93,6 +102,7 @@ struct _Operand
     struct
     {
       qfp32 value_;
+      uint16_t ref_;
     };
     struct//mem access (a0,a1)
     {

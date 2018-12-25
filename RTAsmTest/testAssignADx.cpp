@@ -39,8 +39,6 @@ MTEST(testAssignADx,test_that_ref_assigned_to_addr0_and_deref_addr0_works)
   qfp32_t value=21;  
   tester.getProcessor().writeMemory(4,value.toRaw());
   
-  std::cout<<"disasm: "<<(tester.getDisAsmString())<<"\n";
-  
   tester.loadCode();
   tester.execute();
    

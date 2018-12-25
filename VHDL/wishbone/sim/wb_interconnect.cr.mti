@@ -1,48 +1,20 @@
-/home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache.vhd
+/home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd {2 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package NUMERIC_STD
+-- Compiling package wishbone_p
+-- Compiling package body wishbone_p
+-- Loading package wishbone_p
+** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd(128): (vcom-1283) Cannot reference file "output" inside pure function "wb_interconnect_get_masters_for_slave".
+** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd(160): (vcom-1283) Cannot reference file "output" inside pure function "wb_interconnect_get_connected_slaves".
+** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd(166): (vcom-1283) Cannot reference file "output" inside pure function "wb_interconnect_get_connected_slaves".
+** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd(173): (vcom-1283) Cannot reference file "output" inside pure function "wb_interconnect_get_connected_slaves".
 -- Loading package wishbone_p
 -- Loading package sl_misc_p
--- Compiling entity wb_cache
--- Compiling architecture rtl of wb_cache
--- Loading entity m9k_2
--- Loading entity wb_master
-
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master.vhd
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Loading package wishbone_p
--- Compiling entity wb_master
--- Compiling architecture rtl of wb_master
-
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_ixs_arbiter.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_ixs_arbiter.vhd
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Loading package wishbone_p
--- Compiling entity wb_ixs_arbiter
--- Compiling architecture rtl of wb_ixs_arbiter
-
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_ixs.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_ixs.vhd
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Loading package wishbone_p
--- Compiling entity wb_ixs
--- Compiling architecture rtl of wb_ixs
--- Loading package sl_misc_p
--- Loading entity wb_ixs_decoder
--- Loading entity wb_ixs_arbiter
+-- Compiling entity wb_interconnect_decoder
+-- Compiling architecture rtl of wb_interconnect_decoder
 
 } {} {}} /home/malte/workspace/SLProcessor/VHDL/sl_misc.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/sl_misc.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -54,45 +26,21 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling package body sl_misc_p
 -- Loading package sl_misc_p
 
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/m9k_2.vhd {2 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/m9k_2.vhd
+} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect.vhd {2 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package NUMERIC_STD
--- Loading package sl_misc_p
--- Compiling entity m9k_2
--- Compiling architecture rtl of m9k_2
-** Warning: /home/malte/workspace/SLProcessor/VHDL/m9k_2.vhd(32): (vcom-1236) Shared variables must be of a protected type.
-
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd {2 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Loading package MATH_REAL
--- Loading package std_logic_textio
 -- Loading package wishbone_p
--- Compiling entity wb_cache_tb
--- Compiling architecture behav of wb_cache_tb
+-- Compiling entity wb_interconnect
+-- Compiling architecture rtl of wb_interconnect
+** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect.vhd(39): (vcom-1128) Missing reserved word BEGIN in generate statement.
 -- Loading package sl_misc_p
--- Loading entity wb_cache
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(344): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(355): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(372): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(391): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(431): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(445): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(454): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(473): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(484): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(496): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(510): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(577): (vcom-1207) An abstract literal and an identifier must have a separator between them.
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_cache_tb.vhd(592): (vcom-1207) An abstract literal and an identifier must have a separator between them.
+-- Loading entity wb_interconnect_decoder
+-- Loading entity wb_interconnect_arbiter
 
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect_tb.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect_tb.vhd
+} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect_tb.vhd {2 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect_tb.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -101,34 +49,18 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package wishbone_p
 -- Compiling entity wb_interconnect_tb
 -- Compiling architecture behav of wb_interconnect_tb
--- Loading entity wb_ixs
+-- Loading entity wb_interconnect
 -- Loading entity wb_master
+** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_interconnect_tb.vhd(151): (vcom-1272) Length of expected is 32; length of slice name is 16.
 
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd {2 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Compiling package wishbone_p
--- Compiling package body wishbone_p
--- Loading package wishbone_p
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd(110): (vcom-1283) Cannot reference file "output" inside pure function "wb_master".
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd(115): (vcom-1283) Cannot reference file "output" inside pure function "wb_master".
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd(120): (vcom-1283) Cannot reference file "output" inside pure function "wb_master".
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd(136): (vcom-1283) Cannot reference file "output" inside pure function "wb_slave".
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd(173): (vcom-1283) Cannot reference file "output" inside pure function "wb_config_get_masters_for_slave".
-** Warning: /home/malte/workspace/SLProcessor/VHDL/wishbone/wishbone_p.vhd(181): (vcom-1283) Cannot reference file "output" inside pure function "wb_config_get_masters_for_slave".
-
-} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_ixs_decode.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_ixs_decode.vhd
+} {} {}} /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master2.vhd {1 {vcom -work work -2002 -explicit -stats=none /home/malte/workspace/SLProcessor/VHDL/wishbone/wb_master2.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package NUMERIC_STD
 -- Loading package wishbone_p
--- Loading package sl_misc_p
--- Compiling entity wb_ixs_decoder
--- Compiling architecture rtl of wb_ixs_decoder
+-- Compiling entity wb_master
+-- Compiling architecture rtl of wb_master
 
 } {} {}}

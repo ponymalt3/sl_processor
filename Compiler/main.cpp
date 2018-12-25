@@ -292,8 +292,6 @@ int main(int argc, char **argv)
     RTParser parser(gen);
     parser.parse(s);
     
-    std::cout<<"Num Instrs: "<<(gen.getCurCodeAddr())<<"\n";
-    
     if(Error(prog.getErrorHandler()).getNumErrors() == 0)
     {
       gen.storageAllocationPass(512,0);

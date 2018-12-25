@@ -2,10 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use IEEE.std_logic_1164.all;            -- basic logic types
-use STD.textio.all;                     -- basic I/O
-use IEEE.std_logic_textio.all;          -- I/O for logic types
-
 library work;
 use work.sl_structs_p.all;
 
@@ -32,15 +28,14 @@ package body sl_control_p is
     return sl_stall_ctrl_t is
     variable ctrl : sl_stall_ctrl_t;
     variable enable : std_ulogic_vector(2 downto 1);
-    
-    file output : text open write_mode is "STD_OUTPUT";
   begin
     
     --ctrl.exec_en := exec_en;
-    
+
     -- mask with active stages
     ctrl.stall_exec := stall_exec and proc.state.enable(S_EXEC);
     ctrl.stall_decex := (stall_decex and proc.state.enable(S_DECEX)) or ctrl.stall_exec;
+
     --ctrl.stall_decex := ctrl.stall_decex or ctrl.stall_exec;
 
     ctrl.enable := proc.state.enable;

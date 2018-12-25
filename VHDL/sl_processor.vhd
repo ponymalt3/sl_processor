@@ -42,7 +42,6 @@ architecture rtl of sl_processor is
   signal core_en_1d : std_ulogic;
   signal core_clk_state : std_ulogic;
   signal core_clk_gate : std_ulogic;
-  signal core_clk_gate2 : std_ulogic;
 
   signal alu_en        : std_ulogic;
   signal alu_cmd       : std_ulogic_vector(3 downto 0);
@@ -90,7 +89,6 @@ architecture rtl of sl_processor is
   signal mem_slave_ack : std_ulogic;
 
   signal ext_mem_disable : std_ulogic;
-  signal ext_mem_en_1d : std_ulogic;
 
 begin  -- architecture rtl
 
@@ -108,15 +106,6 @@ begin  -- architecture rtl
           core_clk_gate <= not core_clk_gate;
           core_clk <= not core_clk;
       end if;
-    end if;
-  end process;
-
-  process (clk_i, reset_n_i) is
-  begin  -- process
-    if reset_n_i = '0' then             -- asynchronous reset (active low)
-      core_clk_gate2 <= '0';
-    elsif falling_edge(clk_i) then  -- falling clock edge
-      core_clk_gate2 <= core_clk_gate;
     end if;
   end process;
 
@@ -273,13 +262,12 @@ begin  -- architecture rtl
         ext_mem_disable <= '1';
       end if;
 
-      ext_mem_en_1d <= '0';
       if ext_master_i.ack = '1' or ext_master_i.err = '1' then
         ext_mem_disable <= '0';
       end if;
     end if;
   end process;
 
-  ext_mem_stall <= not ext_master_i.ack and ext_mem_en;-- and ext_mem_stall_1d;
+  ext_mem_stall <= not ext_master_i.ack and ext_mem_en;
   
 end architecture rtl;

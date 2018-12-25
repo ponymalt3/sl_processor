@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Workspace Name="SLProcessor" Database="">
-  <Project Name="SLProcessor" Path="SLProcessor/SLProcessor.project" Active="Yes"/>
+<CodeLite_Workspace Name="SLProcessor" Database="" Version="10.0.0">
+  <Project Name="SLProcessorTest" Path="SLProcessorTest/SLProcessorTest.project" Active="No"/>
+  <Project Name="RTAsmTest" Path="RTAsmTest/RTAsmTest.project" Active="Yes"/>
+  <Project Name="SLProcessor" Path="SLProcessor/SLProcessor.project" Active="No"/>
+  <Project Name="SLCompiler" Path="SLCompiler/SLCompiler.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Environment/>
+      <Project Name="SLProcessorTest" ConfigName="Debug"/>
+      <Project Name="RTAsmTest" ConfigName="Debug"/>
       <Project Name="SLProcessor" ConfigName="Debug"/>
+      <Project Name="SLCompiler" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Environment/>
+      <Project Name="SLProcessorTest" ConfigName="Release"/>
+      <Project Name="RTAsmTest" ConfigName="Release"/>
       <Project Name="SLProcessor" ConfigName="Release"/>
+      <Project Name="SLCompiler" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

@@ -55,8 +55,7 @@ begin  -- architecture rtl
     end if;
   end process;
 
-  process (mask, master_in_i, master_out_i, master_sel_reg,
-           master_sel_valid_reg) is
+  process (mask, master_in_i, master_out_i, master_sel_reg, master_sel_valid_reg) is
   begin  -- process
 
     master_sel <= to_unsigned(0,5);
@@ -90,6 +89,3 @@ begin  -- architecture rtl
   end process;
 
 end architecture rtl;
-
-
-

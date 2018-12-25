@@ -1,5 +1,22 @@
 #Ignore everything
-Debug/*
+**/*Debug*/**
+**/*Release*/**
+
+*.txt
+*.mk
+*.list
+*.db
+**/.build*/**
+**/.codelite*/**
+**/Makefile
+*.prefs
+*.bak
+**/work/*
+
+**/quartus/incremental_db*
+**/quartus/output_files*
+**/quartus/db*
+
 
 #Whitelist subdirectories
 #*.project
@@ -25,4 +42,6 @@ Debug/*
 *.cnx
 *.qip
 **/greybox_tmp/*
+
+
 

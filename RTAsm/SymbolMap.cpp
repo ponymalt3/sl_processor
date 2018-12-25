@@ -6,15 +6,19 @@
  */
 
 #include "SymbolMap.h"
-#include "Error.h"
+#include "ErrorHandler.h"
 
 SymbolMap::_Symbol::_Symbol()
 {
-  strOffset_=0;
+  customStr_=0;
   strLength_=0;
   flagAllocated_=0;
   flagConst_=0;
-  flagUseAddrAsArraySize_=0;
+  flagIsArray_=0;
+  flagStayAllocated_=0;
+  flagsAllocateHighest_=0;
+  flagsIsFunction_=0;
+  allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
   link_=InvalidLink;
@@ -22,11 +26,15 @@ SymbolMap::_Symbol::_Symbol()
 
 SymbolMap::_Symbol::_Symbol(const Stream::String &str)
 {
-  strOffset_=str.getOffset();
+  customStr_=str.getBase()+str.getOffset();
   strLength_=str.getLength();
   flagAllocated_=0;
   flagConst_=0;
-  flagUseAddrAsArraySize_=0;
+  flagIsArray_=0;
+  flagStayAllocated_=0;
+  flagsAllocateHighest_=0;
+  flagsIsFunction_=0;
+  allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
   link_=InvalidLink;
@@ -34,14 +42,14 @@ SymbolMap::_Symbol::_Symbol(const Stream::String &str)
 
 void SymbolMap::_Symbol::changeArraySize(uint32_t size)
 {
-  flagUseAddrAsArraySize_=size!=1;
-  if(flagUseAddrAsArraySize_)
-    allocatedAddr_=size;
+  flagIsArray_=size!=0;
+  allocatedSize_=size==0?1:size;
 }
 
-SymbolMap::SymbolMap(Stream &stream):stream_(stream)
+SymbolMap::SymbolMap(Stream &stream,uint32_t startAddr):Error(stream.getErrorHandler()), stream_(stream)
 {
   symCount_=0;
+  startAddr_=startAddr;
 
   for(uint32_t i=0;i<(sizeof(hashTable_)/sizeof(hashTable_[0]));++i)
     hashTable_[i]=InvalidLink;
@@ -59,7 +67,7 @@ uint32_t SymbolMap::createSymbol(const Stream::String &str,uint32_t size)
   uint32_t i=findSymbol(str,hash);
   Error::expect(i == InvalidLink) << stream_ << "symbol " << str << " already defined at ";//<< Error::LineNumber(stream_,symbols_[i].strOffset_);
 
-  return insertSymbol(_Symbol(str),hash);
+  return insertSymbol(_Symbol(str),hash,size);
 }
 
 uint32_t SymbolMap::findOrCreateSymbol(const Stream::String &str,uint32_t size)
@@ -74,9 +82,11 @@ uint32_t SymbolMap::findOrCreateSymbol(const Stream::String &str,uint32_t size)
   return insertSymbol(_Symbol(str),hash,size);
 }
 
-uint32_t SymbolMap::createSymbolNoToken(uint32_t size)
+uint32_t SymbolMap::createSymbolNoToken(uint32_t size,bool allocateHighest)
 {
-  return insertSymbol(_Symbol(),0,size);
+  _Symbol s;
+  s.flagsAllocateHighest_=allocateHighest;
+  return insertSymbol(s,0,size);
 }
 
 uint32_t SymbolMap::createConst(const Stream::String &str,qfp32 value)
@@ -87,10 +97,10 @@ uint32_t SymbolMap::createConst(const Stream::String &str,qfp32 value)
   Error::expect(i == InvalidLink) << stream_ << "const "<< str << " already defined";
 
   _Symbol newSym=_Symbol(str);
-   newSym.constValue_=value;
-   newSym.flagConst_=1;
+  newSym.constValue_=value;
+  newSym.flagConst_=1;
 
-   return insertSymbol(newSym,hash);
+  return insertSymbol(newSym,hash);
 }
 
 uint32_t SymbolMap::createReference(const Stream::String &str,uint32_t irsOffset)
@@ -98,23 +108,41 @@ uint32_t SymbolMap::createReference(const Stream::String &str,uint32_t irsOffset
   uint32_t hash=str.hash();
 
   uint32_t i=findSymbol(str,hash);
-  Error::expect(i == InvalidLink) << stream_ << "const " << str << " already defined at ";// << Error::LineNumber(stream_,symbols_[i].strOffset_);
+  Error::expect(i == InvalidLink) << stream_ << "symbol " << str << " already defined at ";// << Error::LineNumber(stream_,symbols_[i].strOffset_);
 
   _Symbol newSym=_Symbol(str);
    newSym.flagAllocated_=1;
+   newSym.flagStayAllocated_=1;
    newSym.allocatedAddr_=irsOffset;
+
+   return insertSymbol(newSym,hash);
+}
+
+uint32_t SymbolMap::createFunction(const Stream::String &str,uint32_t addr)
+{
+  uint32_t hash=str.hash();
+
+  uint32_t i=findSymbol(str,hash);
+  Error::expect(i == InvalidLink) << stream_ << "symbol " << str << " already defined";// << Error::LineNumber(stream_,symbols_[i].strOffset_);
+
+  _Symbol newSym=_Symbol(str);
+   newSym.flagAllocated_=1;
+   newSym.flagStayAllocated_=1;
+   newSym.flagsIsFunction_=1;
+   newSym.allocatedAddr_=addr;
 
    return insertSymbol(newSym,hash);
 }
 
 SymbolMap::_Symbol& SymbolMap::operator[](uint32_t i)
 {
-  Error::expect(i < symCount_) << stream_ << "symbol reference out of range" << (i) << Error::FATAL;
+  Error::expect(i < symCount_) << stream_ << "symbol reference out of range" << (i) << ErrorHandler::FATAL;
   return symbols_[i];
 }
+
 uint32_t SymbolMap::insertSymbol(const _Symbol &sym,uint32_t hashIndex,uint32_t size)
 {
-  Error::expect(symCount_ < (sizeof(symbols_)/sizeof(symbols_[0]))) << stream_ << "no more symbol storage available" << Error::FATAL;
+  Error::expect(symCount_ < (sizeof(symbols_)/sizeof(symbols_[0]))) << stream_ << "no more symbol storage available" << ErrorHandler::FATAL;
 
   _Symbol &newSym=symbols_[symCount_];
 
@@ -124,10 +152,16 @@ uint32_t SymbolMap::insertSymbol(const _Symbol &sym,uint32_t hashIndex,uint32_t 
   newSym.link_=hashTable_[hashIndex];
   hashTable_[hashIndex]=symCount_;
 
-  if(size > 1)
+  if(size > 0)
   {
-    newSym.flagUseAddrAsArraySize_=1;
-    newSym.allocatedAddr_=size;
+    //is array
+    newSym.flagIsArray_=1;
+    newSym.allocatedSize_=size;
+  }
+  else
+  {
+    //single element
+    newSym.allocatedSize_=1;
   }
 
   return symCount_++;
@@ -138,7 +172,7 @@ uint32_t SymbolMap::findSymbol(const Stream::String &str,uint32_t hashIndex)
   uint32_t cur=hashTable_[hashIndex&0xFF];
   while(cur != InvalidLink)
   {
-    if(stream_.createStringFromToken(symbols_[cur].strOffset_,symbols_[cur].strLength_) == str)
+    if(stream_.createStringFromToken(symbols_[cur].customStr_,symbols_[cur].strLength_) == str)
       return cur;
 
     cur=symbols_[cur].link_;

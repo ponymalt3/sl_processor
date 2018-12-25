@@ -142,9 +142,6 @@ MTEST(testOperationsExtended,test_that_negate_with_var_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-    std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
-
 
   tester.loadCode();
   tester.execute();

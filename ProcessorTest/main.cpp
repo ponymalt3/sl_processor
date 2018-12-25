@@ -1,76 +1,41 @@
-#include <unittest++/UnitTest++.h>
+#include <mtest.h>
 #include "SLProcessorTest.h"
 
-SUITE(TestLoad)
-{
-  TEST(Load0)
-  {
-    qfp32_t value=-24.5;
-    std::cout<<"value as uint: "<<std::hex<<(value.asUint)<<std::dec<<"\n";
-    uint32_t code[]=
-    {
-      SLCode::Load::create(value.asUint),
-      SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
-      0xFFFF,
-      0xFFFF,
-      0xFFFF
-    };
-    
-    LoadAndSimulateProcessor proc(code);
-    
-    proc.run(5);
-    
-    CHECK(proc.readMemory(10) == value.asUint);
-  }
+class TestBugs : public mtest::test
+{  
+};
 
-  TEST(Load1)
-  {
-    qfp32_t value=-36;
-    std::cout<<"value as uint: "<<std::hex<<(value.asUint)<<std::dec<<"\n";
-    uint32_t code[]=
-    {
-      SLCode::Load::create(value.asUint),
-      SLCode::Load::constDataValue2(value.asUint),
-      SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
-      0xFFFF,
-      0xFFFF,
-      0xFFFF
-    };
-    
-    LoadAndSimulateProcessor proc(code);
-    
-    proc.run(6);
-    
-    CHECK(proc.readMemory(10) == value.asUint);
-  }
+MTEST(TestBugs,testOpWithOperandsResultAndIRS)
+{
+  qfp32_t ad0=10;
+  qfp32_t value=-24.5;
+  qfp32_t value2=7;
   
-  TEST(Load2)
+  uint32_t code[]=
   {
-    qfp32_t value=-360000.968438;
-    std::cout<<"value as uint: "<<std::hex<<(value.asUint)<<std::dec<<"\n";
-    uint32_t code[]=
-    {
-      SLCode::Load::create(value.asUint),
-      SLCode::Load::constDataValue3(value.asUint),
-      SLCode::Load::constDataValue2(value.asUint),
-      SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,10,0),
-      0xFFFF,
-      0xFFFF,
-      0xFFFF
-    };
-    
-    LoadAndSimulateProcessor proc(code);
-    
-    proc.run(7);
-    
-    CHECK(proc.readMemory(10) == value.asUint);
-  }
+    SLCode::Load::create1(value.toRaw()),
+    SLCode::Op::create(SLCode::REG_RES,SLCode::IRS,SLCode::CMD_SUB,5),
+    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,6),
+
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(5,value2.toRaw());
+  proc.writeMemory(6,0);
+  
+  proc.run(7);
+  
+  EXPECT(proc.readMemory(6) == (value-value2).toRaw());
+  proc.expectThatMemIs(6,value-value2);
 }
 
 // run all tests
 int main(int argc, char **argv)
 {
-  LoadAndSimulateProcessor::getVdhlTestGenerator().enable("test.vector");
-	mtest::runAllTests("*.*",mtest::enableColor|mtest::enableStdCout);
+	mtest::runAllTests("*.*");
   return 0;
 }

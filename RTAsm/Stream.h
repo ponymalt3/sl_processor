@@ -10,17 +10,32 @@
 
 #include <stdint.h>
 //#include "Token.h"
+#include "Error.h"
+#include "qfp32.h" 
 
 struct qfp32
-{
+{  
   uint32_t mant_ : 29;
   uint32_t exp_ : 2;
   uint32_t sign_ : 1;
+  
+  static qfp32 fromRealQfp32(_qfp32_t v) { return {v.getMant(),v.getExp(),v.getSign()}; }
+  _qfp32_t toRealQfp32() const { return _qfp32_t(sign_,exp_,mant_); }
+  
+  qfp32 operator+(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()+rhs.toRealQfp32()); }
+  qfp32 operator-(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()-rhs.toRealQfp32()); }
+  qfp32 operator*(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()*rhs.toRealQfp32()); }
+  qfp32 operator/(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32()/rhs.toRealQfp32()); }
+  
+  qfp32 log2() const { return fromRealQfp32(toRealQfp32().log2()); }
+  qfp32 trunc() const { return fromRealQfp32(toRealQfp32().trunc()); }
+  qfp32 logicShift(const qfp32 &rhs) const { return fromRealQfp32(toRealQfp32().logicShift(rhs.toRealQfp32())); }
 };
 
 class Token;
+class RTProg;
 
-class Stream
+class Stream : public Error
 {
 public:
   enum {InvalidMark=0xFFFFFFFF};
@@ -41,6 +56,7 @@ public:
 
     uint32_t getOffset() const { return offset_; }
     uint32_t getLength() const { return length_; }
+    const char* getBase() const { return base_; }
 
   protected:
     const char *base_;
@@ -48,7 +64,7 @@ public:
     uint16_t length_;
   };
 
-  Stream(const char *code);
+  Stream(RTProg &rtProg);//const char *code);
 
   char peek();
   char read();
@@ -57,20 +73,28 @@ public:
   uint32_t getCurrentLine() const { return line_; }
 
   Stream& skipWhiteSpaces();
+  
+  struct value_t
+  {
+    uint32_t value_;
+    uint32_t digits_;
+    bool sign_;
+  };
 
-  uint32_t readInt(bool allowSign=true);
+  value_t readInt(bool allowSign=true);
   qfp32 readQfp32();
   String readSymbol();
   Token readToken();
   String createStringFromToken(uint32_t offset,uint32_t length) const;
+  String createStringFromToken(const char *base,uint32_t length) const;
 
   void markPos();
   void restorePos();
 
-protected:
   static uint32_t log2(int32_t value);
 
-  const char *asmText_;
+protected:
+  const char *asmText_;  
   uint32_t pos_;
   uint32_t line_;
   uint32_t length_;

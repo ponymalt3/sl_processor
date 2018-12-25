@@ -16,6 +16,7 @@ DISPLAY Top -Bottom Vias Pads tPlace -bPlace tOrigins -bOrigins tKeepout -bKeepo
 1111000010 MOVDATA2
 1111000011 SIG(10)
 1111000100 NEG(9)
+1111000101 LOOP(11)
 
 
 
@@ -27,8 +28,6 @@ DISPLAY Top -Bottom Vias Pads tPlace -bPlace tOrigins -bOrigins tKeepout -bKeepo
    X   A OFF B 
 1: WB    OFF I
    MD    OFF NOXCY
-
-
 
 
 1: MOV RESULT, DATAx, LOOP  [IRS] 		=> code/4 wbreg/2 OFFSET/9 INC/1
@@ -59,7 +58,7 @@ DISPLAY Top -Bottom Vias Pads tPlace -bPlace tOrigins -bOrigins tKeepout -bKeepo
 
 10: WAIT/SIGNAL         			=> code/10 MODE/3 (A/1)
 
-11: 
+11: LOOP					=> code/10 0000
 
 ADDR0: DATAx		A=*ADDR0 | RESULT
 ADDR1: DATAx (+ IRS)	B=*ADDR1 | LOOP (for MEM only)

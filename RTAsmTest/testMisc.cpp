@@ -68,7 +68,7 @@ MTEST(testMisc,test_that_math_lib_works_correct)
   RTProg testCode=R"abc(
     def pi 3.141592654;
     
-    function mod(a,b)
+        function mod(a,b)
       div=a/b;
       return a-(int(div)*b);
     end
@@ -186,8 +186,6 @@ MTEST(testMisc,test_that_math_lib_works_correct)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
-
   tester.loadCode();
   tester.execute();
   

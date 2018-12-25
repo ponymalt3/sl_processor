@@ -30,8 +30,6 @@ package body sl_execute_p is
     exec.result := alu.result;
     exec.complete := alu.complete;
 
-    --exec.alu_en := to_ulogic(proc.decex.cmd /= CMD_MOV) and proc.state.enable(S_EXEC) and not proc.state.stall_exec_1d;
-
     -- fragmented load
     if proc.state.enable(S_EXEC) = '1' and proc.decex.load = '1' then
       exec.complete := '1';

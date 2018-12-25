@@ -48,8 +48,6 @@ architecture behav of sl_test_tb is
 
   signal proc_master_out : wb_master_ifc_out_t;
 
-  signal code_data2     : std_ulogic_vector(15 downto 0);
-
 begin  -- architecture Behav
 
   sl_processor_1: entity work.sl_processor
@@ -80,6 +78,7 @@ begin  -- architecture Behav
 
   -- clock generation
   clk <= not clk after 10 ns;
+
 
   wb_master_1: entity work.wb_master
     port map (
@@ -112,6 +111,7 @@ begin  -- architecture Behav
     generic map (
       SizeInKBytes => 2)
     port map (
+      p2_code_o  => open,
       clk_i        => sl_clk,
       reset_n_i    => reset_n,
       p0_addr_i    => code_addr,
@@ -123,7 +123,6 @@ begin  -- architecture Behav
       p1_re_i      => '0',
       p1_reset_n_i => '0',
       p2_addr_i    => code_addr,
-      p2_code_o    => code_data2,
       p2_re_i      => code_en,
       p2_reset_n_i => reset_n,
       p3_addr_i    => to_unsigned(0,16),
@@ -161,7 +160,7 @@ begin  -- architecture Behav
       end if;
     end if;
   end process;
-  
+
   slave_out(1) <= (ext_slave.dat,ext_slave.ack,ext_slave.err,ext_mem_stall);
 
   -- waveform generation
@@ -333,7 +332,6 @@ begin  -- architecture Behav
             sl_clk <= '0';
             wait for 10ns;
           end loop;  -- i
-          --ext_mem_stall <= '0';
         when X"0003" =>
           ext_mem_stall <= '0';
           hread(l,data32);
@@ -441,7 +439,7 @@ begin  -- architecture Behav
           wait for 1 ns;
 
           hread(l,data32);
-      
+          
           assert mem_result = data32 report LF & "  expect FAILED " & to_hstring(mem_result) & " != " & to_hstring(data32) & LF severity error;
   
           enable_core <= '1';

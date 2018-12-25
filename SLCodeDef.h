@@ -10,11 +10,27 @@
 
 namespace SLCode
 {
-  enum Operand {REG_AD0=0,REG_AD1,REG_LOOP,REG_RES,IRS,DEREF_AD0,DEREF_AD1};
-  enum Command {CMD_MOV=0,CMD_UNUSED,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES};
-  enum CmpMode {CMP_EQ=0,CMP_NEQ,CMP_GT,CMP_LE};
+  enum Operand {REG_AD0=0,REG_AD1,REG_IRS,REG_RES,IRS,DEREF_AD0,DEREF_AD1,INVALID_OP};
+  enum Command {CMD_MOV=0,CMD_CMP,CMD_ADD,CMD_SUB,CMD_MUL,CMD_DIV,CMD_MAC,CMD_MAC_RES,CMD_LOG2=8,CMD_SHFT,CMD_INVALID=15};
+  enum UnaryCommand {UNARY_NEG,UNARY_LOG2,UNARY_TRUNC};
+  enum CmpMode {CMP_EQ=0,CMP_NEQ,CMP_LT,CMP_LE};
 
-  enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_LOOP=1};
+  enum {MUX1_RESULT=0,MUX1_MEM=1,MUX2_MEM=0,MUX2_IRS=1};
+  enum {WBREG_AD0=REG_AD0,WBREG_AD1=REG_AD1,WBREG_IRS=REG_IRS,WBREG_NONE=3};
+  
+  struct IRS
+  {
+    static uint16_t getOffset(uint16_t instr)
+    {
+      return (instr>>2)&0x1FF;
+    }
+  
+    static uint16_t patchOffset(uint16_t instr,uint16_t offset)
+    {
+      uint16_t patchedInstr=(instr&0xF803) + ((offset&0x1FF)<<2);
+      return patchedInstr;
+    }
+  };
 
    //      MOV [IRS]                RESULT, LOOP  => code/4 A/1 B/1 OFFSET/9
   struct Mov
@@ -23,13 +39,13 @@ namespace SLCode
     enum {Code2=0xF000,Bits2=9};//MOVDATA1
     enum {Code3=0xF080,Bits3=10};//MOVDATA2(2)
 
-    static uint32_t create(Operand a,Operand b,uint32_t irsOffset,bool incAddr)
+    static uint32_t create(Operand a,Operand b,uint32_t irsOffset=0,bool incAddr=false)
     {
       uint32_t offset=irsOffset&0x1FF;
       uint32_t incAD=incAddr;
       uint32_t muxA=(b==REG_RES)?MUX1_RESULT:MUX1_MEM;
-      uint32_t muxB=(b==REG_LOOP)?MUX2_LOOP:MUX2_MEM;
-      uint32_t muxAD0=0;//(a==DEREF_AD0)?0:1;
+      uint32_t muxB=(b==REG_IRS)?MUX2_IRS:MUX2_MEM;
+      uint32_t muxAD0=(a==DEREF_AD0)?0:1;
       uint32_t muxAD1=(a==DEREF_AD0 || b==DEREF_AD0)?0:1;
       uint32_t wbReg=a;
       
@@ -39,7 +55,7 @@ namespace SLCode
         //use same instruction as MOVDATA2(2) but other mux config
         muxAD0=(a==DEREF_AD0)?0:1;
         muxAD1=(b==DEREF_AD0)?0:1;
-        return Code3 + (incAD<<4) + (MUX2_LOOP<<3) + (muxAD1<<2) + (MUX1_MEM<<1) + (muxAD0<<0);
+        return Code3 + (incAD<<4) + (MUX2_MEM<<3) + (muxAD1<<2) + (MUX1_MEM<<1) + (muxAD0<<0);
       }
 
       if(a == IRS)
@@ -74,23 +90,41 @@ namespace SLCode
     static uint32_t create(Operand a,Operand b,Command cmd,uint32_t irsOffset=0,bool incAddr=false,bool incAddr2=false)
     {
       //OP RESULT, [DATAx]  [IRS]       => code/1 ADDR0/1 A/1 OP/3 OFFSET/9 INC/1
-      //OP RESULT, [DATAx]  [DATAx]      => code/8 ADDR0/1 A/1 ADDR1/1 OP/3 INC/2 (B/1)
+      //OP RESULT, [DATAx]  [DATAx]      => code/4 ADDR0/1 A/1 ADDR1/1 OP/3 INC/2 (B/1)
 
-      uint32_t muxAD0=(a==REG_AD0)?0:1;
-      uint32_t muxAD1=(b==REG_AD0)?0:1;
+      uint32_t muxAD0=(a==DEREF_AD0)?0:1;
+      uint32_t muxAD1=(b==DEREF_AD0)?0:1;
       uint32_t muxA=(a==REG_RES)?MUX1_RESULT:MUX1_MEM;
       uint32_t muxB=MUX2_MEM;
       uint32_t incAD=incAddr;
       uint32_t incAD2=incAddr2;
       uint32_t offset=irsOffset&0x1FF;
+      
+      //fix bug
+      if(muxA == MUX1_MEM && b != IRS)
+      {
+        //if both operands are mem then swap address increment signals
+        uint32_t t=incAD;
+        incAD=incAD2;
+        incAD2=t;
+      }
+      
+      bool cmdExt=(cmd>>3)&1;
+      cmd=static_cast<SLCode::Command>(cmd&7);
 
       if(b == IRS)
       {
+        //encode 4. bit of cmd in incAD of addr is not used
+        if(muxA == MUX1_RESULT)
+        {
+          muxAD0=cmdExt;
+        }
+        
         return Code1 + (cmd<<12) + (incAD<<11) + (offset<<2) + (muxA<<1) + muxAD0;
       }
       else
       {
-        return Code2 + (incAD2<<8) + (cmd<<5) + (incAD<<4) + (muxB<<3) + (muxAD1<<2) + (muxA<<1) + muxAD0;
+        return Code2 + (incAD2<<9) + (cmdExt<<8) + (cmd<<5) + (incAD<<4) + (muxB<<3) + (muxAD1<<2) + (muxA<<1) + muxAD0;
       }
     }
   };
@@ -99,7 +133,7 @@ namespace SLCode
   {
     enum {Code=0xD000,Bits=4};
 
-    static uint32_t create(Operand a,uint32_t irsOffset,CmpMode mode,bool disableExecuteFor3Cycles=false)
+    static uint32_t create(uint32_t irsOffset,CmpMode mode,bool disableExecuteFor3Cycles=false)
     {
       //CMP RESULT  [IRS]        => code/4 MODE/2 NOX_CY/1
 
@@ -116,14 +150,23 @@ namespace SLCode
 
     static uint32_t create(int32_t relJump,bool loopEndMarker)
     {
-      //GOTO RESULT, CONST       => code/6 CONST/10 (A/1) (MD/1)
+      //GOTO CONST       => code/6 CONST/10 (A/1) (MD/1)
 
       uint32_t muxA=MUX1_RESULT;
       uint32_t loopEnd=loopEndMarker;
-      uint32_t pcAdjust=relJump&0x3FF;
+      uint32_t pcAdjust=(relJump&0x3FF);
 
-      return Code + (pcAdjust<<2) + (muxA<<1) + loopEnd;
+      return Code + (pcAdjust<<2) + (muxA<<1) + 1;
     }
+    
+    //absolute goto
+    static uint32_t create()
+    {
+      //GOTO RESULT       => code/6
+
+      return Code + 0;
+    }
+    
   };
 
   struct Load
@@ -132,54 +175,60 @@ namespace SLCode
 
     static uint32_t constDataValue1(uint32_t value)
     {
-      return ((value&0x80000000)>>22)+((value&0x1FF00000)>>20);
+      return ((value&0x80000000)>>20)+((value&0x3FF80000)>>19);
     }
 
     static uint32_t constDataValue2(uint32_t value)
     {
-      return ((value&0x60000000)>>15)+((value&0x000FFF80)>>6);//bit0 == 0
+      return ((value&0x40000000)>>19)+((value&0x0007FF00)>>8);
     }
 
     static uint32_t constDataValue3(uint32_t value)
     {
-      return (value&0x0000007F)<<1;//bit0 == 0
+      return (value&0x000000FF);
     }
 
-    static uint32_t create(uint32_t value)
+    static uint32_t create(uint32_t constData)
     {
-      //LOAD RESULT CONST16, CONST32     => code/4 MODE/2 X/10
+      //LOAD RESULT CONST16, CONST32     => code/4 X/12
 
-      //1--11111 1111---- -------- --------
-      //12211111 11112222 22222222 2-------
-      //12211111 11112222 22222222 23333333
+      //1-111111 11111--- -------- --------
+      //12111111 11111222 22222222 --------
+      //12111111 11112222 22222222 33333333
 
-      uint32_t constData1=constDataValue1(value);
-      uint32_t constData2=constDataValue2(value);
-      uint32_t constData3=constDataValue3(value);
+      //uint32_t constData1=constDataValue1(value);
+      //uint32_t constData2=constDataValue2(value);
+      //uint32_t constData3=constDataValue3(value);
 
-      uint32_t mode=0;
-
-      if(constData2)
-        ++mode;
-
-      if(constData3)
-        ++mode;
-
-      return Code + (constData1<<2) + mode;
+      return Code + constData;
     }
+    
+    static uint32_t create1(uint32_t value) { return create(constDataValue1(value)); }
+    static uint32_t create2(uint32_t value) { return create(constDataValue2(value)); }
+    static uint32_t create3(uint32_t value) { return create(constDataValue3(value)); }
   };
 
-  struct Neg
+  struct UnaryOp
   {
     enum {Code=0xF100,Bits=10};
 
-    static uint32_t create()
+    static uint32_t create(UnaryCommand ucmd)
     {
       //NEG RESULT         => code/16  (A/1)
 
       uint32_t muxA=MUX1_RESULT;
+      
+      bool isNeg=ucmd == UNARY_NEG;
+      bool isTrunc=ucmd == UNARY_TRUNC;
+      
+      uint32_t cmd=CMD_INVALID;
+      
+      if(ucmd == UNARY_LOG2)
+      {
+        cmd=CMD_LOG2;
+      }
 
-      return Code + (muxA<<1);
+      return Code + ((cmd&0x7)<<3) + (isTrunc<<2) + (muxA<<1) + isNeg;
     }
   };
 
@@ -197,6 +246,22 @@ namespace SLCode
       uint32_t mode=SIG_ONLY;
 
       return Code + (mode<<2) + (muxA<<1);
+    }
+  };
+  
+  struct Loop
+  {
+    enum {Code=0xF140,Bits=10};
+
+    enum {};
+
+    static uint32_t create()
+    {
+      //LOOP         => code/10
+
+      uint32_t muxA=MUX1_RESULT;
+
+      return Code + (muxA<<1);
     }
   };
 }

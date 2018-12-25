@@ -30,6 +30,8 @@ public:
     TOK_DECL,
     TOK_DEF,
     TOK_REF,
+    TOK_FCN_DECL,
+    TOK_FCN_RET,
     TOK_EOS
   };
 
