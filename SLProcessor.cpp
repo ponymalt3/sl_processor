@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include <iostream>
+
 uint32_t simClockEnable(uint32_t oldValue,uint32_t newValue,uint32_t clkEnMask,uint32_t bitsUsed)
 {
   uint32_t result=oldValue;
@@ -793,5 +795,5 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   stateNext.stallDec_1d_=stall.stallDec_;
   
   state_=stateNext;
-  //state_.en_=stall.enNext_;
+  enable_=stall.enNext_;
 }
