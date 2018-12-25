@@ -70,5 +70,7 @@ SUITE(TestLoad)
 // run all tests
 int main(int argc, char **argv)
 {
-	return UnitTest::RunAllTests();
+  LoadAndSimulateProcessor::getVdhlTestGenerator().enable("test.vector");
+	mtest::runAllTests("*.*",mtest::enableColor|mtest::enableStdCout);
+  return 0;
 }

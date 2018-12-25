@@ -3,6 +3,8 @@
 #include <cstring>
 #include "SLCodeDef.h"
 
+#include <iostream>
+
 uint32_t simClockEnable(uint32_t oldValue,uint32_t newValue,uint32_t clkEnMask,uint32_t bitsUsed)
 {
   uint32_t result=oldValue;
@@ -113,6 +115,10 @@ void SLProcessor::reset()
 
 _CodeFetch SLProcessor::codeFetch()
 {
+  if(state_.pc_ == 16)
+  {
+    int a=0;
+  }
   _CodeFetch fetch;
   fetch.data_=portCode_.read(state_.pc_);
   fetch.pc_=state_.pc_;
@@ -216,7 +222,6 @@ _Decode SLProcessor::decodeInstr(uint32_t extMemStall,uint32_t loopActive,uint32
       break;
 
     case 7:
-
       switch(bdata(11 downto 6))
       {
       case 0:
@@ -559,7 +564,44 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
 {
   _Exec exec;
 
-  exec.munit_=arithUnint_.comb();
+  exec.munit_=arithUnint_.comb(decEx_);
+  
+  std::cout<<"arith result: "<<(exec.munit_.result_)<<"\n";
+  
+  //fragmented load
+  if(enable_(_State::S_EXEC) && decEx_.load_)
+  {
+    std::cout<<"arith result load overwrite\n";
+    switch(state_.loadState_)
+    {
+      case 1: exec.munit_.result_=(((decEx_.loadData_>>11)&1)<<31) + ((decEx_.loadData_&0x7FF)<<19); break;
+      case 2: exec.munit_.result_=state_.result_ | ((((decEx_.loadData_>>11)&0x1)<<30) + ((decEx_.loadData_&0x7FF)<<8)); break;
+      case 4: exec.munit_.result_=state_.result_ | ((decEx_.loadData_)&0xFF); break;
+    }
+    
+    if(qfp32_t::initFromRaw(exec.munit_.result_) == qfp32_t(12.9))
+    {
+      int a=0;
+    }
+    
+    exec.munit_.complete_=1;
+  }
+  
+  if(enable_(_State::S_EXEC) && decEx_.neg_)
+  {
+    exec.munit_.result_=state_.result_^0x80000000;
+    exec.munit_.complete_=1;
+  }
+  
+  if(enable_(_State::S_EXEC) && decEx_.trunc_)
+  {
+    exec.munit_.result_=state_.result_&(~(0xFFFFFF>>(((state_.result_>>29)&0x3)*8)));
+    if((exec.munit_.result_&0x7FFFFFFF) == 0)
+    {
+      exec.munit_.result_=0;
+    }
+    exec.munit_.complete_=1;
+  }
 
   uint32_t data=decEx_.b_;
 
@@ -568,7 +610,9 @@ _Exec SLProcessor::execute(uint32_t extMemStall)  //after falling edge
 
   if(!extMemStall)
   {
-    if(enable_(_State::S_EXEC) && decEx_.writeExt_)
+    if(decEx_.writeExt_)
+    {
+      std::cout<<"WX: "<<(decEx_.writeAddr_)<<" "<<(qfp32_t::initFromRaw(data))<<"\n";
       portExt_.write(decEx_.writeAddr_,data);
   }
 
@@ -627,11 +671,28 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   addrNext[0]=state_.addr_[0]+state_.incAd0_;
   addrNext[1]=state_.addr_[1]+state_.incAd1_;
 
+  portExt_.update();
+  portR0_.update();
+  portR1_.update();
+  
+  //************************************ at rising edge *******************************************
+  if(enable_(_State::S_DECEX) && execNext.execNext_ && !stall.stallDecEx_ && !stall.flush_)
+  {
+    if(stateNext.incAd0_)
+    {
+      int b=0;
+    }
+    stateNext.addr_[0]=state_.addr_[0]+stateNext.incAd0_;
+    stateNext.addr_[1]=state_.addr_[1]+stateNext.incAd1_;
+  }
+
   //register write (in EXEC stage)
   if(decEx_.wbEn_ && enable_(_State::S_EXEC))
   {
-    _qfp32_t a;
-    a.asUint=decEx_.writeDataSel_?decEx_.a_:decEx_.b_;
+    _qfp32_t a=_qfp32_t::initFromRaw(state_.result_);
+    std::cout<<"*****************DEC: "<<(decEx_.cmd_)<<"  mux: "<<(decEx_.mux0_)<<"  wb: "<<(decEx_.wbReg_)<<"\n";
+    //a.asUint=decEx_.writeDataSel_?decEx_.a_:decEx_.b_;
+    int32_t test=_qfp32_t::initFromRaw(execNext.intResult_);//(int32_t)(a.abs());
     switch(decEx_.wbReg_)
     {
     case SLCode::REG_LOOP: state_.loopCount_=(int32_t)(a.abs()); break;
@@ -681,6 +742,8 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
 
   if(!state_.resultPrefetch_ && !stateNext.resultPrefetch_ && stall.stallDecEx_ && execNext.munit_.complete_)
   {
+    stateNext.result_=execNext.munit_.result_;
+    std::cout<<"result: "<<(qfp32_t::initFromRaw(stateNext.result_))<<"[0x"<<std::hex<<(stateNext.result_)<<std::dec<<"]\n";
     stateNext.resultPrefetch_=1;
     decExNext.a_=execNext.munit_.result_;
   }
@@ -698,10 +761,15 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
 
   if(!stall.stallDecEx_)
   {
-    //only need for simulation; reflect register value in HW register enable would be '0'
-    if(state_.resultPrefetch_ && state_.loadState_ == 0)
-      decExNext.a_=decEx_.a_;
-
+    //retired instr
+    if(enable_(_State::S_EXEC))
+    {
+      executedAddr_=decode_.curPc_;
+      std::cout<<"exec addr... "<<(executedAddr_)<<"\n";
+    }
+    
+    code_=codeNext;
+    decode_=decodeNext;
     decEx_=decExNext;
     if(enable_(_State::S_DECEX) && decodeLoadTmp == 0)//reset only if unit has next result
       stateNext.resultPrefetch_=0;

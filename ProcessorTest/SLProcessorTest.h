@@ -46,6 +46,13 @@ public:
     }
   }
   
+  uint32_t readMemory(qfp32_t addr)
+  {
+    uint32_t t=readMemory((int32_t)addr);
+    std::cout<<"read: "<<(qfp32_t::initFromRaw(t))<<"\n";
+    return t;
+  }
+  
   uint32_t readMemory(uint32_t addr)
   {
     if(addr >= localMem_.getSize())
@@ -67,6 +74,61 @@ public:
       processor_.update(0,0,0);
   }
     
+    getVdhlTestGenerator().runCycles(cycles,true);
+  }
+  
+  void executeWithSetPc(uint32_t pcValue,uint32_t cycles=1)
+  {
+    for(uint32_t i=0;i<cycles;++i)
+      processor_.update(0,1,pcValue);
+  }
+  
+  void executeUntilAddr(uint32_t addr)
+  {
+    while(processor_.getExecutedAddr() == 0xFFFFFFFF || processor_.getExecutedAddr() < addr)
+    {
+      processor_.update(0,0,0);    
+    }
+    
+    getVdhlTestGenerator().runUntilAddr(addr);
+  }
+  
+  void expectThatMemIs(qfp32_t addr,qfp32_t expectedValue)
+  {
+    EXPECT(readMemory(addr) == expectedValue.toRaw());
+    getVdhlTestGenerator().expect((int32_t)addr,expectedValue.toRaw());
+  }  
+  void expectThatMemIs(qfp32_t addr,uint32_t expectedValue)
+  {
+    EXPECT(readMemory(addr) == expectedValue);
+    getVdhlTestGenerator().expect((int32_t)addr,expectedValue);
+  }
+  void expectThatMemIs(uint32_t addr,qfp32_t expectedValue)
+  {
+    std::cout<<"EXPECT: "<<(qfp32_t::initFromRaw(readMemory(addr)))<<" == "<<(expectedValue)<<"\n";
+    EXPECT(readMemory(addr) == expectedValue.toRaw());
+    getVdhlTestGenerator().expect(addr,expectedValue.toRaw());
+  }
+  void expectThatMemIs(uint32_t addr,uint32_t expectedValue)
+  {
+    EXPECT(readMemory(addr) == expectedValue);
+    getVdhlTestGenerator().expect(addr,expectedValue);
+  }
+  void expectThatMemIs(uint32_t addr,int32_t expectedValue)
+  {
+    EXPECT(readMemory(addr) == (uint32_t)expectedValue);
+    getVdhlTestGenerator().expect(addr,expectedValue);
+  }
+  void expectThatMemIs(uint32_t addr,double expectedValue)
+  {
+    expectThatMemIs(addr,_qfp32_t(expectedValue));
+  }
+  static VHDLTestDataGenerator& getVdhlTestGenerator()
+  {
+    static VHDLTestDataGenerator instance_;
+    return instance_;
+  }
+  
 protected:
   Memory localMem_;
   Memory codeMem_;

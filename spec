@@ -40,7 +40,7 @@ DISPLAY Top -Bottom Vias Pads tPlace -bPlace tOrigins -bOrigins tKeepout -bKeepo
  
 3: OP RESULT, [DATAx]  [IRS] 			=> code/1 ADDR0/1 A/1 OP/3 OFFSET/9 INC/1		
 
-4: OP RESULT, [DATAx]  [DATAx]			=> code/8 ADDR0/1 A/1 ADDR1/1 OP/3 INC/2 (B/1)
+4: OP RESULT, [DATAx]  [DATAx]			=> code/4 ADDR0/1 A/1 ADDR1/1 OP/3 INC/2 (B/1)
 
 * ADD,SUB,MUL,DIV,MAC
 
@@ -183,4 +183,18 @@ religion
 kunst design/entwerfen/neue
 mythos legende
 
+mat beaverhouser
+
+
+viky
+w#rmflasche
+Haarfärbe gutschein
+
+marie
+http://www.funi-smart-art.com/tshirts/
+
+nachsendeauftrag:
+ 3151093867
+
+mA.lte!
 
