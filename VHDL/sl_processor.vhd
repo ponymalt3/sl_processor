@@ -42,8 +42,6 @@ architecture rtl of sl_processor is
 
   signal core_clk : std_ulogic;
   signal core_en_1d : std_ulogic;
-  signal core_clk_state : std_ulogic;
-  signal core_clk_gate : std_ulogic;
 
   signal alu_en        : std_ulogic;
   signal alu_cmd       : std_ulogic_vector(3 downto 0);
@@ -59,11 +57,6 @@ architecture rtl of sl_processor is
   signal wp_addr       : reg_addr_t;
   signal wp_din        : reg_raw_t;
   signal wp_we         : std_ulogic;
-
-  signal rp0_addr_vec      : std_ulogic_vector(15 downto 0);
-  signal rp1_addr_vec      : std_ulogic_vector(15 downto 0);
-  signal wp_addr_vec      : std_ulogic_vector(15 downto 0);
-  signal mem_addr_vec   : std_ulogic_vector(15 downto 0);
 
   signal qfp_cmd      : qfp_cmd_t;
   signal qfp_ready   : std_ulogic;
@@ -99,23 +92,6 @@ architecture rtl of sl_processor is
 
 begin  -- architecture rtl
 
-  process (clk_i, reset_n_i) is
-  begin  -- process
-    if reset_n_i = '0' then             -- asynchronous reset (active low)
-      core_clk_gate <= '0';
-      core_en_1d <= '0';
-      core_clk_state <= '0';
-      core_clk <= '1';
-    elsif clk_i'event and clk_i = '1' then  -- rising clock edge
-      core_en_1d <= core_en_i;
-      core_clk_state <= not core_clk_state;
-        if (core_en_i = '1' and (core_en_1d = '1' or core_clk_state = '0')) or (core_en_i = '0' and core_en_1d = '1' and core_clk_state = '1') then
-          core_clk_gate <= not core_clk_gate;
-          core_clk <= not core_clk;
-      end if;
-    end if;
-  end process;
-
   sl_core_1: entity work.sl_core
     generic map (
       ExtAddrThreshold => LocalMemSizeInKB*(1024/4),
@@ -123,7 +99,7 @@ begin  -- architecture rtl
     port map (
       clk_i           => clk_i,
       reset_n_i       => core_reset_n_i,
-      en_i            => core_clk_gate,
+      en_i            => core_en_i,
       alu_en_o        => alu_en,
       alu_cmd_o       => alu_cmd,
       alu_op_a_o      => alu_op_a,
@@ -151,10 +127,6 @@ begin  -- architecture rtl
 
   code_addr_o <= unsigned(cp_addr);
 
-  rp0_addr_vec <= To_StdULogicVector(std_logic_vector(rp0_addr(15 downto 0)));
-  rp1_addr_vec <= To_StdULogicVector(std_logic_vector(rp1_addr(15 downto 0)));
-  wp_addr_vec <= To_StdULogicVector(std_logic_vector(wp_addr(15 downto 0)));
-    
   sl_dpram_1: entity work.sl_dpram
     generic map (
       SizeInBytes         => LocalMemSizeInKB*1024,
@@ -202,7 +174,7 @@ begin  -- architecture rtl
     port map (
       clk_i      => clk_i,
       reset_n_i  => core_reset_n_i,
-      en_i       => core_clk_gate,
+      en_i       => core_en_i,
       cmd_i      => qfp_cmd,
       ready_o    => qfp_ready,
       start_i    => alu_en2,
@@ -247,7 +219,7 @@ begin  -- architecture rtl
     if core_reset_n_i = '0' then             -- asynchronous reset (active low)
       qfp_idle <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
-      if core_clk_gate = '1' then
+      if core_en_i = '1' then
         if qfp_ready = '1' and alu_en2 = '1' and qfp_cmd.unit /= QFP_UNIT_NONE then
           qfp_idle <= '0';
         end if;
