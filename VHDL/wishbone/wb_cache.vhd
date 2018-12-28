@@ -13,6 +13,7 @@ entity wb_cache is
   
   port (
     clk_i      : in    std_ulogic;
+    mem_clk_i  : in    std_ulogic;
     reset_n_i  : in    std_ulogic;
     
     addr_i     : in    unsigned(31 downto 0);
@@ -90,19 +91,17 @@ architecture rtl of wb_cache is
   signal pending_write_1d : std_ulogic;
   signal addr_ov_bit : std_ulogic;
 
-  signal mem_clk : std_ulogic;
   signal xxx : std_ulogic;
+
 
 begin
 
-  mem_clk <= not clk_i;
-
-  m9k_1: entity work.m9k_2
+  sl_dpram_1: entity work.sl_dpram
     generic map (
       SizeInBytes => NumberOfLines*4,
       SizeOfElementInBits => 32)
     port map (
-      clk_i     => mem_clk,
+      clk_i     => mem_clk_i,
       reset_n_i => reset_n_i,
       p0_addr_i => tag_index,
       p0_din_i  => tag_out,
@@ -113,12 +112,12 @@ begin
       p1_dout_o => tag1_in,
       p1_we_i   => tag1_we);
 
-    m9k_2: entity work.m9k_2
+    sl_dpram_2: entity work.sl_dpram
     generic map (
       SizeInBytes => NumberOfLines*WordsPerLine*4,
       SizeOfElementInBits => 32)
     port map (
-      clk_i     => mem_clk,
+      clk_i     => mem_clk_i,
       reset_n_i => reset_n_i,
       p0_addr_i => mem_addr(LineIndexBits+WordIndexBits-1 downto 0),
       p0_din_i  => mem_din,
