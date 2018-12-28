@@ -48,12 +48,16 @@ architecture rtl of sl_cluster is
   signal shared_mem_we : std_ulogic;
   signal shared_mem_addr : std_ulogic_vector(15 downto 0);
 
+  signal mem_clk : std_ulogic;
+
   signal ack : std_ulogic;
 
   type mem_t is array (natural range <>) of std_logic_vector(31 downto 0);
   signal mem : mem_t((SharedMemSizeInKB*1024/4)-1 downto 0);
 
 begin  -- architecture rtl
+
+  mem_clk <= not clk_i;
 
   wb_ixs_1: entity work.wb_ixs
     generic map (
@@ -121,9 +125,10 @@ begin  -- architecture rtl
     sl_processor_1: entity work.sl_processor
       generic map (
         LocalMemSizeInKB => LocalMemSizeInKB,
-        UseCodeAddrNext  => i<2)
+        CodeStartAddr  => i*4)
       port map (
         clk_i           => clk_i,
+        mem_clk_i       => mem_clk,
         reset_n_i       => reset_n_i,
         core_en_i       => core_en_i(i),
         core_reset_n_i  => local_reset(i),
@@ -132,8 +137,8 @@ begin  -- architecture rtl
         code_data_i     => code_data(i),
         ext_master_i    => master_in(i),
         ext_master_o    => master_out(i),
-        mem_slave_i     => slave_in(1+i),
-        mem_slave_o     => slave_out(1+i),
+        debug_slave_i   => slave_in(1+i),
+        debug_slave_o   => slave_out(1+i),
         executed_addr_o => open);
   end generate proc;
 
