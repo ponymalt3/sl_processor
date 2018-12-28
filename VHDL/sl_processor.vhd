@@ -207,8 +207,8 @@ begin  -- architecture rtl
      when CMD_ADD => qfp_cmd <= (QFP_UNIT_ADD,QFP_SCMD_ADD); multi_cycle_op <= '1';
      when CMD_MUL => qfp_cmd <= (QFP_UNIT_MUL,"00"); multi_cycle_op <= '1';
      when CMD_DIV => qfp_cmd <= (QFP_UNIT_DIV,"00"); multi_cycle_op <= '1';
-     when CMD_LOG2 => qfp_cmd <= (QFP_UNIT_MATH,"00");
-     when CMD_SHFT => qfp_cmd <= (QFP_UNIT_MATH,"01");
+     when CMD_LOG2 => qfp_cmd <= (QFP_UNIT_MATH,"00"); multi_cycle_op <= '1';
+     when CMD_SHFT => qfp_cmd <= (QFP_UNIT_MATH,"01"); multi_cycle_op <= '1';
      when others => qfp_cmd <= (QFP_UNIT_NONE,"00");
    end case;
 
