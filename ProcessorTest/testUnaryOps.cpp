@@ -175,7 +175,7 @@ MTEST(TestUnaryOps,test_that_log2_works)
   
   proc.writeMemory(5,0);
   
-  proc.run(5);
+  proc.run(6);
   
   proc.expectThatMemIs(5,_qfp32_t(12.0));
 }
@@ -199,7 +199,7 @@ MTEST(TestUnaryOps,test_that_log2_with_numbers_below_one_works)
   
   proc.writeMemory(5,0);
   
-  proc.run(5);
+  proc.run(6);
   
   proc.expectThatMemIs(5,_qfp32_t(-1.12499994));
 }
