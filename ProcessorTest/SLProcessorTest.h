@@ -148,6 +148,11 @@ public:
     writeMemory((int32_t)addr,value);
   }
   
+  void writeMemory(qfp32_t addr,qfp32_t value)
+  {
+    writeMemory((int32_t)addr,value.getAsRawUint());
+  }
+  
   void writeMemory(uint32_t addr,uint32_t value,bool dontLogForVhdlTest=false)
   {
     if(addr >= localMem_.getSize())

@@ -121,7 +121,6 @@ protected:
 
   Memory::Port portR0_;
   Memory::Port portR1_;
-  Memory::Port portF2_;
   Memory::Port portExt_;
   Memory::Port portCode_;
 

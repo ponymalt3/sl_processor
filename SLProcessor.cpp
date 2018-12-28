@@ -6,8 +6,6 @@
 
 #include <iostream>
 
-#include <iostream>
-
 uint32_t simClockEnable(uint32_t oldValue,uint32_t newValue,uint32_t clkEnMask,uint32_t bitsUsed)
 {
   uint32_t result=oldValue;
@@ -85,7 +83,6 @@ SLProcessor::SLProcessor(Memory &localMem,const Memory::Port &portExt,const Memo
   , enable_(0)
   , portR0_(localMem.createPort())
   , portR1_(localMem.createPort())
-  , portF2_(localMem.createPort())
 {
   SharedAddrBase_=localMem.getSize();
 }
@@ -321,6 +318,11 @@ _MemFetch2 SLProcessor::memFetch2(const _Decode &decComb) const
   memFetch.writeAD_=addr1;
 
   memFetch.readData_[0]=portR0_.read(addr0%SharedAddrBase_);
+  if(decEx_.writeEn_ && enable_(_State::S_EXEC))
+  {
+    memFetch.readData_[0]=portR0_.read(decEx_.writeAddr_%SharedAddrBase_);
+  }
+  
   memFetch.readData_[1]=portR1_.read(addr1%SharedAddrBase_);
   
   return memFetch;
@@ -395,6 +397,12 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1
     {
       decodeEx.stall_=1;
     }
+  }
+  
+  //stall if shared read/write port is used
+  if(decodeComb.muxA_ == SLCode::MUX1_MEM && decEx_.writeEn_ && enable_(_State::S_EXEC))
+  {
+    decodeEx.stall_=1;
   }
   
   //ext write in progress
@@ -557,7 +565,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
     }
     else
     {
-      portF2_.write(decEx_.writeAddr_,data);
+      portR0_.write(decEx_.writeAddr_,data);
     }
   }
   
@@ -612,7 +620,6 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   _Exec execNext=execute(extMemStall,decodeNext);
   
   //************************************ at falling edge **********************************************
-  portF2_.update();
   
   //************************************ after falling edge *******************************************
   

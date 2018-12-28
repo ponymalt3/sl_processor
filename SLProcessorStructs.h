@@ -133,8 +133,6 @@ struct _State
   uint32_t irs_ : 16;
 
   uint32_t loadState_ : 3;
-
-  BitData enable_;
   
   uint32_t stallExec1d_ : 1;
   

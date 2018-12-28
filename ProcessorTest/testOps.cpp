@@ -627,3 +627,41 @@ MTEST(TestOp,testOpShift)
   
   proc.expectThatMemIs(6,_qfp32_t(-24.5*128));
 }
+
+MTEST(TestOp,test_that_op_with_two_mem_operands_stalls_while_write_is_in_progress)
+{
+  qfp32_t ad0=10;
+  qfp32_t ad1=20;
+  qfp32_t value=-24.5;
+  qfp32_t value2=7;
+  qfp32_t value3=8;
+  
+  uint32_t code[]=
+  {
+    //load ad0
+    SLCode::Load::create1(ad0.toRaw()),
+    SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
+    //load ad1
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
+    
+    SLCode::Load::create1(value3.toRaw()),
+    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,99),
+    //should stall one cycle
+    SLCode::Op::create(SLCode::DEREF_AD1,SLCode::DEREF_AD0,SLCode::CMD_SUB),
+    SLCode::Mov::create(SLCode::IRS,SLCode::REG_RES,5),
+
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(ad0,value2.toRaw());
+  proc.writeMemory(ad1,value.toRaw());
+  
+  proc.run(12);
+  proc.expectThatMemIs(99,value3);
+  proc.expectThatMemIs(5,value-value2);
+}

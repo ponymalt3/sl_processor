@@ -82,6 +82,10 @@ package body sl_dec_ex_p is
 
     end if;
 
+    if decode.mux_a = MUX1_MEM and proc.decex.wr_en = '1' and proc.state.enable(S_EXEC) = '1' then
+      decode_ex.stall := '1';
+    end if;
+
     -- ext write in progress
     if decode.en_ad1 = '1' and decode.mem_ex = '1' and
       ((proc.decex.wr_en = '1' and proc.decex.wr_ext = '1' and proc.state.enable(S_EXEC) = '1') or ext_mem_stall = '1') then
