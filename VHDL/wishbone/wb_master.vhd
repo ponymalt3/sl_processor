@@ -32,6 +32,7 @@ architecture rtl of wb_master is
 
   signal master_out : wb_master_ifc_out_t;
   signal count : unsigned(2 downto 0);
+  signal count_ack : unsigned(2 downto 0);
   signal mask : unsigned(2 downto 0);
 
 begin  -- architecture rtl
@@ -55,6 +56,7 @@ begin  -- architecture rtl
       if en_i = '1' and state = ST_IDLE then
         state <= ST_PENDING;
         count <= burst_i(2 downto 0);
+        count_ack <= burst_i(2 downto 0);
         mask <= burst_i(2 downto 0);
         dready_o <= we_i;
         master_out.adr <= addr_i;
@@ -64,20 +66,24 @@ begin  -- architecture rtl
         master_out.stb <= '1';
         master_out.cyc <= '1';
       elsif state = ST_PENDING then
-        if master_out_i.stall = '0' and count = to_unsigned(0,3) then
-          master_out.stb <= '0';    
-        end if;
-
-        dready_o <= master_out_i.ack;
-
-        if master_out_i.ack = '1' then
-          dout_o <= master_out_i.dat;
+        if master_out_i.stall = '0' then
           master_out.dat <= din_i;
           master_out.adr(2 downto 0) <= (master_out.adr(2 downto 0) and not mask) or ((master_out.adr(2 downto 0)+1) and mask);
-          count <= count-1;
+          if count = to_unsigned(0,3) then
+            master_out.stb <= '0';
+          else
+            dready_o <= master_out.we;
+            count <= count-1;
+          end if;
+        end if;
+
+        if master_out_i.ack = '1' then
+          count_ack <= count_ack-1;
+          dready_o <= not master_out.we;
+          dout_o <= master_out_i.dat;
         end if;
         
-        if (master_out_i.ack = '1' and count = to_unsigned(0,3)) or master_out_i.err = '1' then
+        if (master_out_i.ack = '1' and count_ack = to_unsigned(0,3)) or master_out_i.err = '1' then
           state <= ST_IDLE;
           master_out.stb <= '0';
           master_out.cyc <= '0';
