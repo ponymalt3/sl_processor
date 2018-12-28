@@ -53,9 +53,11 @@ begin  -- architecture Behav
   sl_processor_1: entity work.sl_processor
     generic map (
       LocalMemSizeInKB => 2,
-      UseCodeAddrNext  => true)
+      CodeStartAddr  => 0,
+      EnableDebugMemPort => true)
     port map (
       clk_i           => sl_clk,
+      mem_clk_i       => mem_clk,
       reset_n_i       => reset_n,
       core_en_i       => enable_core,
       core_reset_n_i  => core_reset_n,
@@ -64,8 +66,8 @@ begin  -- architecture Behav
       code_data_i     => code_data,
       ext_master_i    => master_in(0),
       ext_master_o    => proc_master_out,
-      mem_slave_i     => slave_in(0),
-      mem_slave_o     => slave_out(0),
+      debug_slave_i   => slave_in(0),
+      debug_slave_o   => slave_out(0),
       executed_addr_o => executed_addr);
 
   master_out(0) <= (

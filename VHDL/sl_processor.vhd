@@ -13,10 +13,12 @@ entity sl_processor is
 
   generic (
     LocalMemSizeInKB : natural := 4;
-    UseCodeAddrNext  : boolean := false);
+    CodeStartAddr  : natural := 0;
+    EnableDebugMemPort : boolean := false);
   
   port (
     clk_i     : in std_ulogic;
+    mem_clk_i : in std_ulogic;
     reset_n_i : in std_ulogic;
 
     core_en_i : in std_ulogic;
@@ -29,8 +31,8 @@ entity sl_processor is
     ext_master_i : in  wb_master_ifc_in_t;
     ext_master_o : out wb_master_ifc_out_t;
 
-    mem_slave_i : in  wb_slave_ifc_in_t;
-    mem_slave_o : out wb_slave_ifc_out_t;
+    debug_slave_i : in  wb_slave_ifc_in_t;
+    debug_slave_o : out wb_slave_ifc_out_t;
 
     executed_addr_o : out unsigned(15 downto 0));
 
@@ -83,8 +85,13 @@ architecture rtl of sl_processor is
   signal ext_mem_rw : std_ulogic;
   signal ext_mem_en : std_ulogic;
   signal ext_mem_stall : std_ulogic;
+
+  constant InternalMemAddrWidth : natural := log2(LocalMemSizeInKB*1024/4);
   
   signal mem_we : std_ulogic;
+  signal mem_addr : unsigned(InternalMemAddrWidth-1 downto 0);
+  signal mem1_we : std_ulogic;
+  signal mem1_addr : unsigned(InternalMemAddrWidth-1 downto 0);
   signal mem_complete : std_ulogic;
   signal mem_slave_ack : std_ulogic;
 
@@ -111,8 +118,8 @@ begin  -- architecture rtl
 
   sl_core_1: entity work.sl_core
     generic map (
-      UseCodeAddrNext => UseCodeAddrNext,
-      ExtAddrThreshold => LocalMemSizeInKB*(1024/4))
+      ExtAddrThreshold => LocalMemSizeInKB*(1024/4),
+      CodeStartAddr  => CodeStartAddr)
     port map (
       clk_i           => clk_i,
       reset_n_i       => core_reset_n_i,
@@ -148,39 +155,40 @@ begin  -- architecture rtl
   rp1_addr_vec <= To_StdULogicVector(std_logic_vector(rp1_addr(15 downto 0)));
   wp_addr_vec <= To_StdULogicVector(std_logic_vector(wp_addr(15 downto 0)));
     
-  multi_port_mem_1: entity work.multi_port_mem
+  sl_dpram_1: entity work.sl_dpram
     generic map (
-      SizeInKBytes => LocalMemSizeInKB)
+      SizeInBytes         => LocalMemSizeInKB*1024,
+      SizeOfElementInBits => 32)
     port map (
-      clk_i             => clk_i,
-      reset_n_i         => reset_n_i,
-      wport_addr_i      => wp_addr_vec,
-      wport_din_i       => wp_din,
-      wport_we_i        => wp_we,
-      rport0_addr_i     => rp0_addr_vec,
-      rport0_dout_o     => rp0_dout,
-      rport0_en_i       => rp0_en,
-      rwport_addr_i     => mem_addr_vec,
-      rwport_din_i      => mem_slave_i.dat,
-      rwport_dout_o     => mem_slave_o.dat,
-      rwport_we_i       => mem_we,
-      rwport_complete_o => mem_complete,
-      rport1_addr_i     => rp1_addr_vec,
-      rport1_dout_o     => rp1_dout,
-      rport_stall_i     => rp_stall);
+      clk_i     => clk_i,
+      reset_n_i => reset_n_i,
+      p0_addr_i => mem_addr,
+      p0_din_i  => wp_din,
+      p0_dout_o => rp0_dout,
+      p0_we_i   => wp_we,
+      p1_addr_i => mem1_addr,
+      p1_din_i  => debug_slave_i.dat,
+      p1_dout_o => rp1_dout,
+      p1_we_i   => mem1_we);
 
-  mem_addr_vec <= To_StdULogicVector(std_logic_vector(mem_slave_i.adr(15 downto 0)));
-  mem_we <= '1' when mem_slave_i.cyc = '1' and mem_slave_i.stb = '1' and mem_slave_i.we = '1' else '0';
-  mem_slave_o.ack <= mem_slave_ack;
-  mem_slave_o.stall <= not mem_slave_ack;
-  mem_slave_o.err <= '0';
+  mem_addr <= wp_addr(InternalMemAddrWidth-1 downto 0) when wp_we = '1' else rp0_addr(InternalMemAddrWidth-1 downto 0);
+  mem_we <= wp_we;
+
+  mem1_addr <= rp1_addr(InternalMemAddrWidth-1 downto 0) when not EnableDebugMemPort or core_en_i = '1' else debug_slave_i.adr(InternalMemAddrWidth-1 downto 0);
+  mem1_we <= '1' when EnableDebugMemPort and debug_slave_i.cyc = '1' and debug_slave_i.stb = '1' and debug_slave_i.we = '1' else '0';
+  debug_slave_o.dat <= rp1_dout when EnableDebugMemPort else (others => '0');
+
+  debug_slave_o.ack <= mem_slave_ack;
+  debug_slave_o.stall <= not mem_slave_ack;
+  debug_slave_o.err <= to_ulogic(not EnableDebugMemPort);
 
   process (clk_i, reset_n_i) is
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       mem_slave_ack <= '0';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
-      if mem_slave_i.cyc = '1' and mem_slave_i.stb = '1' and mem_complete = '0' then
+      mem_complete <= debug_slave_i.cyc and debug_slave_i.stb;
+      if EnableDebugMemPort and debug_slave_i.cyc = '1' and debug_slave_i.stb = '1' and mem_complete = '0' then
         mem_slave_ack <= '1';
       else
         mem_slave_ack <= '0';

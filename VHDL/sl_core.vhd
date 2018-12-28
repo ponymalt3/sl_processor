@@ -16,8 +16,8 @@ use work.sl_misc_p.all;
 
 entity sl_core is
   generic (
-    UseCodeAddrNext : boolean := false;
-    ExtAddrThreshold : natural := 512);
+    ExtAddrThreshold : natural := 512;
+    CodeStartAddr  : natural := 0);
   
   port (
     clk_i           : in std_ulogic;
@@ -89,7 +89,8 @@ architecture rtl of sl_core is
 
 begin  -- architecture rtl
 
-  process (dec_next, ctrl_next, proc, rp0_addr, rp1_addr, reset_1d, stall_decex_1d, state_next, disable_alu) is
+  process (ctrl_next.stall_decex, dec_next, disable_alu, en_i, proc,
+           reset_1d, rp0_addr, rp1_addr) is
   begin  -- process
     ext_mem_addr_o <= proc.state.addr(1)-to_unsigned(ExtAddrThreshold,32); -- read addr
     ext_mem_dout_o <= proc.state.result;
@@ -122,11 +123,7 @@ begin  -- architecture rtl
 
     cp_addr_o <= proc.state.pc;
     
-    if UseCodeAddrNext then
-      cp_addr_o <= state_next.pc;
-    end if;
-    
-    cp_re_o <= not reset_1d and not stall_decex_1d;
+    cp_re_o <= en_i and not reset_1d;
 
     -- alu
     alu_en_o <= proc.state.enable(S_EXEC) and not disable_alu;
@@ -146,7 +143,7 @@ begin  -- architecture rtl
       proc.fetch <= ((others => '0'),to_unsigned(0,16));
       proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0');
       proc.decex <= ("0000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0','0',(others => '0'),'0');
-      proc.state <= (to_unsigned(0,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
+      proc.state <= (to_unsigned(CodeStartAddr,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
       reset_1d <= '1';
       disable_alu <= '0';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
