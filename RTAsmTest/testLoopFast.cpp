@@ -23,7 +23,7 @@ MTEST(testLoopFast,test_that_fast_loop_is_generated_if_loop_body_is_not_complex)
   tester.loadCode();  
   tester.execute();
   
-  EXPECT(tester.getCodeSize() == 10) << "expect smaller code size";
+  EXPECT(tester.getCodeSize() == 10+16) << "expect smaller code size";//entry vector of size 16
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(5).toRaw())
     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
@@ -49,7 +49,7 @@ MTEST(testLoopFast,test_that_fast_loop_works_with_big_values)
   tester.loadCode();  
   tester.execute();
   
-  EXPECT(tester.getCodeSize() == 11) << "expect different code size";
+  EXPECT(tester.getCodeSize() == 11+16) << "expect different code size";//entry vector of size 16
    
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(99999).toRaw())
     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));

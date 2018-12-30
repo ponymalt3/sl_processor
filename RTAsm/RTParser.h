@@ -96,8 +96,7 @@ public:
 
 protected:
   CodeGen &codeGen_;
-  CodeGen::Label startAddr_;
-  bool firstFunctionDecl_;
+  uint32_t startAddr_;
 };
 
 #endif /* RTPARSER_H_ */

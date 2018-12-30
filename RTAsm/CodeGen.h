@@ -160,7 +160,7 @@ public:
     Label &target_;
   };
   
-  CodeGen(Stream &stream);
+  CodeGen(Stream &stream,uint32_t entryVectorSize=0);
 
   void instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage);
   void instrMov(const _Operand &opa,const _Operand &opb);
@@ -233,6 +233,9 @@ public:
   void popSymbolMap();
   
   CodeGenDelegate insertCodeBefore(Label &label);
+  
+  void generateEntryVector(uint32_t startAddr);
+  void generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInInstrs);
 
 protected:
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
@@ -314,6 +317,8 @@ protected:
 
   uint32_t codeAddr_;
   _Instr instrs_[4096];
+  
+  uint32_t entryVectorSize_;
  
   SymStack<4> symbolMaps_;
   Stream &stream_;

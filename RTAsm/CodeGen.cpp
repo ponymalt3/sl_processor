@@ -160,18 +160,24 @@ uint32_t CodeGen::_Instr::getGotoTarget()
   return offset;
 }
 
-CodeGen::CodeGen(Stream &stream):Error(stream.getErrorHandler()),stream_(stream),functions_(stream,0),defaultSymbols_(stream,0)
+CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize):Error(stream.getErrorHandler()),stream_(stream),functions_(stream,0),defaultSymbols_(stream,0)
 {
   loopDepth_=0;
-  codeAddr_=0;
+  codeAddr_=entryVectorSize;
   labelIdBitMap_=0x7FFFFFFF;
+  
+  entryVectorSize_=entryVectorSize;
+  for(uint32_t i=0;i<entryVectorSize;++i)
+  {
+    instrs_[i]={SLCode::Nop::create(),NoRef};
+  }
   
   symbolMaps_.push(defaultSymbols_);
 
   //allocate first symbol for temp loop storage
   symbolMaps_.top().createSymbolNoToken(MaxLoopDepth);
   
-  for(uint32_t i=0;i<32;++i)
+  for(uint32_t i=0;i<sizeof(activeLabels_)/sizeof(activeLabels_[0]);++i)
   {
     activeLabels_[i]=0;
   }
@@ -604,6 +610,63 @@ void CodeGen::popSymbolMap()
 CodeGen::CodeGenDelegate CodeGen::insertCodeBefore(Label &label)
 {
   return CodeGenDelegate(*this,label);
+}
+
+void CodeGen::generateEntryVector(uint32_t startAddr)
+{
+  if(startAddr < entryVectorSize_)
+  {
+    startAddr=entryVectorSize_;
+  }
+  
+  Error::expect(entryVectorSize_ >= 3) << "Entry vector size too small" << ErrorHandler::FATAL;
+  
+  uint32_t addr=0;
+  uint32_t startAddrAsRaw=qfp32::fromRealQfp32((double)startAddr).toRealQfp32().getAsRawUint();    
+  instrs_[addr++]={SLCode::Load::create1(startAddrAsRaw),NoRef};
+  instrs_[addr++]={SLCode::Load::create2(startAddrAsRaw),NoRef};
+  instrs_[addr++]={SLCode::Goto::create(),NoRef};
+}
+
+void CodeGen::generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInInstrs)
+{
+  Error::expect(entryVectorSize_ >= numberOfEntries*entrySizeInInstrs) << "Entry vector size too small" << ErrorHandler::FATAL;
+  
+  uint32_t defFunction=functions_.findSymbol(Stream::String("main",0,4));
+  
+  uint32_t addr=0;
+  for(uint32_t i=0;i<numberOfEntries;++i)
+  {
+    char buf[8]="main   ";
+    uint32_t j=4;
+    if(i > 9)
+    {
+      buf[j++]='0'+((i+1)/10)%10;
+    }    
+    buf[j++]='0'+(i+1)%10;
+        
+    uint32_t specFunction=functions_.findSymbol(Stream::String(buf,0,j));
+    
+    if(specFunction == SymbolMap::InvalidLink)
+    {
+      specFunction=defFunction;
+    }
+    
+    Error::expect(specFunction != SymbolMap::InvalidLink) << "No entry function for core '" << (i) << "'";
+
+    SymbolMap::_Symbol s=functions_[specFunction];
+    
+    uint32_t fctAddrAsRaw=qfp32::fromRealQfp32(s.allocatedAddr_).toRealQfp32().getAsRawUint();    
+    instrs_[addr++]={SLCode::Load::create1(fctAddrAsRaw),NoRef};
+    instrs_[addr++]={SLCode::Load::create2(fctAddrAsRaw),NoRef};
+    instrs_[addr++]={SLCode::Goto::create(),NoRef};
+    
+    Error::expect(entrySizeInInstrs >= 3) << "Entry function size too small for jump" << ErrorHandler::FATAL;
+    for(uint32_t j=3;j<entrySizeInInstrs;++j)
+    {
+      instrs_[addr++]={SLCode::Nop::create(),NoRef};
+    }
+  }
 }
 
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)

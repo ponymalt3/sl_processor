@@ -11,7 +11,7 @@
 class RTProgTester
 {
 public:
-  RTProgTester(RTProg prog):prog_(prog),s_(prog_),codeGen_(s_),parser_(codeGen_)
+  RTProgTester(RTProg prog):prog_(prog),s_(prog_),codeGen_(s_,16),parser_(codeGen_)
   {
     //zero memory (at least first 256 words)
     for(uint32_t i=0;i<512;++i)
@@ -20,9 +20,15 @@ public:
     }  
   }
   
-  Error parse(uint32_t reserveParamter=0)
+  Error parse(uint32_t reserveParamter=0,bool generateFullEntryVector=false)
   {
     parser_.parse(s_);
+    
+    if(generateFullEntryVector)
+    {
+      codeGen_.generateEntryVector(4,4);
+    }
+    
     if(Error(prog_.getErrorHandler()).getNumErrors() == 0)
     {
       codeGen_.storageAllocationPass(512,reserveParamter);

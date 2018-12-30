@@ -264,6 +264,16 @@ namespace SLCode
       return Code + (muxA<<1);
     }
   };
+  
+  struct Nop
+  {
+    enum {Code=0xFFFF,Bits=16};
+    
+    static uint32_t create()
+    {
+      return Code;
+    }
+  };
 }
 
 #endif /* SLPROCESSORINSTRDEF_H_ */

@@ -9,13 +9,15 @@
 #include "Token.h"
 
 
-RTParser::RTParser(CodeGen &codeGen) : Error(codeGen.getErrorHandler()), codeGen_(codeGen), startAddr_(codeGen)
+RTParser::RTParser(CodeGen &codeGen) : Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
-  firstFunctionDecl_=true;
+  startAddr_=0;
 }
 
 void RTParser::parse(Stream &stream)
 {
+  startAddr_=0;
+  
   try
   {
     static const char irsSym[]="__IRS__";
@@ -35,7 +37,7 @@ void RTParser::parse(Stream &stream)
     Error::expect(std::string(e.what()) == "fatal error");
   }
   
-  startAddr_.deleteLabel();
+  codeGen_.generateEntryVector(startAddr_);
 }
 
 _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &tmpStorage)
@@ -510,15 +512,8 @@ bool RTParser::parseStatement(Stream &stream)
     break;
   }
   case Token::TOK_FCN_DECL:
-    if(firstFunctionDecl_)
-    {
-      firstFunctionDecl_=false;
-      codeGen_.instrMov(_Operand::createResult(),_Operand::createConstWithRef(startAddr_.getLabelReference()));
-      codeGen_.instrGoto2();
-    }
-    
     parseFunctionDecl(stream);
-    startAddr_.setLabel();    
+    startAddr_=codeGen_.getCurCodeAddr();    
     break;
   case Token::TOK_FCN_RET:
     if(stream.skipWhiteSpaces().peek() != ';')

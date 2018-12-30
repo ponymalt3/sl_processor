@@ -227,7 +227,7 @@ MTEST(testReadQfp32,test_that_only_one_load_instr_is_generated_for_exp0)
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);  
-  EXPECT(tester.getCodeSize() == 2);
+  EXPECT(tester.getCodeSize() == 2+16);//entry vector of size 16
 }
 
 MTEST(testReadQfp32,test_that_only_one_load_instr_is_generated_for_exp1)
@@ -238,7 +238,7 @@ MTEST(testReadQfp32,test_that_only_one_load_instr_is_generated_for_exp1)
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);  
-  EXPECT(tester.getCodeSize() == 2);
+  EXPECT(tester.getCodeSize() == 2+16);//entry vector of size 16
 }
 
 MTEST(testReadQfp32,test_that_two_load_instr_is_generated)
@@ -249,7 +249,7 @@ MTEST(testReadQfp32,test_that_two_load_instr_is_generated)
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);  
-  EXPECT(tester.getCodeSize() == 3);
+  EXPECT(tester.getCodeSize() == 3+16);//entry vector of size 16
 }
 
 MTEST(testReadQfp32,test_that_three_load_instr_is_generated)
@@ -260,5 +260,5 @@ MTEST(testReadQfp32,test_that_three_load_instr_is_generated)
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);  
-  EXPECT(tester.getCodeSize() == 4);
+  EXPECT(tester.getCodeSize() == 4+16);//entry vector of size 16
 }
