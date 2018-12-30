@@ -506,3 +506,98 @@ MTEST(testOperationsBasic,test_that_operator_group2_both_mem_operand_fix_is_hand
    
   tester.expectSymbol("c",99*128);
 }
+
+
+MTEST(testOperationsBasic,test_that_log2_with_const_operand_works)
+{
+  RTProg testCode=RTASM(
+    a=log2(99);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("a",qfp32_t(99.0).log2());
+}
+
+MTEST(testOperationsBasic,test_that_log2_with_var_operand_works)
+{
+  RTProg testCode=RTASM(
+    b=40;
+    a=log2(b);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a",qfp32_t(40.0).log2());
+}
+
+MTEST(testOperationsBasic,test_that_trunc_with_const_operand_works)
+{
+  RTProg testCode=RTASM(
+    a=int(17.84384);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a",qfp32_t(17.0));
+}
+
+MTEST(testOperationsBasic,test_that_trunc_with_var_operand_works)
+{
+  RTProg testCode=RTASM(
+    b=1.11111;
+    a=int(b);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a",qfp32_t(1.0));
+}
+
+MTEST(testOperationsBasic,test_that_shft_with_both_const_operands_works)
+{
+  RTProg testCode=RTASM(
+    a=shft(5,10);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a",qfp32_t(5.0*1024));
+}
+
+MTEST(testOperationsBasic,test_that_shft_with_both_var_operands_works)
+{
+  RTProg testCode=RTASM(
+    b=9;
+    c=-3;
+    a=shft(b,c);
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a",qfp32_t(9.0/8));
+}
