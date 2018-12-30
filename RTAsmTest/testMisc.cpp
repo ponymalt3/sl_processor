@@ -68,7 +68,7 @@ MTEST(testMisc,test_that_math_lib_works_correct)
   RTProg testCode=R"abc(
     def pi 3.141592654;
     
-        function mod(a,b)
+    function mod(a,b)
       div=a/b;
       return a-(int(div)*b);
     end
@@ -117,15 +117,7 @@ MTEST(testMisc,test_that_math_lib_works_correct)
     end
 
     function exp(x)
-      
-      if(x > 20.1)
-        return 536190464;
-      end
-      
-      if(x < -16.6)
-        return 0;
-      end
-        
+    
       x=x*1.442695041;
       ix=int(x);
 
