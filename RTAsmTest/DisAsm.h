@@ -173,7 +173,7 @@ public:
     
     if((code&0xF000) == 0xC000)
     {
-      return std::string("result = ") + muxAToString(code&2,code&0x100,code&0x800) + " " + opToString((code>>5)&7) + " " + muxBToString(code&8,code&4,code&1);
+      return std::string("result = ") + muxAToString(code&2,(code>>8)&1,code&0x800) + " " + opToString((code>>5)&7) + " " + muxBToString(code&8,(code>>2)&1,code&1);
     }
     
     return "invalid";

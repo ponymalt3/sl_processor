@@ -420,7 +420,7 @@ void CodeGen::instrContinue()
   if(loopDepth_ > 0)
     instrGoto(*(loopFrames_[loopDepth_-1].labCont_));
   else
-    Error::expect(false) <<"'break' used outside loop";
+    Error::expect(false) <<"'continue' used outside loop";
 }
 
 void CodeGen::instrGoto(const Label &label)
@@ -881,7 +881,7 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   rebaseCode(targetAddr,targetAddr+size-1,targetAddr-startAddr);
   
   //rebase labels
-  for(uint32_t i=0;i<32;++i)
+  for(uint32_t i=0;i<sizeof(activeLabels_)/sizeof(activeLabels_[0]);++i)
   {
     if(activeLabels_[i] == 0)
     {

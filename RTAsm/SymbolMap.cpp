@@ -136,7 +136,7 @@ uint32_t SymbolMap::createFunction(const Stream::String &str,uint32_t addr)
 
 SymbolMap::_Symbol& SymbolMap::operator[](uint32_t i)
 {
-  Error::expect(i < symCount_) << stream_ << "symbol reference out of range" << (i) << ErrorHandler::FATAL;
+  Error::expect(i < symCount_) << stream_ << "symbol reference out of range " << (i) << ErrorHandler::FATAL;
   return symbols_[i];
 }
 
