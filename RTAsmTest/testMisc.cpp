@@ -7,32 +7,48 @@ class testMisc : public mtest::test
 
 MTEST(testMisc,test_that_cluster_test_prgm_runs_on_sim_also)
 {
-  RTProg testCode=R"abc(
-    ref proc_id 4;
-    def mem_size 512;
-    def shared_size 2048;
-    
-    a1=512+proc_id*2;
-    [a1]=proc_id;
-    [a1]=[a1++]+99;
-    tt=0;
-    loop(999)
-      tt=tt+1;
+  RTProg testCode=R"asm(    
+    function main2()
+      a1=512+2;
+      [a1]=[a1++]*23;
+      t=0;
+      loop(999)
+        t=t+1;
+      end
+      t=t;
     end
-    tt=tt;
-  )abc";
+    
+    function main()
+      a1=512+4;
+      [a1]=[a1++]*99;
+      t=0;
+      loop(999)
+        t=t+1;
+      end
+      t=t;
+    end 
+ 
+    function main1()
+      a1=512+0;
+      [a1]=[a1++]*7;
+      t=0;
+      loop(999)
+        t=t+1;
+      end
+      t=t;
+    end  
+  )asm";
   
   RTProgTester tester(testCode);
-  EXPECT(tester.parse().getNumErrors() == 0);
-  tester.getProcessor().writeMemory(4,qfp32_t(1).toRaw());
+  EXPECT(tester.parse(0,true).getNumErrors() == 0);
+  tester.getProcessor().writeMemory(512,qfp32_t(77).toRaw());
 
   tester.loadCode();
   tester.execute();
   
   std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   
-  tester.expectMemoryAt(514,_qfp32_t(1));
-  tester.expectMemoryAt(515,_qfp32_t(100));
+  tester.expectMemoryAt(513,77.0*7);
 }
 
 MTEST(testMisc,test_that_loop_with_inc_write_to_ext_mem_works_correct)
