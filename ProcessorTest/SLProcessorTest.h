@@ -232,34 +232,45 @@ public:
     getVdhlTestGenerator().runUntilAddr(addr);
   }
   
-  void expectThatMemIs(qfp32_t addr,qfp32_t expectedValue)
+  void expectThatMemIs(qfp32_t addr,qfp32_t expectedValue,const std::string &expectExpr="")
   {
-    EXPECT(readMemory(addr) == expectedValue.toRaw());
+    expect(expectedValue,(int32_t)addr,expectExpr);
     getVdhlTestGenerator().expect((int32_t)addr,expectedValue.toRaw());
   }  
-  void expectThatMemIs(qfp32_t addr,uint32_t expectedValue)
+  void expectThatMemIs(qfp32_t addr,uint32_t expectedValue,const std::string &expectExpr="")
   {
-    EXPECT(readMemory(addr) == expectedValue);
+    expect(qfp32_t::initFromRaw(expectedValue),(int32_t)addr,expectExpr);
     getVdhlTestGenerator().expect((int32_t)addr,expectedValue);
   }
-  void expectThatMemIs(uint32_t addr,qfp32_t expectedValue)
+  void expectThatMemIs(uint32_t addr,qfp32_t expectedValue,const std::string &expectExpr="")
   {
-    EXPECT(readMemory(addr) == expectedValue.toRaw());
+    expect(expectedValue,addr,expectExpr);
     getVdhlTestGenerator().expect(addr,expectedValue.toRaw());
   }
-  void expectThatMemIs(uint32_t addr,uint32_t expectedValue)
+  void expectThatMemIs(uint32_t addr,uint32_t expectedValue,const std::string &expectExpr="")
   {
-    EXPECT(readMemory(addr) == expectedValue);
+    expect(qfp32_t::initFromRaw(expectedValue),addr,expectExpr);
     getVdhlTestGenerator().expect(addr,expectedValue);
   }
-  void expectThatMemIs(uint32_t addr,int32_t expectedValue)
+  
+  void expect(qfp32_t expectedValue,uint32_t addr,const std::string &expectString="")
   {
-    EXPECT(readMemory(addr) == (uint32_t)expectedValue);
-    getVdhlTestGenerator().expect(addr,expectedValue);
-  }
-  void expectThatMemIs(uint32_t addr,double expectedValue)
-  {
-    expectThatMemIs(addr,_qfp32_t(expectedValue));
+    std::stringstream ss;
+    if(expectString == "")
+    {
+      ss << "expect: mem[" << (addr) << "] == " << (expectedValue);
+    }
+    else
+    {
+      ss << "expect: " << expectString << " == " << (expectedValue);
+    }
+     
+    qfp32_t value=qfp32_t::initFromRaw(readMemory(addr));
+    
+    ss << "  but is " << (value);
+    
+    mtest::manager::instance()=
+      mtest::condition(expectedValue == value,ss.str(),mtest::condition::expect);
   }
   static VHDLTestDataGenerator& getVdhlTestGenerator()
   {

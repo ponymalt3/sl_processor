@@ -103,17 +103,19 @@ public:
   
   void expectSymbol(const std::string &symbol,qfp32_t data)
   {
-    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str()),data);
+    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str()),data,symbol);
   }
   
   void expectSymbol(const std::string &symbol,uint32_t offset,qfp32_t data)
   {
-    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data);
+    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data,symbol);
   }
   
   void expectSymbolWithOffset(const std::string &symbol,int32_t offset,qfp32_t data)
   {
-    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data);
+    std::stringstream ss;
+    ss<<symbol<<"["<<(offset)<<"]";
+    proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data,ss.str());
   }
 
 protected:
