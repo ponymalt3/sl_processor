@@ -223,7 +223,11 @@ architecture behav of wb_cache_tb is
   signal mem1_addr : unsigned(8 downto 0);
   signal mem1_data : std_ulogic_vector(31 downto 0);
 
+  signal mem_clk : std_ulogic;
+
 begin  -- architecture behav
+
+  mem_clk <= not clk;
 
   -- component instantiation
   DUT: entity work.wb_cache
@@ -233,6 +237,7 @@ begin  -- architecture behav
       WriteTrough   => false)
     port map (
       clk_i           => clk,
+      mem_clk_i       => mem_clk,
       reset_n_i       => reset_n,
       addr_i          => cache0.addr,
       din_i           => cache0.din,
@@ -254,6 +259,7 @@ begin  -- architecture behav
       WriteTrough   => true)
     port map (
       clk_i           => clk,
+      mem_clk_i       => mem_clk,
       reset_n_i       => reset_n,
       addr_i          => cache1.addr,
       din_i           => cache1.din,
