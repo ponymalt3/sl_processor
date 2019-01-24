@@ -6,7 +6,7 @@
 -- Author     : malte  <malte@tp13>
 -- Company    : 
 -- Created    : 2018-04-29
--- Last update: 2018-11-16
+-- Last update: 2019-01-20
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -26,80 +26,13 @@ use ieee.numeric_std.all;
 library std;
 use std.textio.all;
 
+use work.wb_test_p.all;
 use work.wishbone_p.all;
 
 entity wb_interconnect_tb is
 end entity wb_interconnect_tb;
 
 architecture behav of wb_interconnect_tb is
-  
-  type master_out_t is record
-    addr     : unsigned(31 downto 0);
-    dout     : std_ulogic_vector(31 downto 0);
-    en       : std_ulogic;
-    we       : std_ulogic;
-    burst    : unsigned(5 downto 0);
-  end record master_out_t;
-
-  type master_in_t is record
-    din      : std_ulogic_vector(31 downto 0);
-    dready   : std_ulogic;
-    complete : std_ulogic;
-    err      : std_ulogic;
-  end record master_in_t;
-
-  type data_array_t is array (natural range <>) of std_ulogic_vector(31 downto 0);
-
-  procedure master_access_burst (
-    addr  : in  natural;
-    din   : in  data_array_t;
-    dout  : out data_array_t;
-    we    : in  std_ulogic;
-    burst : in unsigned(2 downto 0);
-    signal master_in : in master_in_t;
-    signal master_out : out master_out_t) is
-
-    variable index : natural := 0;
-    variable at_least_one_data_phase : boolean := false;
-  begin
-    master_out.addr <= to_unsigned(addr,32);
-    master_out.dout <= din(0);
-    master_out.en <= '1';
-    master_out.we <= we;
-    master_out.burst <= "000" & burst;
-
-    while master_in.complete = '0' or not at_least_one_data_phase loop
-      wait until master_in.dready = '1' or master_in.err = '1' or master_in.complete = '1';
-      wait for 1 ps;
-      if index < din'length then
-        dout(index) := master_in.din;
-      end if;
-      index := index+1;
-      if index < din'length then
-        master_out.dout <= din(index);
-      end if;
-      at_least_one_data_phase := true;
-    end loop;
-
-    master_out.en <= '0';
-  end procedure;
-
-  procedure master_access (
-    addr : in  natural;
-    din  : in  std_ulogic_vector(31 downto 0);
-    dout : out std_ulogic_vector(31 downto 0);
-    we   : in  std_ulogic;
-    signal master_in : in master_in_t;
-    signal master_out : out master_out_t) is
-
-    variable din_array : data_array_t(0 downto 0);
-    variable dout_array : data_array_t(0 downto 0);
-  begin    
-    din_array(0) := din;
-    master_access_burst(addr,din_array,dout_array,we,to_unsigned(0,3),master_in,master_out);
-    dout := dout_array(0);
-  end procedure;
-
 
   -- component generics
   constant MasterConfig : wb_master_config_array_t := (
@@ -181,10 +114,11 @@ begin  -- architecture behav
     begin  -- process
       slaves_out_in(i).dat <= (others => '0');
       slaves_out_in(i).ack <= '0';
-      slaves_out_in(i).stall <= '0';
+      slaves_out_in(i).stall <= '1';
       slaves_out_in(i).err <= '0';
       wait until rising_edge(clk) and slaves_out_out(i).cyc = '1' and slaves_out_out(i).stb = '1';
       slaves_out_in(i).ack <= '1';
+      slaves_out_in(i).stall <= '0';
       if slaves_out_out(i).we = '1' then
         slave_data(i)(to_integer(slaves_out_out(i).adr))(15 downto 0) <= slaves_out_out(i).dat(15 downto 0);
       else
@@ -306,6 +240,9 @@ begin  -- architecture behav
     m_out(2).en <= '1';
     m_out(2).we <= '1';
     m_out(2).dout <= X"0000D999";
+
+    wait until rising_edge(clk);
+    wait for 1 ps;
 
     wait until rising_edge(clk);
     wait for 1 ps;
