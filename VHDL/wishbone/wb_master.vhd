@@ -72,14 +72,18 @@ begin  -- architecture rtl
           if count = to_unsigned(0,3) then
             master_out.stb <= '0';
           else
-            dready_o <= master_out.we;
+            if master_out.we = '1' then
+              dready_o <= '1';
+            end if;
             count <= count-1;
           end if;
         end if;
 
         if master_out_i.ack = '1' then
           count_ack <= count_ack-1;
-          dready_o <= not master_out.we;
+          if master_out.we = '0' then
+            dready_o <= '1';
+          end if;
           dout_o <= master_out_i.dat;
         end if;
         
