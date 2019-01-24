@@ -59,12 +59,14 @@ architecture behav of sl_test_tb is
   signal cache_en : std_ulogic;
   signal cache_addr : unsigned(31 downto 0);
   signal cache_prefetch_addr : unsigned(31 downto 0);
+  signal code_stall : std_ulogic;
   
   signal force_proc_bus_off : std_ulogic;
 
 begin  -- architecture Behav
 
   mem_clk <= not sl_clk;
+
   sl_processor_1: entity work.sl_processor
     generic map (
       LocalMemSizeInKB => 2,
@@ -77,13 +79,15 @@ begin  -- architecture Behav
       core_en_i       => enable_core,
       core_reset_n_i  => core_reset_n,
       code_addr_o     => code_addr,
-      code_re_o       => code_en,
-      code_data_i     => code_data2,
+      code_stall_i    => code_stall,
+      code_data_i     => code_data(15 downto 0),
       ext_master_i    => master_in(0),
       ext_master_o    => proc_master_out,
       debug_slave_i   => slave_in(0),
       debug_slave_o   => slave_out(0),
       executed_addr_o => executed_addr);
+
+  code_stall <= code_en;
 
   master_out(0) <= (
     to_unsigned(1,23) & proc_master_out.adr(8 downto 0),
@@ -147,7 +151,6 @@ begin  -- architecture Behav
 
   cache_inv <= slave_in(2).cyc and slave_in(2).stb and slave_in(2).we;
 
-  code_data2 <= X"FFFF" when code_complete = '0' else code_data(15 downto 0);
   cache_addr <= ((31 downto 11 => '0') & '1' & code_addr(9 downto 0)) or cache_prefetch_addr;
 
   process (sl_clk, reset_n) is
