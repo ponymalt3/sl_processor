@@ -25,7 +25,7 @@ entity sl_processor is
     core_reset_n_i : in std_ulogic;
 
     code_addr_o : out unsigned(15 downto 0);
-    code_re_o : out std_ulogic;
+    code_stall_i : in std_ulogic;
     code_data_i : in std_ulogic_vector(15 downto 0);
 
     ext_master_i : in  wb_master_ifc_in_t;
@@ -106,7 +106,7 @@ begin  -- architecture rtl
       alu_op_b_o      => alu_op_b,
       alu_i           => alu_data,
       cp_addr_o       => cp_addr,
-      cp_re_o         => code_re_o,
+      cp_stall_i      => code_stall_i,
       cp_din_i        => code_data_i,
       ext_mem_addr_o  => ext_mem_addr,
       ext_mem_dout_o  => ext_mem_dout,

@@ -34,7 +34,7 @@ entity sl_core is
 
     -- code mem
     cp_addr_o : out reg_pc_t;
-    cp_re_o : out std_ulogic;
+    cp_stall_i : in std_ulogic;
     cp_din_i : in std_ulogic_vector(15 downto 0);
     
     -- external full mem interface
@@ -89,8 +89,10 @@ architecture rtl of sl_core is
 
 begin  -- architecture rtl
 
-  process (ctrl_next.stall_decex, dec_next, disable_alu, en_i, proc,
-           reset_1d, rp0_addr, rp1_addr) is
+  process (ctrl_next.stall_decex, dec_next.en_ad1, dec_next.en_irs,
+           dec_next.en_mem, dec_next.irs_addr, dec_next.mem_ex, dec_next.mux_a,
+           dec_next.mux_ad0, dec_next.mux_ad1, disable_alu, proc, rp0_addr,
+           rp1_addr) is
   begin  -- process
     ext_mem_addr_o <= proc.state.addr(1)-to_unsigned(ExtAddrThreshold,32); -- read addr
     ext_mem_dout_o <= proc.state.result;
@@ -122,8 +124,6 @@ begin  -- architecture rtl
     end if;
 
     cp_addr_o <= proc.state.pc;
-    
-    cp_re_o <= en_i and not reset_1d;
 
     -- alu
     alu_en_o <= proc.state.enable(S_EXEC) and not disable_alu;
@@ -159,9 +159,11 @@ begin  -- architecture rtl
           proc.fetch <= fetch_next;
           proc.dec <= dec_next;
           proc.decex <= decex_next;
-        else
-          -- dont change pc
-          proc.state.pc <= proc.state.pc;
+        end if;
+
+        if ctrl_next.stall_decex = '1' then
+          null;-- dont change pc
+          --proc.state.pc <= proc.state.pc;
         end if;
 
         -- instr retired
@@ -178,9 +180,10 @@ begin  -- architecture rtl
     end if;
   end process;
 
-  process (alu_i, cp_din_i, ctrl_next, dec_next, decex_next, exec_next,
-           ext_mem_din_i, ext_mem_stall_i, mem1_next, mem2_next, proc,
-           rp0_din_i, rp1_addr, rp1_din_i, state_next) is
+  process (alu_i, cp_din_i, cp_stall_i, ctrl_next, dec_next, decex_next.stall,
+           exec_next, ext_mem_din_i, ext_mem_stall_i, mem1_next, mem2_next,
+           proc, rp0_din_i, rp1_addr, rp1_din_i, state_next.inc_ad0,
+           state_next.inc_ad1) is
   begin  -- process
 
     mem1_next.external_data <= ext_mem_din_i;
@@ -189,12 +192,16 @@ begin  -- architecture rtl
       mem2_next.wr_addr <= X"0000" & dec_next.irs_addr;
     end if;
     
-    fetch_next <= (cp_din_i,proc.state.pc);
+    fetch_next <= (X"FFFF",proc.state.pc);
+    if cp_stall_i = '0' then
+      fetch_next.data <= cp_din_i;
+    end if;
+    
     dec_next <= sl_dec(proc,ExtAddrThreshold);
     decex_next <= sl_dec_ex(proc,dec_next,mem1_next,mem2_next,ext_mem_stall_i);
     exec_next <= sl_execute(proc,dec_next,alu_i,ext_mem_stall_i);
     ctrl_next <= sl_control(proc,decex_next.stall,exec_next.stall,exec_next.exec_next,exec_next.flush);
-    state_next <= sl_state_update(proc,dec_next,exec_next,ctrl_next,'0',(others => '0'));
+    state_next <= sl_state_update(proc,dec_next,exec_next,ctrl_next,cp_stall_i);
 
     if proc.state.enable(S_DECEX) = '1' and exec_next.exec_next = '1' and
       ctrl_next.stall_decex = '0' and ctrl_next.flush_pipeline = '0' then

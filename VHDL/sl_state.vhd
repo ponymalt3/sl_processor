@@ -12,8 +12,7 @@ package sl_state_p is
     decode : sl_decode_t;
     exec   : sl_exec_t;
     ctrl : sl_stall_ctrl_t;
-    set_pc_en : std_ulogic;
-    pc : reg_pc_t)
+    pc_stall : std_ulogic)
     return sl_state_t;
 
 end package sl_state_p;
@@ -25,8 +24,7 @@ package body sl_state_p is
     decode : sl_decode_t;
     exec   : sl_exec_t;
     ctrl : sl_stall_ctrl_t;
-    set_pc_en : std_ulogic;
-    pc : reg_pc_t)
+    pc_stall : std_ulogic)
     return sl_state_t is
     variable state : sl_state_t;
   begin
@@ -45,7 +43,7 @@ package body sl_state_p is
       state.inc_ad1 := '1';
     end if;
 
-    state.pc := state.pc+1;
+    state.pc := state.pc+to_unsigned(to_integer(unsigned'("" & not pc_stall)),16);
 
     if proc.decex.goto = '1' and proc.state.enable(S_EXEC) = '1' then -- goto cannot stall!
       if proc.dec.goto_const = '1' then
@@ -53,10 +51,6 @@ package body sl_state_p is
       else
         state.pc := unsigned(exec.int_result(15 downto 0));-- conversion from qfp
       end if;
-    end if;
-
-    if set_pc_en = '1' then
-      state.pc := pc;
     end if;
 
     if proc.dec.goto_const = '1' and proc.dec.jmp_back = '1' and proc.state.enable(S_EXEC) = '1' then
