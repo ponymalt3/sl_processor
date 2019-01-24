@@ -39,8 +39,11 @@ begin  -- architecture rtl
       master_sel_valid_reg <= '0';
     elsif falling_edge(clk_i) then  -- falling clock edge
 
-      master_sel_reg <= master_sel;
       master_sel_valid_reg <= master_sel_valid;
+
+      if master_sel_valid_reg = '0' or master_in_i(to_integer(master_sel_reg)).cyc = '0' then
+        master_sel_reg <= master_sel;
+      end if;
       
       if master_sel /= master_sel_reg then
         if master_sel_valid_reg = '1' then
