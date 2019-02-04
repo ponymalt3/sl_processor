@@ -162,8 +162,8 @@ begin  -- architecture rtl
         end if;
 
         if ctrl_next.stall_decex = '1' then
-          null;-- dont change pc
-          --proc.state.pc <= proc.state.pc;
+          --null;-- dont change pc
+          proc.state.pc <= proc.state.pc;
         end if;
 
         -- instr retired

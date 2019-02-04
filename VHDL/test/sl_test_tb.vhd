@@ -87,7 +87,7 @@ begin  -- architecture Behav
       debug_slave_o   => slave_out(0),
       executed_addr_o => executed_addr);
 
-  code_stall <= code_en;
+  code_stall <= not code_complete;
 
   master_out(0) <= (
     to_unsigned(1,23) & proc_master_out.adr(8 downto 0),
