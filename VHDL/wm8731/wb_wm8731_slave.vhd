@@ -63,7 +63,7 @@ begin  -- rtl
   begin  -- process
     sfr_cmd <= SFR_NONE;
 
-    if slave_i.cyc = '1' and slave_i.stb = '1' and slave_out.ack = '0' then
+    if slave_i.cyc = '1' and slave_i.stb = '1' then
       case slave_i.adr(1 downto 0) is
         when ADDR_CTRL =>
           if slave_i.we = '1' then
@@ -105,14 +105,14 @@ begin  -- rtl
        datl_out_reg <= (others => '0');
        datr_out_reg <= (others => '0');
      elsif clk_i'event and clk_i = '1' then  -- rising clock edge
-       slave_out.ack <= slave_out.stall;
+       slave_out.ack <= slave_i.stb;
        slave_out.stall <= '0';
        slave_out.err <= '0';
        case sfr_cmd is
          when SFR_RD_CTRL =>
            slave_out.dat <= (31 downto 4 => '0') & dac_sync & adc_sync & cfg_error_i & cfg_idle_i;
            dac_sync <= '0';
-           adc_sync <= '0';           
+           adc_sync <= '0';      
          when SFR_WR_DATL =>
            datl_in_reg <= slave_i.dat(23 downto 0);
            ch_full_l <= '1';
@@ -125,7 +125,6 @@ begin  -- rtl
            slave_out.dat <= X"60" & datr_out_reg;
          when SFR_NONE =>
            slave_out.ack <= '0';
-           slave_out.stall <= '1';
          when others => null;
        end case;
 
