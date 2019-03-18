@@ -59,8 +59,11 @@ public:
 
   void setLabel();
   void deleteLabel();
+  
+  void replaceWith(Label &otherLabel);
 
   uint32_t getLabelReference() const { return labelRef_; }
+  uint32_t getAddr() const { return codeAddr_; }
 
 protected:
   CodeGen &codeGen_;
@@ -247,7 +250,9 @@ protected:
   void changeStorageSize(const TmpStorage &storage,uint32_t size);
 
   uint32_t getLabelId(Label* label);
-  void patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart);
+  void releaseLabel(const Label &label);
+  void patchLabelInCode(const Label &label,uint32_t patchAddrStart);
+  void replaceLabel(const Label &labelToBeReplced,const Label &newLabel);
 
   void writeCode(uint32_t code,uint32_t ref=SymbolMap::InvalidLink);
   void moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr);

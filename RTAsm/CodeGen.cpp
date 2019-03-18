@@ -42,7 +42,20 @@ void Label::setLabel()
 
 void Label::deleteLabel()
 {
-  codeGen_.patchAndReleaseLabelId(*this,codeAddr_);
+  codeGen_.patchLabelInCode(*this,codeAddr_);
+  codeGen_.releaseLabel(*this);
+  labelRef_=CodeGen::NoRef;
+}
+
+void Label::replaceWith(Label &otherLabel)
+{
+  if(codeAddr_ < otherLabel.codeAddr_)
+  {
+    otherLabel.codeAddr_=codeAddr_;
+  }
+  
+  codeGen_.replaceLabel(*this,otherLabel);
+  codeGen_.releaseLabel(*this);
   labelRef_=CodeGen::NoRef;
 }
 
@@ -456,6 +469,8 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
     b=t;
   }
   
+  //optimize when operands can be swapped!!!!!!!!
+  
   cmpMode&=~CMP_MODE_SWAP_FLAG;
 
   if(negate)
@@ -793,7 +808,16 @@ uint32_t CodeGen::getLabelId(Label* label)
   return freeBitPos + RefLabelOffset;
 }
 
-void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
+void CodeGen::releaseLabel(const Label &label)
+{
+  uint32_t labelRef=label.getLabelReference();
+  
+    //release label id
+  labelIdBitMap_|=1<<(labelRef&0x1F);
+  activeLabels_[(labelRef&0x1F)]=0;
+}
+
+void CodeGen::patchLabelInCode(const Label &label,uint32_t patchAddrStart)
 {
   uint32_t labelRef=label.getLabelReference();
 
@@ -818,10 +842,22 @@ void CodeGen::patchAndReleaseLabelId(const Label &label,uint32_t patchAddrStart)
       instrs_[i].symRef_=RefLoad;
     }
   }
+}
 
-  //release label id
-  labelIdBitMap_|=1<<(labelRef&0x1F);
-  activeLabels_[(labelRef&0x1F)]=0;
+void CodeGen::replaceLabel(const Label &labelToBeReplaced,const Label &newLabel)
+{
+  uint32_t labelRef=labelToBeReplaced.getLabelReference();
+
+  for(uint32_t i=labelToBeReplaced.getAddr();i<getCurCodeAddr();++i)
+  {
+    //check if goto must be patched
+    if(instrs_[i].symRef_ != labelRef)
+    {
+      continue;
+    }
+    
+    instrs_[i].symRef_=newLabel.getLabelReference();
+  }
 }
 
 void CodeGen::changeStorageSize(const TmpStorage &storage,uint32_t size)
