@@ -313,33 +313,118 @@ uint32_t RTParser::parseCmpMode(Stream &stream)
   return 0;
 }
 
+void RTParser::parseIfExp(Stream &stream,CodeGen::Label &labelThen,CodeGen::Label &labelElse)
+{
+  Token mode=Token();
+  bool lastCond=false;
+  
+  while(!lastCond)
+  {
+    //check for bracket: '(' exp <=/>=/==/!=/</> ...
+    if(stream.skipWhiteSpaces().peek() == '(')
+    {
+      stream.markPos();
+      int32_t bracketOpenCount=0;
+      for(;;)
+      {
+        if(!stream.empty())
+        {
+          switch(stream.read())
+          {
+            case '(': ++bracketOpenCount; continue;
+            case ')': --bracketOpenCount; continue;
+            case '=':
+            case '<':
+            case '>':
+            case '!':
+              break;
+            default:
+              continue;
+          }
+        }
+        break;
+      }  
+      stream.restorePos();
+        
+      if(bracketOpenCount > 0)
+      {
+        stream.read();
+        CodeGen::Label localThen(codeGen_);
+        CodeGen::Label localElse(codeGen_);
+        parseIfExp(stream,localThen,localElse);
+        Error::expect(stream.read() == ')') << stream << "missing ')'";
+        
+        lastCond=stream.peek() == ')';
+    
+        if(!lastCond)
+        {
+          Token tok=stream.readToken();
+          Error::expect(tok.getType() == Token::TOK_IF_AND || tok.getType() == Token::TOK_IF_OR) << stream << "only or/and operator is allowed in condition";    
+          Error::expect(mode.getType() == Token::TOK_EOS || mode.getType() == tok.getType()) << stream << "need to use brackets when mxing or/and";
+          mode=tok;
+        }
+        
+        if(!lastCond && mode.getType() == Token::TOK_IF_OR)
+        {
+          localThen.replaceWith(labelThen);//is not called by "and"-operators eg ... or (a == b and c == d) or ...
+          codeGen_.instrGoto(labelThen);
+          localElse.setLabel();
+        }
+        else
+        {
+          localThen.setLabel();
+          localElse.replaceWith(labelElse);
+        }
+        
+        continue;
+      }
+    }
+
+    CodeGen::TmpStorage tmpStorage(codeGen_);
+    _Operand op[2];
+
+    op[0]=parseExpr(stream);
+
+    uint32_t cmpMode=parseCmpMode(stream);
+
+    op[1]=parseExpr(stream);
+    
+    lastCond=stream.peek() == ')';
+    
+    if(!lastCond)
+    {
+      Token tok=stream.readToken();
+      Error::expect(tok.getType() == Token::TOK_IF_AND || tok.getType() == Token::TOK_IF_OR) << stream << "only or/and operator is allowed in condition";    
+      Error::expect(mode.getType() == Token::TOK_EOS || mode.getType() == tok.getType()) << stream << "need to use brackets when mxing or/and";
+      mode=tok;
+    }
+    
+    if(mode.getType() == Token::TOK_IF_OR && !lastCond)
+    {
+      codeGen_.instrCompare(op[0],op[1],cmpMode,1,false,tmpStorage);
+      codeGen_.instrGoto(labelThen);
+    }
+    else
+    {
+      codeGen_.instrCompare(op[0],op[1],cmpMode,1,true,tmpStorage);
+      codeGen_.instrGoto(labelElse);
+    }
+  }
+}
+
 void RTParser::parseIfStatement(Stream &stream)
 {
   Error::expect(stream.read() == '(') << stream << "expect '(' after 'if'";
 
-  CodeGen::TmpStorage tmpStorage(codeGen_);
-  _Operand op[2];
-
-  op[0]=parseExpr(stream);
-
-  if(op[0].isResult())
-  {
-    _Operand tmp=tmpStorage.allocate();
-    codeGen_.instrMov(tmp,op[0]);
-    op[0]=tmp;
-  }
-
-  uint32_t cmpMode=parseCmpMode(stream);
-
-  op[1]=parseExpr(stream);
-
+  CodeGen::Label labelThen(codeGen_);
   CodeGen::Label labelElse(codeGen_);
   CodeGen::Label labelEnd(codeGen_);
-
-  codeGen_.instrCompare(op[0],op[1],cmpMode,1,true,tmpStorage);
-  codeGen_.instrGoto(labelElse);
+  
+  parseIfExp(stream,labelThen,labelElse);
 
   Error::expect(stream.read() == ')') << stream << "missing ')'";
+  
+  labelThen.setLabel();
 
   parseStatements(stream);
   labelElse.setLabel();

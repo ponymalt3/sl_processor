@@ -22,9 +22,10 @@
  * exp' := e |
  *         ('+' | '-' | '*' | '/') exp;
  *
- * if := 'if' ifexp '\n' stments ifelse 'end'
- *
- * ifexp := exp ('>' | '<' | '>=' | '<=' | '==' | '!=') exp
+ * if := 'if' '(' ifexp ')' stments ifelse 'end'
+ * 
+ * ifexp := exp ('>' | '<' | '>=' | '<=' | '==' | '!=') exp ( { 'and' ifexp } | { 'or' ifexp } ) |
+ *          '(' ifexp ')' ( { 'and' ifexp } | { 'or' ifexp } )
  *
  * ifelse := e |
  *           'else' stments;
@@ -88,6 +89,7 @@ public:
   _Operand parseExpr(Stream &stream);
   uint32_t parseCmpMode(Stream &stream);
   void parseIfStatement(Stream &stream);
+  void parseIfExp(Stream &stream,CodeGen::Label &labelThen,CodeGen::Label &labelElse);
   void parseLoopStatement(Stream &stream);
   bool parseStatement(Stream &stream);
   void parseStatements(Stream &stream);

@@ -274,6 +274,9 @@ Token Stream::readToken()
 
     if(sym == "a0" || sym == "a1")
       return Token(sym,Token::TOK_REGA,sym[1]-'0');
+      
+    if(sym == "or")
+      return Token(sym,Token::TOK_IF_OR);
   }
 
   if(sym.getLength() == 3)
@@ -284,6 +287,8 @@ Token Stream::readToken()
       return Token(sym,Token::TOK_DEF);
     if(sym == "ref")
       return Token(sym,Token::TOK_REF);
+    if(sym == "and")
+      return Token(sym,Token::TOK_IF_AND);
   }
 
   if(sym.getLength() == 4)

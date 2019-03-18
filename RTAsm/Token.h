@@ -32,6 +32,8 @@ public:
     TOK_REF,
     TOK_FCN_DECL,
     TOK_FCN_RET,
+    TOK_IF_AND,
+    TOK_IF_OR,
     TOK_EOS
   };
 
