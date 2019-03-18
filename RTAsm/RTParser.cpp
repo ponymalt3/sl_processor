@@ -296,20 +296,23 @@ uint32_t RTParser::parseCmpMode(Stream &stream)
     }
     return CodeGen::CMP_MODE_LT+CodeGen::CMP_MODE_SWAP_FLAG;
   case '!':
-  {
-    if(stream.read() == '=')
-      return CodeGen::CMP_MODE_NEQ;
-    break;
-  }
+    {
+      if(stream.read() == '=')
+        return CodeGen::CMP_MODE_NEQ;
+      break;
+    }
   case '=':
-  {
-    if(stream.read() == '=')
-      return CodeGen::CMP_MODE_EQ;
-    break;
-  }
+    {
+      if(stream.read() == '=')
+        return CodeGen::CMP_MODE_EQ;
+      break;
+    }
   default:
-    Error::expect(false) << stream << "invalid compare operator";
+    break;  
   }
+  
+  Error::expect(false) << stream << "invalid compare operator";
+  
   return 0;
 }
 
