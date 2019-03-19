@@ -19,21 +19,34 @@ std::string resolveIncludes(const std::string &filename)
 {
   std::cout<<"filename: "<<(filename)<<"\n";
   std::fstream f(filename,std::ios::in);
+  
+  if(!f.is_open())
+  {
+    return "";
+  }
+  
   std::string data;
   
   f.seekg(0,std::ios::end);
   uint32_t size=f.tellg();
   f.seekg(0,std::ios::beg);
   
-  data.reserve(size);
+  data.resize(size);
   f.read(const_cast<char*>(data.c_str()),size);
+
+  std::string path="";
+  std::string::size_type slashPos=filename.rfind('/');
+  if(slashPos != std::string::npos)
+  {
+    path=filename.substr(0,slashPos);
+  }
   
-  std::smatch m;
   std::regex regex("include\\((.*)\\)");
-  while(std::regex_match(data,m,regex))
+  std::smatch m;
+  while(std::regex_search(data,m,regex))
   {
     std::string toReplace=m[0].str();
-    std::string replaceData=resolveIncludes(filename + "/" + m[1].str());
+    std::string replaceData=resolveIncludes(path + "/" + m[1].str());
     data.replace(data.find(toReplace),toReplace.size(),replaceData);
   }
   
