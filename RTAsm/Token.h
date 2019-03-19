@@ -36,6 +36,7 @@ public:
     TOK_IF_OR,
     TOK_ARRAY,
     TOK_ARRAY_SIZE,
+    TOK_WHILE,
     TOK_EOS
   };
 

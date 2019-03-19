@@ -32,10 +32,13 @@
  *           'else' stments;
  *
  * loop := 'loop' '(' exp ')' stments 'end';
+ * 
+ * while := 'while' '(' ifexp ')' stments 'end';
  *
  * stment := symbol ('=' | '+=') exp |
  *           if |
  *           loop |
+ *           while |
  *           array |
  *           ('decl' | 'array')  name int |
  *           'def' name const |
@@ -95,6 +98,7 @@ public:
   void parseIfStatement(Stream &stream);
   void parseIfExp(Stream &stream,CodeGen::Label &labelThen,CodeGen::Label &labelElse);
   void parseLoopStatement(Stream &stream);
+  void parseWhileStatement(Stream &stream);
   bool parseStatement(Stream &stream);
   void parseStatements(Stream &stream);
   _Operand parseFunctionCall(Stream &stream,const Stream::String &name);

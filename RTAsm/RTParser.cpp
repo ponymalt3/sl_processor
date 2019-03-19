@@ -479,7 +479,7 @@ void RTParser::parseLoopStatement(Stream &stream)
   
   //create loop frame with storage for loopCounter 
   _Operand loopCounter=storage.allocate();
-  codeGen_.createLoopFrame(cont,end,loopCounter);
+  codeGen_.createLoopFrame(cont,end,&loopCounter);
 
   beg.setLabel();
 
@@ -523,6 +523,35 @@ void RTParser::parseLoopStatement(Stream &stream)
   Error::expect(stream.readToken().getType() == Token::TOK_END) << stream << "missing 'end' token";
 }
 
+void RTParser::parseWhileStatement(Stream &stream)
+{
+  Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '('";
+  
+  CodeGen::Label beg(codeGen_);
+  CodeGen::Label cont(codeGen_);
+  CodeGen::Label end(codeGen_);
+  
+  codeGen_.createLoopFrame(cont,end);
+  
+  cont.setLabel();  
+  parseIfExp(stream,beg,end);
+  
+  Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "missing ')'";
+  
+  beg.setLabel();
+  
+  parseStatements(stream);
+  
+  codeGen_.instrGoto(cont);
+  
+  end.setLabel();
+  
+  codeGen_.removeLoopFrame();
+  
+  Error::expect(stream.skipWhiteSpaces().readToken().getType() == Token::TOK_END)
+          << stream << "expect 'end'";
+}
+
 bool RTParser::parseStatement(Stream &stream)
 {
   stream.markPos();
@@ -535,6 +564,8 @@ bool RTParser::parseStatement(Stream &stream)
     parseIfStatement(stream); break;
   case Token::TOK_LOOP:
     parseLoopStatement(stream); break;
+  case Token::TOK_WHILE:
+    parseWhileStatement(stream); break;
   case Token::TOK_CONT:
   {
     codeGen_.instrContinue();

@@ -540,9 +540,9 @@ void CodeGen::addReference(const Stream::String &str,uint32_t irsOffset)
   symbolMaps_.top().createReference(str,irsOffset);
 }
 
-void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand &counter)
+void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand *counter)
 {
-  Error::expect(loopDepth_ < MaxLoopDepth) << "FATAL loop frames run out of space" << ErrorHandler::FATAL;
+  Error::expect(loopDepth_ < MaxLoopDepth) << "internal error: no more loop frames available" << ErrorHandler::FATAL;
 
   //_Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
   //_Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
@@ -552,7 +552,7 @@ void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,con
     loopFrames_[loopDepth_-1].markComplex();
   }
   
-  loopFrames_[loopDepth_]=_LoopFrame(&contLabel,&breakLabel,&counter);
+  loopFrames_[loopDepth_]=_LoopFrame(&contLabel,&breakLabel,counter);
 
   ++loopDepth_;
 }
@@ -735,7 +735,8 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
   if(op.type_ == _Operand::TY_INDEX)
   {
     Error::expect(loopDepth_ != 0 && op.loopIndex_ < loopDepth_) << "using loop index '" << char('i'+op.loopIndex_) << "' outside loop" << ErrorHandler::FATAL;
-
+    Error::expect(loopFrames_[op.loopIndex_].counter_ != 0) << "no index available in while loop";
+    
     uint32_t index=op.loopIndex_;
     
     loopFrames_[index].markComplex();//need counter

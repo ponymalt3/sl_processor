@@ -333,6 +333,8 @@ Token Stream::readToken()
       return Token(sym,Token::TOK_BREAK);
     if(sym == "array")
       return Token(sym,Token::TOK_ARRAY);
+    if(sym == "while")
+      return Token(sym,Token::TOK_WHILE);
   }
   
   if(sym.getLength() == 6)

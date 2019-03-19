@@ -188,7 +188,7 @@ public:
     return codeAddr_;
   }
 
-  void createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand &counter);
+  void createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand *counter=0);
   void removeLoopFrame();
   bool isLoopFrameComplex();
 
