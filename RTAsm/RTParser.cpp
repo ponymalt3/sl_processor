@@ -532,6 +532,7 @@ bool RTParser::parseStatement(Stream &stream)
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
     break;
   }
+  case Token::TOK_ARRAY:
   case Token::TOK_DECL:
   {
     Token name=stream.readToken();

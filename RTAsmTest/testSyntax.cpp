@@ -9,7 +9,7 @@ MTEST(testSyntax,test_basic_features)
 {
   RTProg test=RTASM(
     def const 1000;
-    decl array 10;
+    decl arr 10;
     ref r 4;
 
     d=0;
@@ -246,14 +246,14 @@ MTEST(testSyntax,test_array)
     def a 10;
     ref param0 4;
 
-    decl array 3;
+    decl arr 3;
 
-    array(0)=0;
-    array(1)=1;
-    array(2)=2;
+    arr(0)=0;
+    arr(1)=1;
+    arr(2)=2;
 
     sum=0;
-    a0=array;
+    a0=arr;
     loop(3)
       sum=sum+[a0++];
     end

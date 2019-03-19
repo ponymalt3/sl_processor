@@ -305,6 +305,8 @@ Token Stream::readToken()
   {
     if(sym == "break")
       return Token(sym,Token::TOK_BREAK);
+    if(sym == "array")
+      return Token(sym,Token::TOK_ARRAY);
   }
   
   if(sym.getLength() == 6)

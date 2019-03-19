@@ -109,34 +109,34 @@ MTEST(testAssignment,test_that_def_const_assigned_to_array_works)
 {
   RTProg testAssign=RTASM(
     def x 7;
-    decl array 5;
-    array(2)=x;
+    decl arr 5;
+    arr(2)=x;
   );
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);  
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 8);
+  EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
   
   tester.loadCode();
   tester.execute();
   
   qfp32_t expect=7;  
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("array")+2) == expect.toRaw());
-  tester.expectSymbolWithOffset("array",2,7);  
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("arr")+2) == expect.toRaw());
+  tester.expectSymbolWithOffset("arr",2,7);  
 }
 
 MTEST(testAssignment,test_that_ref_assigned_to_array_works)
 {
   RTProg testAssign=RTASM(
     ref x 4;
-    decl array 5;
-    array(2)=x;
+    decl arr 5;
+    arr(2)=x;
   );
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
   
-  uint32_t addr=tester.getIRSAddrOfSymbol("array");
+  uint32_t addr=tester.getIRSAddrOfSymbol("arr");
   EXPECT(addr == 8);
   
   qfp32_t expect=7; 
@@ -153,14 +153,14 @@ MTEST(testAssignment,test_that_array_assigned_to_ref_works)
 {
   RTProg testAssign=RTASM(
     ref x 4;
-    decl array 5;
-    array(4)=15;
-    x=array(4);
+    decl arr 5;
+    arr(4)=15;
+    x=arr(4);
   );
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 8);
+  EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
   
   tester.getProcessor().writeMemory(4,qfp32_t(7).toRaw());
   
@@ -174,17 +174,17 @@ MTEST(testAssignment,test_that_array_assigned_to_ref_works)
 MTEST(testAssignment,test_that_array_assigned_to_var_works)
 {
   RTProg testAssign=RTASM(
-    decl array 4;
+    decl arr 4;
     a=0;
-    array(0)=15;
-    a=array(0);
+    arr(0)=15;
+    a=arr(0);
   );
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
   
   EXPECT(tester.getIRSAddrOfSymbol("a") == 4);//first 4 words reserved for calls
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 8);
+  EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
   
   tester.loadCode();
   tester.execute();
@@ -197,20 +197,20 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
 {
   RTProg testAssign=RTASM(
     a=0;
-    decl array 4;
-    array(1)=5;
-    a0=array+1;
+    decl arr 4;
+    arr(1)=5;
+    a0=arr+1;
     [a0]=1;
     a=1;
   );
   
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
-  EXPECT(tester.getIRSAddrOfSymbol("array") == 8);
+  EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
 
   tester.loadCode();
   tester.execute();
   
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("array")+1) == qfp32_t(1).toRaw());
-  tester.expectSymbolWithOffset("array",1,1);
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("arr")+1) == qfp32_t(1).toRaw());
+  tester.expectSymbolWithOffset("arr",1,1);
 }

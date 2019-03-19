@@ -35,7 +35,7 @@
  * stment := symbol ('=' | '+=') exp |
  *           if |
  *           loop |
- *           'decl' name int |
+ *           ('decl' | 'array')  name int |
  *           'def' name const |
  *           'ref' name const |
  *           'break' |

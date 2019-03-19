@@ -86,13 +86,13 @@ MTEST(testAssignADx,test_that_var_assigned_to_addr0_and_deref_addr0_works)
 MTEST(testAssignADx,test_that_array_assigned_to_addr0_and_deref_addr0_works)
 {
   RTProg testAssign=RTASM(
-    decl array 3;
+    decl arr 3;
     
-    array(0)=2;
-    array(1)=3;
+    arr(0)=2;
+    arr(1)=3;
     
-    a0=array(0);
-    [a0]=array(1);
+    a0=arr(0);
+    [a0]=arr(1);
   );
   
   RTProgTester tester(testAssign);
