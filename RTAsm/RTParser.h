@@ -51,7 +51,7 @@
  * symbol := name ['(' uint ')'] |
  *           '[' 'a' ('0'|'1') ['++'] ']'
  *
- * const := number
+ * const := number | hex
  * 
  * array := name '{' exp { ',' exp } '}';
  *

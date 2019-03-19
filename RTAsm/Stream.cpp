@@ -159,6 +159,32 @@ qfp32 Stream::readQfp32()
   value.exp_=0;
 
   value_t intPart=readInt();
+  
+  //check for hex prefix
+  if(intPart.digits_ == 1 && intPart.value_ == 0 && peek() == 'x')
+  {
+    int32_t hexValue=0;
+    read();
+    char ch=toLowerCase(peek());
+    while(!empty() && ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')))
+    {
+      read();
+      hexValue<<=4;
+      if(ch >= 'a')
+      {
+        hexValue+=10+ch-'a';
+      }
+      else
+      {
+        hexValue+=ch-'0';
+      }
+      ch=toLowerCase(peek());
+    }
+    
+    Error::expect(hexValue < 1U<<29) << (*this) << "qfp32 value overflow";
+    
+    return qfp32::fromRealQfp32(qfp32_t(hexValue*(intPart.sign_?-1:1)));    
+  }
 
   if(intPart.sign_)
   {
@@ -363,6 +389,16 @@ uint32_t Stream::log2(int32_t value)
   uint32_t bits=0;
   while(value >= (1U<<bits)) ++bits;
   return bits;
+}
+
+char Stream::toLowerCase(char ch)
+{
+  if(ch >= 'A' && ch <= 'Z')
+  {
+    return 'a'+ch-'A';
+  }
+  
+  return ch;
 }
 
 

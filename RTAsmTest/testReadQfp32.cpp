@@ -262,3 +262,48 @@ MTEST(testReadQfp32,test_that_three_load_instr_is_generated)
   EXPECT(tester.parse().getNumErrors() == 0);  
   EXPECT(tester.getCodeSize() == 4+16);//entry vector of size 16
 }
+
+MTEST(testReadQfp32,test_that_hex_value_works)
+{
+  RTProg testCode=R"asm(
+    a=0x19ABCDEF;
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbol("a",0x19ABCDEF); 
+}
+
+MTEST(testReadQfp32,test_that_negative_hex_value_works)
+{
+  RTProg testCode=R"asm(
+    a=-0x0EADBEEF;
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbol("a",-0x0EADBEEF); 
+}
+
+MTEST(testReadQfp32,test_that_small_hex_value_works)
+{
+  RTProg testCode=R"asm(
+    a=0x1F;
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbol("a",0x1F); 
+}
