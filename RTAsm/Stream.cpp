@@ -313,6 +313,8 @@ Token Stream::readToken()
   {
     if(sym == "return")
       return Token(sym,Token::TOK_FCN_RET);
+    if(sym == "sizeof")
+      return Token(sym,Token::TOK_ARRAY_SIZE);
   }
 
   if(sym.getLength() == 8)

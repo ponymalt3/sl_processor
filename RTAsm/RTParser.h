@@ -17,6 +17,7 @@
 /*
  * exp := const exp' |
  *        symbol exp'|
+ *        'sizeof' '(' symbol ')' |
  *        '(' exp ')';
  *
  * exp' := e |
@@ -35,6 +36,7 @@
  * stment := symbol ('=' | '+=') exp |
  *           if |
  *           loop |
+ *           array |
  *           ('decl' | 'array')  name int |
  *           'def' name const |
  *           'ref' name const |
@@ -50,6 +52,8 @@
  *           '[' 'a' ('0'|'1') ['++'] ']'
  *
  * const := number
+ * 
+ * array := name '{' exp { ',' exp } '}';
  *
  */
 
@@ -95,6 +99,7 @@ public:
   void parseStatements(Stream &stream);
   _Operand parseFunctionCall(Stream &stream,const Stream::String &name);
   void parseFunctionDecl(Stream &stream);
+  void parseArrayDecl(Stream &stream,const Stream::String &name);
 
 protected:
   CodeGen &codeGen_;

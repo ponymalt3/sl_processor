@@ -520,6 +520,16 @@ void CodeGen::addArrayDeclaration(const Stream::String &str,uint32_t size)
   symbolMaps_.top().createSymbol(str,size);
 }
 
+void CodeGen::resizeArray(const Stream::String &str,uint32_t newSize)
+{
+  Error::expect(newSize > 0) <<"array size "<<str<<" must be greater than 0";
+  uint32_t arrRef=symbolMaps_.top().findSymbol(str);
+  Error::expect(arrRef != NoRef || symbolMaps_.top()[arrRef].flagIsArray_ == 0) 
+          << "internal error: array '" << str << "' not declared";
+          
+  symbolMaps_.top()[arrRef].allocatedSize_=newSize;
+}
+
 void CodeGen::addDefinition(const Stream::String &str,qfp32 value)
 {
   symbolMaps_.top().createConst(str,value);

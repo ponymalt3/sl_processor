@@ -179,6 +179,7 @@ public:
   void instrNop();
 
   void addArrayDeclaration(const Stream::String &str,uint32_t size);
+  void resizeArray(const Stream::String &str,uint32_t newSize);
   void addDefinition(const Stream::String &str,qfp32 value);
   void addReference(const Stream::String &str,uint32_t irsOffset);
   

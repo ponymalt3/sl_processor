@@ -52,6 +52,21 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
 
   if(token.getType() == Token::TOK_INDEX)
     return _Operand::createLoopIndex(token.getIndex());
+    
+  if(token.getType() == Token::TOK_ARRAY_SIZE)
+  {
+    Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '('";
+    
+    Token name=stream.readToken();
+    Error::expect(name.getType() == Token::TOK_NAME) << stream << "expect symbol";
+    
+    SymbolMap::_Symbol sym=codeGen_.findSymbol(name.getName(stream));
+    Error::expect(sym.flagIsArray_ != 0) << stream << "expect array name";
+    
+    Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "missing ')'";
+    
+    return _Operand(qfp32::fromRealQfp32(qfp32_t::fromDouble(sym.allocatedSize_)));
+  }
 
   Error::expect(token.getType() == Token::TOK_NAME) << stream << "unexpected token " << token.getName(stream);
   
@@ -574,6 +589,13 @@ bool RTParser::parseStatement(Stream &stream)
         break;
       }
       
+      if(stream.skipWhiteSpaces().peek() == '{')
+      {
+        parseArrayDecl(stream,token.getName(stream));
+        Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
+        break;
+      }
+      
       uint32_t index=0xFFFF;
       if(stream.skipWhiteSpaces().peek() == '(')
       {
@@ -767,4 +789,28 @@ void RTParser::parseFunctionDecl(Stream &stream)
   
   Token token=stream.readToken();
   Error::expect(token.getType() == Token::TOK_END) << stream << "expect 'END' at the end of a function";
+}
+
+void RTParser::parseArrayDecl(Stream &stream,const Stream::String &name)
+{
+  stream.read();
+  
+  uint32_t symName=codeGen_.findSymbolAsLink(name);
+  Error::expect(symName == CodeGen::NoRef) << stream << "redefinition of symbol " << name; 
+  
+  uint32_t arraySize=1;
+  codeGen_.addArrayDeclaration(name,arraySize);
+  uint32_t arrayRef=codeGen_.findSymbolAsLink(name);
+  
+  codeGen_.instrMov(_Operand::createSymAccess(arrayRef,arraySize-1),parseExpr(stream));
+  
+  while(stream.skipWhiteSpaces().peek() == ',')
+  {
+    stream.read();
+    ++arraySize;
+    codeGen_.resizeArray(name,arraySize);
+    codeGen_.instrMov(_Operand::createSymAccess(arrayRef,arraySize-1),parseExpr(stream));
+  }
+  
+  Error::expect(stream.skipWhiteSpaces().read() == '}') << stream << "missing '}'";  
 }
