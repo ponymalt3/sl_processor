@@ -95,8 +95,6 @@ MTEST(testIfLogicOperators,test_that_or_operator_evaluate_to_false)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
-
   tester.loadCode();
   tester.execute();
   
@@ -123,8 +121,6 @@ MTEST(testIfLogicOperators,test_that_simple_and_or_mix_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
-
   tester.loadCode();
   tester.execute();
   
@@ -156,8 +152,6 @@ MTEST(testIfLogicOperators,test_that_complex_and_or_mix_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();
@@ -192,8 +186,6 @@ MTEST(testIfLogicOperators,test_that_short_circuit_evaluation_in_and_expr_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
-
   tester.loadCode();
   tester.execute();
   

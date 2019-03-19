@@ -237,3 +237,22 @@ MTEST(testOperationsWithBrackets,test_that_bracket_negate_with_const_works)
      
   tester.expectSymbol("a",-45);
 }
+
+MTEST(testOperationsWithBrackets,test_that_bracket_next_to_plus_operator_works)
+{
+  RTProg testCode=RTASM(
+    def a 99;
+    b=((a+3)+5)*2;
+  );
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+   
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == qfp32_t(214).toRaw())
+     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")));
+     
+  tester.expectSymbol("b",214);
+}
