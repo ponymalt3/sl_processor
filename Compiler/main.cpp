@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     
     RTProg prog(data.c_str());
     Stream s(prog);
-    CodeGen gen(s);
+    CodeGen gen(s,4);
     
     RTParser parser(gen);
     parser.parse(s);
