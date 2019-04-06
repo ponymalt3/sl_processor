@@ -177,7 +177,7 @@ _Operand RTParser::parseExpr(Stream &stream)
     stream.skipWhiteSpaces().markPos();
     ch=stream.read();
 
-    if(ops.top() != UnaryMinus  && ch == '-' && !isValuePrefix(stream.peek()))//is unary minus with symbol
+    if((ops.empty() || ops.top() != UnaryMinus)  && ch == '-' && !isValuePrefix(stream.peek()))//is unary minus with symbol
     {
       ops.push(UnaryMinus);
       continue;
@@ -688,7 +688,7 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   SymbolMap::_Symbol s=codeGen_.findFunction(name);
   Error::expect(s.flagsIsFunction_ == 1) << stream << "function '" << name << "' not found";  
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' for function call";
-  
+
   CodeGen::TmpStorage callFrame(codeGen_);
   CodeGen::Label ret(codeGen_);
   
