@@ -78,6 +78,36 @@ MTEST(testMisc,test_that_loop_with_inc_write_to_ext_mem_works_correct)
   tester.expectMemoryAt(515,237);
 }
 
+MTEST(testMisc,test_that_array_alloc_with_array_address_access_works)
+{
+  RTProg testCode=R"(
+  function test(a,b,c,d)
+    e=b;
+    a1=d;
+    [a1]=99;
+    sum=10;
+    a1=a+0*b+e*0;
+    a1=d;
+    [a1]=[a1]+sum;
+  end
+  
+  a {1};
+  b {1};
+  array c 4;
+  array d 4;
+
+  e=1000+(test(a,b,c,d)*99+188)/23;#expr forces code move
+  )";
+  
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();  
+  tester.execute();
+  
+  tester.expectSymbol("d",0,109);
+}
 
 MTEST(testMisc,test_that_math_lib_works_correct)
 {

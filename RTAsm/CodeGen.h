@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+#include <map>
+
 #include "Error.h"
 #include "ErrorHandler.h"
 #include "Alloc.h"
@@ -325,7 +327,9 @@ protected:
   _Instr instrs_[4096];
   
   uint32_t entryVectorSize_;
- 
+  
+  std::multimap<uint32_t,uint32_t> arrayAllocInfo_;
+  
   SymStack<4> symbolMaps_;
   Stream &stream_;
   SymbolMap functions_;

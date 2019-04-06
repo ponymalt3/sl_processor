@@ -518,6 +518,8 @@ void CodeGen::addArrayDeclaration(const Stream::String &str,uint32_t size)
 {
   Error::expect(size > 0) <<"array decl "<<str<<" must be greater than 0";
   symbolMaps_.top().createSymbol(str,size);
+  
+  arrayAllocInfo_.insert({getCurCodeAddr(),symbolMaps_.top().findSymbol(str)});
 }
 
 void CodeGen::resizeArray(const Stream::String &str,uint32_t newSize)
@@ -585,6 +587,15 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
 
   for(uint32_t i=symbolMaps_.top().getStartAddr();i<codeAddr_;++i)
   {
+    //handle case where array must be allocated before a certain operation
+    while(arrayAllocInfo_.size() > 0 && arrayAllocInfo_.begin()->first == i)
+    {
+      SymbolMap::_Symbol &symInf=symbolMaps_.top()[arrayAllocInfo_.begin()->second];
+      symInf.flagAllocated_=1;
+      symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_,symInf.flagsAllocateHighest_,symInf.flagIsArray_);
+      arrayAllocInfo_.erase(arrayAllocInfo_.begin());
+    }
+    
     if(instrs_[i].symRef_ != SymbolMap::InvalidLink && instrs_[i].symRef_ < RefLabelOffset)
     {
       SymbolMap::_Symbol &symInf=symbolMaps_.top()[instrs_[i].symRef_];
@@ -949,7 +960,9 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
 }
 
 void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
-{  
+{ 
+  std::multimap<uint32_t,uint32_t> rebasedAllocInfo;
+  
   for(int32_t i=startAddr;i<=endAddr;)
   {
     if(instrs_[i].isGoto())
@@ -987,6 +1000,21 @@ void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
       }
     }
     
+    auto search=arrayAllocInfo_.find(i);
+    
+    if(search != arrayAllocInfo_.end())
+    {
+      while(search->first == i)
+      {
+        rebasedAllocInfo.insert({std::min(search->first,search->first+offset),search->second});
+        auto rm=search;
+        ++search;
+        arrayAllocInfo_.erase(rm);
+      }
+    }
+    
     ++i;
   }
+  
+  arrayAllocInfo_.insert(rebasedAllocInfo.begin(),rebasedAllocInfo.end());
 }
