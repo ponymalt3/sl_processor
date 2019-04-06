@@ -20,7 +20,7 @@ public:
     }  
   }
   
-  Error parse(uint32_t reserveParamter=0,bool generateFullEntryVector=false)
+  Error parse(uint32_t reserveParameter=0,bool generateFullEntryVector=false)
   {
     parser_.parse(s_);
     
@@ -31,7 +31,7 @@ public:
     
     if(Error(prog_.getErrorHandler()).getNumErrors() == 0)
     {
-      codeGen_.storageAllocationPass(512,reserveParamter);
+      codeGen_.storageAllocationPass(512,reserveParameter);
     }
     return prog_.getErrorHandler();
   }
@@ -48,7 +48,7 @@ public:
   
   std::string getDisAsmString()
   {
-    uint16_t code[1024];
+    uint16_t code[65536];
     
     for(uint32_t i=0;i<getCodeSize();++i)
     {
@@ -99,7 +99,24 @@ public:
   void execute()
   {    
     proc_.reset();
-    proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
+    uint32_t cycles=proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
+    std::cout<<"cycles executed: "<<(cycles)<<"\n";
+  }
+  
+  void execute(uint32_t cycles)
+  {    
+    proc_.reset();
+    for(uint32_t i=0;i<cycles;++i)
+    {
+      proc_.execute(1);
+      
+      if(i > 144 && proc_.readMemory(56) == 0)
+      {
+        int a=0;
+      }
+    }
+    
+    std::cout<<"cycles executed: "<<(cycles)<<"\n";
   }
   
   void expectMemoryAt(qfp32_t addr,qfp32_t data)

@@ -96,7 +96,7 @@ class LoadAndSimulateProcessor
 public:
   LoadAndSimulateProcessor()
     : localMem_(512)
-    , codeMem_(1024)
+    , codeMem_(16384)
     , extMem_(16*1024)
     , codePort_(codeMem_.createPort())
     , localPort_(localMem_.createPort())
@@ -134,7 +134,7 @@ public:
   
   void writeCodeComplete(uint32_t validCodeWords)
   {
-    uint32_t code[1024];
+    uint32_t code[65336];
     for(uint32_t i=0;i<validCodeWords;++i)
     {
       code[i]=codePort_.read(i);
@@ -222,14 +222,19 @@ public:
       processor_.update(0,1,pcValue);
   }
   
-  void executeUntilAddr(uint32_t addr)
+  uint32_t executeUntilAddr(uint32_t addr)
   {
+    uint32_t cycles=0;
+    
     while(processor_.getExecutedAddr() == 0xFFFFFFFF || processor_.getExecutedAddr() < addr)
     {
-      processor_.update(0,0,0);    
+      processor_.update(0,0,0);
+      ++cycles;    
     }
     
     getVdhlTestGenerator().runUntilAddr(addr);
+    
+    return cycles;
   }
   
   void expectThatMemIs(qfp32_t addr,qfp32_t expectedValue,const std::string &expectExpr="")
