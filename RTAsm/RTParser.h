@@ -18,6 +18,9 @@
  * exp := const exp' |
  *        symbol exp'|
  *        'sizeof' '(' symbol ')' |
+ *        'log2' '(' exp ')' |
+ *        'int' '(' exp ')' |
+ *        'shft' '(' exp ',' exp ')' |
  *        '(' exp ')';
  *
  * exp' := e |
@@ -35,7 +38,7 @@
  * 
  * while := 'while' '(' ifexp ')' stments 'end';
  *
- * stment := symbol ('=' | '+=') exp |
+ * stment := symbol '=' exp |
  *           if |
  *           loop |
  *           while |
