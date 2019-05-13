@@ -141,13 +141,13 @@ CodeGen::CodeGenDelegate::CodeGenDelegate(CodeGen &codeGen,Label &target):codeGe
   startAddr_=codeGen_.getCurCodeAddr();
 }
 
-void CodeGen::_Instr::patchIrsOffset(uint32_t irsOffset)
+void _Instr::patchIrsOffset(uint32_t irsOffset)
 {
   //array index already addressed => add irsOffset
   code_=SLCode::IRS::patchOffset(code_,SLCode::IRS::getOffset(code_)+irsOffset);
 }
 
-void CodeGen::_Instr::patchConstant(uint32_t value,bool patch2ndWord)
+void _Instr::patchConstant(uint32_t value,bool patch2ndWord)
 {
   //maybe static error singleton again
   //Error::expect(value < 512) << "load addr out of range " << (value);
@@ -161,13 +161,13 @@ void CodeGen::_Instr::patchConstant(uint32_t value,bool patch2ndWord)
   code_=SLCode::Load::create1(value);
 }
 
-void CodeGen::_Instr::patchGotoTarget(int32_t target)
+void _Instr::patchGotoTarget(int32_t target)
 {
   code_=SLCode::Goto::create(target,false);
   //Error::expect(target < 512) << "jump target out of range " << (target);
 }
 
-uint32_t CodeGen::_Instr::getGotoTarget()
+uint32_t _Instr::getGotoTarget()
 {
   int32_t offset=((code_>>2)&0x1FF)+(0xFFFFFE00*((code_>>9)&1));
   return offset;
