@@ -20,14 +20,12 @@ void RTParser::parse(Stream &stream)
   
   try
   {
-    static const char irsSym[]="__IRS__";
-    codeGen_.addReference(Stream::String(irsSym,0,7),0);
+    static const char irsSym[]="__IRS_AND_RES__";
+    codeGen_.addReference(Stream::String(irsSym,0,15),0);
     static const char retSym[]="__RET__";
     codeGen_.addReference(Stream::String(retSym,0,7),1);
-    static const char resSym[]="__RES__";
-    codeGen_.addReference(Stream::String(resSym,0,7),2);
     static const char irsRestSym[]="__IRS_REST__";
-    codeGen_.addReference(Stream::String(irsRestSym,0,12),3);
+    codeGen_.addReference(Stream::String(irsRestSym,0,12),2);
     
     parseStatements(stream);
     Error::expect(stream.readToken().getType() == Token::TOK_EOS) << stream << "missing end of file token";
@@ -661,7 +659,7 @@ bool RTParser::parseStatement(Stream &stream)
     if(stream.skipWhiteSpaces().peek() != ';')
     {
       _Operand result=parseExpr(stream);
-      codeGen_.instrMov(_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__RES__",0,7))),result);      
+      codeGen_.instrMov(_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,7))),result);      
     }
     
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
@@ -692,12 +690,10 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   CodeGen::TmpStorage callFrame(codeGen_);
   CodeGen::Label ret(codeGen_);
   
-  //calculate new irs addr for function and store it
+  //calculate new irs addr for function and store it also used as return value
   _Operand irsAddr=callFrame.allocate();
   //return addr storage
   _Operand retAddr=callFrame.allocate();
-  //write parameters/return value
-  _Operand returnData=callFrame.allocate();
   //current irs addr to be restored after function returns
   _Operand irsOrig=callFrame.allocate();
   
@@ -748,7 +744,7 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   _Operand irsRestore=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_REST__",0,12)));
   codeGen_.instrMov(_Operand::createInternalReg(_Operand::TY_IR_IRS),irsRestore);
   
-  return returnData;  
+  return irsAddr;  
 }
 
 void RTParser::parseFunctionDecl(Stream &stream)
@@ -757,17 +753,15 @@ void RTParser::parseFunctionDecl(Stream &stream)
   codeGen_.pushSymbolMap(curSymbols);
   
   //add default symbols
-  static const char irsSym[]="__IRS__";
-  codeGen_.addReference(Stream::String(irsSym,0,7),0);
+  static const char irsSym[]="__IRS_AND_RES__";
+  codeGen_.addReference(Stream::String(irsSym,0,15),0);
   static const char retSym[]="__RET__";
   codeGen_.addReference(Stream::String(retSym,0,7),1);
-  static const char resSym[]="__RES__";
-  codeGen_.addReference(Stream::String(resSym,0,7),2);
   static const char irsRestSym[]="__IRS_REST__";
-  codeGen_.addReference(Stream::String(irsRestSym,0,12),3);
   
   Token name=stream.readToken();
   Error::expect(name.getType() == Token::TOK_NAME) << stream << "expect function name";
+  codeGen_.addReference(Stream::String(irsRestSym,0,12),2);
   
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' after function name";
   
