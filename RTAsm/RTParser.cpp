@@ -728,7 +728,8 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   
   stream.skipWhiteSpaces().read();//discards ')'
   
-  _Operand currentIRS=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS__",0,7)));
+  
+  _Operand currentIRS=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15)));
   
   //codeGen_.instrMov(_Operand::createResult(),callFrame.getArrayBaseOffset());
   codeGen_.instrMov(_Operand::createResult(),_Operand::createConstWithRef(callFrame.getArrayBaseOffset().mapIndex_,1));
@@ -787,7 +788,7 @@ void RTParser::parseFunctionDecl(Stream &stream)
     
     Error::expect(token.getType() == Token::TOK_NAME) << stream << "only parameter names are allowed";
     
-    codeGen_.addReference(token.getName(stream),4+numParameter);
+    codeGen_.addReference(token.getName(stream),3+numParameter);
     
     ++numParameter;
     
