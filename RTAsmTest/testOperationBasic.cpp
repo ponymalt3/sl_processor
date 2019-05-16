@@ -64,7 +64,7 @@ MTEST(testOperationsBasic,test_that_var_ref_operation_works)
 MTEST(testOperationsBasic,test_that_ref_const_sym_operation_works)
 {
   RTProg testCode=RTASM(
-    ref x 9;
+    ref x 5;
     def y 5;
     a=x/y;
   );
@@ -72,7 +72,7 @@ MTEST(testOperationsBasic,test_that_ref_const_sym_operation_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  tester.getProcessor().writeMemory(9,qfp32_t(4).toRaw());
+  tester.getProcessor().writeMemory(5,qfp32_t(4).toRaw());
 
   tester.loadCode();
   tester.execute();
