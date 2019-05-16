@@ -601,3 +601,69 @@ MTEST(testOperationsBasic,test_that_shft_with_both_var_operands_works)
 
   tester.expectSymbol("a",qfp32_t(9.0/8));
 }
+MTEST(testOperationsBasic,test_that_array_base_addr_load_in_expr_works)
+{
+  RTProg testCode=R"(
+    array test 7;
+    a=5;
+    b=test+int(a/3);
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.getProcessor().writeMemory(0,0);
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("b",qfp32_t(9.0));
+}
+
+MTEST(testOperationsBasic,test_that_array_base_addr_load_in_expr_with_result_operand_works)
+{
+  RTProg testCode=R"(
+    array test 7;
+    a=5;
+    b=test+0+int(a/3);
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.getProcessor().writeMemory(0,0);
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("b",qfp32_t(9.0));
+}
+
+MTEST(testOperationsBasic,test_that_array_base_addr_load_as_right_part_of_expr_works)
+{
+  RTProg testCode=R"(
+    array test 7;
+    a=5;
+    b=int(a/3)+0+test;
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.getProcessor().writeMemory(0,0);
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("b",qfp32_t(9.0));
+}
+

@@ -121,10 +121,8 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
   
   if(codeGen_.findFunction(token.getName(stream)).flagsIsFunction_)
   {
-    uint32_t codeBlockStart=codeGen_.getCurCodeAddr();
     _Operand result=parseFunctionCall(stream,token.getName(stream));
-    //move function call in front of exprs
-    tmpStorage.preloadCode(codeBlockStart,codeGen_.getCurCodeAddr()-codeBlockStart);
+   
  
     return result;
   }
@@ -189,7 +187,22 @@ _Operand RTParser::parseExpr(Stream &stream)
 
     stream.restorePos();
 
+    
+    uint32_t codeBlockStart=codeGen_.getCurCodeAddr();
+    
     _Operand expr=parserSymbolOrConstOrMem(stream,tmpStorage);
+    
+    if(codeBlockStart != codeGen_.getCurCodeAddr())
+    {
+      if(expr.isResult())
+      {
+        _Operand tmp=tmpStorage.allocate();
+        codeGen_.instrMov(tmp,expr);
+        expr=tmp;
+      }
+      
+      tmpStorage.preloadCode(codeBlockStart,codeGen_.getCurCodeAddr()-codeBlockStart);
+    }
 
     stream.skipWhiteSpaces();
     ch=stream.peek();

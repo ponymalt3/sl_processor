@@ -204,12 +204,26 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   //handle base addr
   if(a.isArrayBaseAddr())
   {
+    if(b.isResult())
+    {
+      _Operand t=tmpStorage.allocate();
+      instrMov(t,_Operand::createResult());
+      b=t;
+    }
+    
     instrMov(_Operand::createResult(),a);
     a=_Operand::createResult();
   }
   
   if(b.isArrayBaseAddr())
   {
+    if(a.isResult())
+    {
+      _Operand t=tmpStorage.allocate();
+      instrMov(t,_Operand::createResult());
+      a=t;
+    }
+    
     instrMov(_Operand::createResult(),b);
     b=_Operand::createResult();
   }  
