@@ -484,6 +484,8 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
 
   if(setPcEnable)//external pc set
     pcNext=pcValue;
+  
+  stateNext.loopCount_=state_.loopCount_;
     
   if(decode_.goto_const_ == 1 && enable_(_State::S_EXEC) && decode_.jmpBack_ == 1)
   {
