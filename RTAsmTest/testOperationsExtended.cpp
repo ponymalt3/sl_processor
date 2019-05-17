@@ -215,3 +215,33 @@ MTEST(testOperationsSpecialBehaviour,test_that_mul_var_const_works)
      
   tester.expectSymbol("a",40);
 }
+MTEST(testOperationsExtended,test_that_expr_with_both_mem_inc_works)
+{
+  RTProg testCode=R"(
+    a0=5;
+    a1=10;
+    dif=1.5;
+    loop(4)
+      [a0++]=[a0]+dif*[a1++];
+    end
+    dif=dif;
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  for(uint32_t i=0;i<4;++i)
+  {
+    tester.getProcessor().writeMemory(i,qfp32_t::fromDouble(0));
+    tester.getProcessor().writeMemory(10+i,qfp32_t::fromDouble(i+1));
+  }
+  
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectMemoryAt(qfp32_t(5),qfp32_t(1.5));
+  tester.expectMemoryAt(qfp32_t(6),qfp32_t(3.0));
+  tester.expectMemoryAt(qfp32_t(7),qfp32_t(4.5));
+  tester.expectMemoryAt(qfp32_t(8),qfp32_t(6.0));
+}

@@ -70,7 +70,7 @@ package body sl_dec_p is
       decode.cmd(2 downto 0) := data(14 downto 12);
       inc_ad0 := data(11);
       decode.en_irs := '1';
-      decode.en_ad0 := to_ulogic(decode.mux_a = MUX1_MEM);
+      decode.en_ad1 := to_ulogic(decode.mux_a = MUX1_MEM);
       if decode.mux_a = MUX1_RESULT then
         decode.cmd(3) := data(0);
       end if;

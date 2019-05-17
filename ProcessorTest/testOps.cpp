@@ -665,3 +665,47 @@ MTEST(TestOp,test_that_op_with_two_mem_operands_stalls_while_write_is_in_progres
   proc.expectThatMemIs(99,value3);
   proc.expectThatMemIs(5,value-value2);
 }
+
+MTEST(TestOp,test_that_complex_expr_with_mem_and_inc_works)
+{
+  qfp32_t ad0=5;
+  qfp32_t ad1=10;
+  qfp32_t value1=-24.5;
+  qfp32_t value2=7;
+  
+  //[a0++]=[a0]+d*[a1++];
+  
+  uint32_t code[]=
+  {
+    //load ad0
+    SLCode::Load::create1(ad0.toRaw()),
+    SLCode::Mov::create(SLCode::REG_AD0,SLCode::REG_RES),
+    //load ad1
+    SLCode::Load::create1(ad1.toRaw()),
+    SLCode::Mov::create(SLCode::REG_AD1,SLCode::REG_RES),
+    
+    SLCode::Op::create(SLCode::DEREF_AD1,SLCode::IRS,SLCode::CMD_MUL,4,true),
+    SLCode::Op::create(SLCode::REG_RES,SLCode::DEREF_AD0,SLCode::CMD_ADD),
+    SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES,0,true),
+    
+    SLCode::Load::create1(value1.toRaw()),
+    SLCode::Mov::create(SLCode::DEREF_AD0,SLCode::REG_RES),
+    SLCode::Load::create1(value2.toRaw()),
+    SLCode::Mov::create(SLCode::DEREF_AD1,SLCode::REG_RES),
+
+    0xFFFF,
+    0xFFFF,
+    0xFFFF
+  };
+  
+  LoadAndSimulateProcessor proc(code);
+  
+  proc.writeMemory(4,qfp32_t::fromDouble(1.5));
+  proc.writeMemory(ad0,qfp32_t::fromDouble(1));
+  proc.writeMemory(ad1,qfp32_t::fromDouble(2));
+  
+  proc.run(16);
+  proc.expectThatMemIs(5,qfp32_t::fromDouble(4));
+  proc.expectThatMemIs(6,value1);
+  proc.expectThatMemIs(11,value2);
+}

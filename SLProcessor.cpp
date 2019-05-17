@@ -182,7 +182,7 @@ _Decode SLProcessor::decodeInstr() const
   if(bdata(15) == 0)//OPIRS
   {
     decode.CMD_=bdata(14 downto 12);
-    incAD=bdata(11);
+    incAD2=bdata(11);
     decode.enIRS_=1;
     decode.enADr0_=decode.muxA_==SLCode::MUX1_MEM;
     if(decode.muxA_ == SLCode::MUX1_RESULT)
