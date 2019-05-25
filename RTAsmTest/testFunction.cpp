@@ -225,3 +225,51 @@ MTEST(testFunction,test_recursive_function_works)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(15).toRaw());
   tester.expectSymbol("x",15);
 }
+
+MTEST(testFunction,test_that_function_with_function_calls_as_parameters_works)
+{
+  RTProg testCode=R"(
+   
+    function f()
+      return 9;
+    end
+    
+    function test(a,b,c)
+      d=a*b+c;
+      return d;
+    end
+    
+    function init()
+      array data 100;
+      a0=data;
+      loop(sizeof(data))
+        [a0++]=338749809;
+      end
+    end
+    
+    a0=0;
+    [a0]=0;
+    
+    weights=100;
+    numWeights=1;
+    
+    init();
+
+    ## init weights
+    loop((numWeights+1)/2)
+      x=test(f(),f(),weights+i*2);
+    end
+    
+    x=x;
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("x",181.0);
+}

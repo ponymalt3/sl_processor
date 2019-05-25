@@ -989,6 +989,12 @@ void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
       }
     }
     
+    //update last access position
+    if(instrs_[i].symRef_ != NoRef && !instrs_[i].isGoto() && !instrs_[i].isLoadAddr())
+    {
+      symbolMaps_.top()[instrs_[i].symRef_].updateLastAccess(i);
+    }
+    
     if(instrs_[i].isLoadAddr() && instrs_[i].symRef_ == RefLoad)
     {
       bool load2=(i+1)<endAddr && instrs_[i+1].isLoadAddr();
