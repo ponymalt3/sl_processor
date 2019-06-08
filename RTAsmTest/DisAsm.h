@@ -168,12 +168,18 @@ public:
   {
     if((code&0x8000) == 0)
     {
-      return std::string("result = ") + muxAToString(code&2,code&1,code&0x800) + " " + opToString((code>>12)&7) + " [IRS+" + irsOffsetToString(code) + "]";
+      uint32_t extCmd=0;
+      if((code&2) == 0 && (code&1))
+      {
+        extCmd=8;
+      }
+      
+      return std::string("result = ") + muxAToString(code&2,code&1,code&0x800) + " " + opToString(extCmd+((code>>12)&7)) + " [IRS+" + irsOffsetToString(code) + "]";
     }
     
     if((code&0xF000) == 0xC000)
     {
-      return std::string("result = ") + muxAToString(code&2,(code>>8)&1,code&0x200) + " " + opToString((code>>5)&7) + " " + muxBToString(code&8,(code>>2)&1,code&0x10);
+      return std::string("result = ") + muxAToString(code&2,(code>>8)&1,code&0x10) + " " + opToString(((code>>5)&0xF)) + " " + muxBToString(code&8,(code>>2)&1,code&0x200);
     }
     
     return "invalid";
