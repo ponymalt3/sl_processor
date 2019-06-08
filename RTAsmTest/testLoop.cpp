@@ -216,3 +216,51 @@ MTEST(testLoop,test_that_loop_with_zero_loop_count_executes_one_time)
     
   tester.expectSymbol("v",1);
 }
+
+MTEST(testLoop,test_that_operation_with_loop_index_and_array_base_and_irs_works)
+{
+  RTProg testCode=R"(
+    array a 4;
+    b=2;
+    loop(1)
+      a0=a+(i/b);
+      [a0]=99;
+    end
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbolWithOffset("a",0,99);
+}
+
+MTEST(testLoop,test_that_automatic_variable_locate_in_loop_works)
+{
+  RTProg testCode=R"(
+  x=1;
+  loop(2)
+    a=x;
+    b=2*a;
+    c=3*b;
+    d=4*c;
+  end
+  a=a;
+  b=b;
+  c=c;
+  d=d;
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbol("a",1);
+  tester.expectSymbol("b",2);
+  tester.expectSymbol("c",6);
+  tester.expectSymbol("d",24);
+}
