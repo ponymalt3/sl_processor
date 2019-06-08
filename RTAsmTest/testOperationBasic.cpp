@@ -467,8 +467,8 @@ MTEST(testOperationsBasic,test_that_shift_operation_with_const_params_works)
 MTEST(testOperationsBasic,test_that_shift_operation_with_both_mem_works)
 {
   RTProg testCode=R"asm(
-    a0=0;
-    a1=1;
+    a0=10;
+    a1=11;
     c=shft([a0],[a1]);
   )asm";
   
@@ -477,8 +477,8 @@ MTEST(testOperationsBasic,test_that_shift_operation_with_both_mem_works)
 
   _qfp32_t a=99;
   _qfp32_t b=7;
-  tester.getProcessor().writeMemory(0,a.toRaw());
-  tester.getProcessor().writeMemory(1,b.toRaw());
+  tester.getProcessor().writeMemory(10,a.toRaw());
+  tester.getProcessor().writeMemory(11,b.toRaw());
   
   tester.loadCode();
   tester.execute();
@@ -491,7 +491,7 @@ MTEST(testOperationsBasic,test_that_operator_group2_both_mem_operand_fix_is_hand
   //shift operation belongs to group2; this group cant be used with to mem and irs operands directly
   RTProg testCode=R"asm(
     b=7;
-    a0=0;
+    a0=9;
     c=shft([a0],b);
   )asm";
   
@@ -499,7 +499,7 @@ MTEST(testOperationsBasic,test_that_operator_group2_both_mem_operand_fix_is_hand
   EXPECT(tester.parse().getNumErrors() == 0);
 
   _qfp32_t a=99;
-  tester.getProcessor().writeMemory(0,a.toRaw());
+  tester.getProcessor().writeMemory(9,a.toRaw());
   
   tester.loadCode();
   tester.execute();
