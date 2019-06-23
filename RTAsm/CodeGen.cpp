@@ -805,12 +805,15 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
       return _Operand::createSymAccess(symRef,0);
       
     if(symInf.flagIsArray_)//is a array
+    {
       if(op.index_ == 0xFFFF)
       {
         //is array base access
         symInf.flagStayAllocated_=1;
       }
+      
       return _Operand::createSymAccess(symRef,op.index_);
+    }
       
     //normal variable      
     return _Operand::createSymAccess(symRef,0);
