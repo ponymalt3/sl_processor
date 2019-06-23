@@ -226,6 +226,31 @@ MTEST(testFunction,test_recursive_function_works)
   tester.expectSymbol("x",15);
 }
 
+MTEST(testFunction,test_that_function_in_complex_expression_works)
+{
+  RTProg testCode=R"(
+    function fib(n)
+      if(n == 1)
+        return 1;
+      end
+      return n+fib(n-1);
+    end
+    
+    a=99;
+    b=-4.3;    
+    x=(fib(5)*74.5+a)-1.5*b;
+    x=x;
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("x",(15*74.5+99)-1.5*(-4.3));
+}
+
 MTEST(testFunction,test_that_function_with_function_calls_as_parameters_works)
 {
   RTProg testCode=R"(
@@ -272,4 +297,66 @@ MTEST(testFunction,test_that_function_with_function_calls_as_parameters_works)
   tester.execute();
    
   tester.expectSymbol("x",181.0);
+}
+
+MTEST(testFunction,test_that_function_inlining_works)
+{
+  RTProg testCode=R"(
+    function f(a,b,c)
+      if(a > b)
+        return a;
+      end
+      
+      if(b > c)
+        return b;
+      else
+        return 7;
+      end
+    end
+    
+    array x 4;
+    
+    a=77;
+    a0=100;
+    x(0)=20;
+    x(1)=f(a,x(0),7); #77
+    x(2)=f(a,[a0++],7); #200
+    x(3)=f(1,1,9); #7   
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+  
+  tester.getProcessor().writeMemory(100,200.0);
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbolWithOffset("x",0,20.0);
+  tester.expectSymbolWithOffset("x",1,77.0);
+  tester.expectSymbolWithOffset("x",2,200.0);
+  tester.expectSymbolWithOffset("x",3,7.0);
+}
+
+MTEST(testFunction,test_that_function_inlining_in_expr_works)
+{
+  RTProg testCode=R"(
+    function f(a)
+      return a*2;
+    end
+    
+    a=9;
+    b=-2;
+    e=(5*a+f(99))-b*f(2);  
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+  
+  tester.getProcessor().writeMemory(100,200.0);
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("e",251.0);
 }

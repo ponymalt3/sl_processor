@@ -8,20 +8,23 @@
 #include "RTParser.h"
 #include "Token.h"
 
+#include <map>
+
 
 RTParser::RTParser(CodeGen &codeGen) : Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
   startAddr_=0;
 }
 
-void RTParser::parse(Stream &stream)
 const std::map<uint32_t,uint32_t>& RTParser::getLineMapping() const
 {
   return codeTolineMapping_;
 }
 
+void RTParser::parse(Stream &stream,uint32_t inlineFunctionThreshold)
 {
   startAddr_=0;
+  inlineFunctionThreshold_=inlineFunctionThreshold;
   
   codeTolineMapping_.clear();
   codeTolineMapping_.insert(std::make_pair(0U,0U));
@@ -767,7 +770,27 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   {
     Error::expect(numParameter < 16) << stream << "too many function call parameter" << ErrorHandler::FATAL;
     
-    codeGen_.instrMov(callFrame.allocate(),parseExpr(stream));
+    _Operand param=parseExpr(stream);
+    
+    if(fi.isInlineFunction_ == false)
+    {
+      codeGen_.instrMov(callFrame.allocate(),param);
+    }
+    else
+    {
+      if((param.type_ != _Operand::TY_RESOLVED_SYM) || (fi.inline_.parameterWrittenMap_&(1<<numParameter)) != 0)
+      {
+        _Operand op=callFrame.allocate();
+        codeGen_.instrMov(op,param);
+        param=op;
+      }
+      
+      for(auto i : fi.inline_.parameterAccessLists_[numParameter])
+      {
+        fi.inline_.instrs_[i].symRef_=param.mapIndex_;
+        fi.inline_.instrs_[i].patchIrsOffset(param.arrayOffset_);
+      }
+    }
     
     ++numParameter;
     
@@ -782,6 +805,18 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   
   Error::expect(fi.parameters == numParameter) << stream << "parameter missmatch";
   
+  if(fi.isInlineFunction_)
+  {    
+    //patch return value
+    for(auto i : fi.inline_.parameterAccessLists_[numParameter])
+    {
+      fi.inline_.instrs_[i].symRef_=irsAddr.mapIndex_;
+      fi.inline_.instrs_[i].patchIrsOffset(irsAddr.arrayOffset_);
+    }
+    
+    codeGen_.appendInstrs(fi.inline_.instrs_);
+    return irsAddr;
+  }
   
   _Operand currentIRS=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15)));
   
@@ -850,7 +885,8 @@ void RTParser::parseFunctionDecl(Stream &stream)
     
     Error::expect(token.getType() == Token::TOK_NAME) << stream << "only parameter names are allowed";
     
-    codeGen_.addReference(token.getName(stream),3+numParameter);
+    params[numParameter]=token.getName(stream);
+    codeGen_.addReference(params[numParameter],3+numParameter);
     
     ++numParameter;
     
@@ -874,8 +910,75 @@ void RTParser::parseFunctionDecl(Stream &stream)
     codeGen_.instrGoto2();
   }
   
-  codeGen_.storageAllocationPass(512,4+numParameter);
   fi.size_=codeGen_.getCurCodeAddr()-codeAddrBeg;
+  
+  //inline function
+  if(fi.size_ < inlineFunctionThreshold_)
+  {
+    //remove code mapping
+    codeTolineMapping_.erase(codeTolineMapping_.lower_bound(codeAddrBeg),codeTolineMapping_.end());
+    
+    fi.isInlineFunction_=true;
+    fi.inline_.parameterWrittenMap_=0;
+    
+    auto instrs=codeGen_.extractRecentInstrs(fi.size_);
+    
+    //remove last 2 instr; load addr and goto
+    instrs.pop_back();
+    instrs.pop_back();
+    fi.size_-=2;
+    
+    uint32_t returnAddrSymRef=codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7));
+    uint32_t returnDataSymRef=codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15));
+    
+    std::vector<std::list<uint32_t>> parameterAccess;    
+    parameterAccess.resize(fi.parameters+1);//parameters and return value
+    
+    std::cout<<"xxx: "<<(instrs.size())<<"\n";
+    
+    uint32_t j=0;
+    for(auto &i : instrs)
+    {
+      if(i.isIrsInstr())
+      {
+        if(i.symRef_ == returnAddrSymRef)
+        {
+          i.code_=SLCode::Goto::create(static_cast<int32_t>(fi.size_-j),false);//jump to end of function
+          i.symRef_=CodeGen::NoRef;
+          ++j;
+          continue;
+        }
+        
+        if(i.symRef_ == returnDataSymRef)
+        {
+          parameterAccess[fi.parameters].push_back(j);
+          ++j;
+          continue;
+        }
+        
+        SymbolMap::_Symbol &sym=(*fi.symbols_)[i.symRef_];
+        if(sym.flagAllocated_ && sym.allocatedAddr_ >= 3)
+        {
+          uint32_t paramId=sym.allocatedAddr_-3;
+          parameterAccess[paramId].push_back(j);
+          if(i.isMovToIrsInstr())
+          {
+            fi.inline_.parameterWrittenMap_|=1<<paramId;
+          }         
+        }
+      }
+      
+      ++j;
+    }
+    
+    fi.inline_.instrs_=std::move(instrs);
+    fi.inline_.parameterAccessLists_=std::move(parameterAccess); 
+  }
+  else
+  {
+    //allocate irs storage
+    codeGen_.storageAllocationPass(512,4+numParameter);
+  }
   
   codeGen_.popSymbolMap();
   

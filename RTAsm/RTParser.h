@@ -91,7 +91,7 @@ public:
 
   RTParser(CodeGen &codeGen);
 
-  void parse(Stream &stream);
+  void parse(Stream &stream,uint32_t inlineFunctionThreshold=0);
 
   _Operand parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &tmpStorage);
   uint32_t operatorPrecedence(char op) const;
@@ -115,6 +115,7 @@ protected:
 
   CodeGen &codeGen_;
   uint32_t startAddr_;
+  uint32_t inlineFunctionThreshold_;
   std::map<uint32_t,uint32_t> codeTolineMapping_;
 };
 
