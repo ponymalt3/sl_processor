@@ -234,10 +234,8 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
     
     instrMov(_Operand::createResult(),b);
     b=_Operand::createResult();
-  }  
+  }
 
-  Error::expect(!(a.isResult() && b.isResult())) << stream_ << "invalid operands for instruction" << ErrorHandler::FATAL;
-  
   //special handling when using constant data
   if(b.type_ == _Operand::TY_VALUE && (a.type_ == _Operand::TY_VALUE || a.type_ == _Operand::TY_RESULT))
   {
@@ -396,7 +394,6 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
       
       Error::expect(getCurCodeAddr() > 0 && instrs_[getCurCodeAddr()-1].isIrsInstr()) << "internal error" << ErrorHandler::FATAL;
       
-      instrs_[getCurCodeAddr()-1].patchIrsOffset(0);
       instrs_[getCurCodeAddr()-1].symRef_=NoRef;
     }
     
@@ -649,7 +646,9 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
       
       if(instrs_[i].isLoadAddr())
       {
-        Error::expect((symInf.allocatedAddr_&7) == 0 || symInf.allocatedAddr_ < 32) << "addr to be loaded must less than 32 or 8 word aligned";
+        //Error::expect((symInf.allocatedAddr_&7) == 0 || symInf.allocatedAddr_ < 32)
+        //  << "addr to be loaded must less than 32 or 8 word aligned";
+          
         instrs_[i].patchConstant(qfp32_t(symInf.allocatedAddr_).toRaw(),false);
       }
 
@@ -792,7 +791,7 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
       if(symRef != SymbolMap::InvalidLink && symMapOuter[symRef].flagConst_)
       {
         return _Operand(symMapOuter[symRef].constValue_);
-      }        
+      }
     }
 
     Error::expect(symRef != SymbolMap::InvalidLink) << "symbol " << name << " not found" << ErrorHandler::FATAL;
@@ -987,7 +986,7 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
     return;
   }
   
-  Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not engough instr buffer space" << ErrorHandler::FATAL;  
+  Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not enough instr buffer space" << ErrorHandler::FATAL;  
   
   uint32_t size2=abs(startAddr-targetAddr);
   
