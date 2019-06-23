@@ -12,6 +12,7 @@
 //#include "Token.h"
 #include "Error.h"
 #include "qfp32.h" 
+#include <functional>
 
 struct qfp32
 {  
@@ -65,6 +66,8 @@ public:
   };
 
   Stream(RTProg &rtProg);//const char *code);
+  
+  void setCallback(const std::function<void(uint32_t,bool)> &callback);
 
   char peek();
   char read();
@@ -102,6 +105,7 @@ protected:
   uint32_t length_;
   uint32_t markPos_;
   uint32_t markLine_;
+  std::function<void(uint32_t,bool)> callback_;
 };
 
 #endif /* STREAM_H_ */

@@ -71,18 +71,13 @@ Stream::Stream(RTProg &rtProg):Error(rtProg.getErrorHandler())
   markLine_=line_;
 }
 
+void Stream::setCallback(const std::function<void(uint32_t,bool)> &callback)
+{
+  callback_=callback;
+}
+
 char Stream::peek()
 {
-  while(asmText_[pos_] == '%' || asmText_[pos_] == '#')
-  {
-    ++pos_;
-    while(pos_ < length_ && asmText_[pos_] != '%' && asmText_[pos_] != '\n') ++pos_;
-
-    
-    ++pos_;
-    while(pos_ < length_ && (asmText_[pos_] == ' ' || asmText_[pos_] == '\n')) ++pos_;
-  }
-
   return asmText_[pos_];
 }
 
@@ -90,11 +85,20 @@ char Stream::read()
 {
   char ch=peek();
   ++pos_;
+  
+  if(ch == '\n')
+  {
+    ++line_;
+    callback_(line_,false);
+  }
+  
   return ch;
 }
 
 Stream& Stream::skipWhiteSpaces()
 {
+  uint32_t prevLine=line_;
+  
   while(!empty())
   {
     char ch=asmText_[pos_];
@@ -108,13 +112,18 @@ Stream& Stream::skipWhiteSpaces()
       ch=asmText_[++pos_];
     }
 
-    if(ch == ' ' || ch == '\n')
+    if(ch == ' ' || ch == '\t' || ch == '\n')
     {
       ++pos_;
       line_+=ch=='\n';
     }
     else
     {
+      if(callback_ != nullptr && prevLine != line_)
+      {
+        callback_(line_,false);
+      }
+      
       break;
     }
   }
@@ -375,6 +384,11 @@ void Stream::markPos()
 void Stream::restorePos()
 {
   assert(markPos_ != InvalidMark);
+  
+  if(line_ != markLine_ && callback_ != nullptr)
+  {
+    callback_(markLine_,true);
+  }
 
   pos_=markPos_;
   line_=markLine_;
