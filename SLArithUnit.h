@@ -30,10 +30,8 @@ protected:
 
   _PendingOp pipeline_[32];
   uint32_t curCycle_;
-
-  bool newOpAdded_;
   uint32_t activeOp_;
-  uint32_t pendingOp_;
+  bool newOpAdded_;
 };
 
 #endif /* SLARITHUNIT_H_ */

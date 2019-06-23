@@ -24,7 +24,6 @@ void SLArithUnit::reset()
   curCycle_=0;
 
   activeOp_=0;
-  pendingOp_=0;
   
   newOpAdded_=false;
 }
@@ -41,15 +40,6 @@ void SLArithUnit::addOperation(const _DecodeEx &decEx)
     activeOp_=decEx.cmd_;
     newOpAdded_=true;
   }
-  /*else if(pendingOp_ == 0)
-  {
-    pendingOp_=decEx.cmd_;
-    newOpAdded_=true;
-  }
-  else
-  {
-    throw new std::exception();
-  }*/
 
   _qfp32_t extA=a,extB=b;
 
@@ -88,8 +78,7 @@ _MUnit SLArithUnit::comb(const _DecodeEx &decEx)
     munit.complete_=1;
     munit.sameUnitReady_=1;
     
-    activeOp_=0;//pendingOp_;
-    pendingOp_=0;
+    activeOp_=0;
     
     if(pipeline_[curCycle_].cmd_ == SLCode::CMD_CMP)
     {
@@ -104,8 +93,6 @@ _MUnit SLArithUnit::comb(const _DecodeEx &decEx)
     {
       munit.complete_=0;
     }
-    
-    pipeline_[curCycle_].cmd_=0xFF;
   }
 
   return munit;
@@ -117,6 +104,8 @@ void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
   _qfp32_t b=_qfp32_t::initFromRaw(decEx.b_);
   
   _qfp32_t extA=a,extB=b;
+  
+  pipeline_[curCycle_].cmd_=0xFF;
   
   if(en)
   {
@@ -146,25 +135,14 @@ void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
       pipeline_[(curCycle_+1)%32].result_=extA.logicShift(extB).toRaw();
       pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_SHFT;
       break;
-    
-    //case SLCode::CMD_MAC:
-      //pipeline_[(curCycle_+2)%32].result_=(a*b).asUint;
-      //pipeline_[(curCycle_+2)%32].cmd_=SLCode::CMD_MUL;
-      //break;  
+  
     default:
       ;
     }
   }
   else if(newOpAdded_)
   {
-    /*if(pendingOp_ == decEx.cmd_)
-    {
-      pendingOp_=0;
-    }
-    else*/
-    {
       activeOp_=0;
-    }
   }
 
   curCycle_=(curCycle_+1)%32;
