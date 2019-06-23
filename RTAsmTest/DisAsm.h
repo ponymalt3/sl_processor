@@ -2,62 +2,75 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 class DisAsm
 {
 public:
-  static std::string getStringFromCode(uint16_t *code,uint32_t size)
+  static std::string getStringFromCode(const uint16_t *code,uint32_t size)
   {
-    std::string result="";
+    auto instrs=getLinesFromCode(code,size);
+    
+    std::string result;
+    for(auto &i : instrs)
+    {
+      result+=i+"\n";
+    }
+    
+    return result;
+  }
+  
+  static std::vector<std::string> getLinesFromCode(const uint16_t *code,uint32_t size)
+  {
+    std::vector<std::string> result;
     for(uint32_t i=0;i<size;++i)
     {
       std::stringstream ss;
       ss<<i;
-      result+=ss.str()+") ";
-      std::string s;
+      std::string s=ss.str()+") ";
       
       if((s=movInstrToString(code[i])) != "invalid")
       {
-        result+=s + "\n";
+        result.push_back(s);
         continue;
       }
       if((s=opInstrToString(code[i])) != "invalid")
       {
-        result+=s + "\n";
+        result.push_back(s);
         continue;
       }
       if((s=cmpInstrToString(code[i])) != "invalid")
       {
-        result+=s + "\n";
+        result.push_back(s);
         continue;
       }
       if((s=gotoInstrToString(code[i],i)) != "invalid")
       {
-        result+=s + "\n";
+        result.push_back(s);
         continue;
       }
       if((s=loadInstrToString(code[i],((i+1)<size)?code[i+1]:0,((i+2)<size)?code[i+2]:0)) != "invalid")
       {
-        result+=s + "\n";
+        result.push_back(s);
         continue;
       }
       if((s=unaryInstrToString(code[i])) != "invalid")
       {
-        result+=s + "\n";
+        result.push_back(s);
         continue;
       }
       if((s=loopInstrToString(code[i])) != "invalid")
       {
-        result+=s + "\n";
+        result.push_back(s);
         continue;
       }
       if(code[i] == 0xFFFF)
       {
-        result+="nop\n";
+        result.push_back("nop");
         continue;
       }
       
-      result+="invalid\n";
+      result.push_back("invalid");
     }
 
     return result;
