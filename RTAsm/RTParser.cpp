@@ -15,8 +15,25 @@ RTParser::RTParser(CodeGen &codeGen) : Error(codeGen.getErrorHandler()), codeGen
 }
 
 void RTParser::parse(Stream &stream)
+const std::map<uint32_t,uint32_t>& RTParser::getLineMapping() const
+{
+  return codeTolineMapping_;
+}
+
 {
   startAddr_=0;
+  
+  codeTolineMapping_.clear();
+  codeTolineMapping_.insert(std::make_pair(0U,0U));
+  std::cout<<"codeen start: "<<(codeGen_.getCurCodeAddr())<<"\n";
+  
+  stream.setCallback([&](uint32_t line,bool invalidate) {
+    streamCallback(line,invalidate);
+  });
+  
+  codeGen_.setCodeMovedCallback([&](uint32_t startAddr,uint32_t size,uint32_t targetAddr) {
+    codeMovedCallback(startAddr,size,targetAddr);
+  });
   
   try
   {
@@ -36,6 +53,15 @@ void RTParser::parse(Stream &stream)
   }
   
   codeGen_.generateEntryVector(startAddr_);
+  
+  decltype(codeTolineMapping_) t;
+  for(auto &i : codeTolineMapping_)
+  {
+    auto it=t.insert(std::make_pair(i.first/10,i.second)).first;
+    it->second=i.second&(~NonMovableLineFlag);
+  }
+  
+  codeTolineMapping_=std::move(t);
 }
 
 _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &tmpStorage)
@@ -62,6 +88,8 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
     Error::expect(sym.flagIsArray_ != 0) << stream << "expect array name";
     
     Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "missing ')'";
+    
+    stream.skipWhiteSpaces();
     
     return _Operand(qfp32::fromRealQfp32(qfp32_t::fromDouble(sym.allocatedSize_)));
   }
@@ -116,6 +144,8 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
     
     Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "expect ')'";
     
+    stream.skipWhiteSpaces();
+    
     return result;
   }
   
@@ -123,6 +153,7 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
   {
     _Operand result=parseFunctionCall(stream,token.getName(stream));
    
+    stream.skipWhiteSpaces();
  
     return result;
   }
@@ -134,6 +165,8 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
     index=stream.readInt(false).value_;
     Error::expect(stream.read() == ')') << (stream) << "missing ')'";
   }
+  
+  stream.skipWhiteSpaces();
 
   return _Operand::createSymbol(token.getName(stream),index);
 }
@@ -299,6 +332,8 @@ _Operand RTParser::parseExpr(Stream &stream)
   stream.restorePos();
 
   Error::expect(operands.size() == 1) << stream << "expression not valid";
+  
+  stream.skipWhiteSpaces();
 
   return operands.pop();
 }
@@ -439,6 +474,8 @@ void RTParser::parseIfExp(Stream &stream,CodeGen::Label &labelThen,CodeGen::Labe
       codeGen_.instrGoto(labelElse);
     }
   }
+  
+  stream.skipWhiteSpaces();
 }
 
 void RTParser::parseIfStatement(Stream &stream)
@@ -472,6 +509,8 @@ void RTParser::parseIfStatement(Stream &stream)
   Error::expect(token.getType() == Token::TOK_END) << stream << "expect 'END' token";
 
   labelEnd.setLabel();
+  
+  stream.skipWhiteSpaces();
 }
 
 void RTParser::parseLoopStatement(Stream &stream)
@@ -481,6 +520,9 @@ void RTParser::parseLoopStatement(Stream &stream)
   _Operand op=parseExpr(stream);
 
   Error::expect(stream.read() == ')') << stream << "missing ')'";
+  
+  markLineAsNoMovable();//only for line to code mapping
+  stream.skipWhiteSpaces();
 
   CodeGen::Label beg(codeGen_);
   CodeGen::Label cont(codeGen_);
@@ -495,6 +537,7 @@ void RTParser::parseLoopStatement(Stream &stream)
   beg.setLabel();
 
   parseStatements(stream);
+  stream.skipWhiteSpaces();
   
   if(codeGen_.isLoopFrameComplex() == false)
   {
@@ -532,6 +575,8 @@ void RTParser::parseLoopStatement(Stream &stream)
   codeGen_.removeLoopFrame();
 
   Error::expect(stream.readToken().getType() == Token::TOK_END) << stream << "missing 'end' token";
+  
+  stream.skipWhiteSpaces();
 }
 
 void RTParser::parseWhileStatement(Stream &stream)
@@ -549,6 +594,9 @@ void RTParser::parseWhileStatement(Stream &stream)
   
   Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "missing ')'";
   
+  markLineAsNoMovable();
+  stream.skipWhiteSpaces();
+  
   beg.setLabel();
   
   parseStatements(stream);
@@ -561,6 +609,8 @@ void RTParser::parseWhileStatement(Stream &stream)
   
   Error::expect(stream.skipWhiteSpaces().readToken().getType() == Token::TOK_END)
           << stream << "expect 'end'";
+          
+  stream.skipWhiteSpaces();
 }
 
 bool RTParser::parseStatement(Stream &stream)
@@ -686,6 +736,8 @@ bool RTParser::parseStatement(Stream &stream)
     return false;
   }
   
+  stream.skipWhiteSpaces();
+  
   return true;
 }
 
@@ -760,6 +812,8 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   _Operand irsRestore=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_REST__",0,12)));
   codeGen_.instrMov(_Operand::createInternalReg(_Operand::TY_IR_IRS),irsRestore);
   
+  stream.skipWhiteSpaces();
+  
   return irsAddr;  
 }
 
@@ -829,6 +883,8 @@ void RTParser::parseFunctionDecl(Stream &stream)
   
   Token token=stream.readToken();
   Error::expect(token.getType() == Token::TOK_END) << stream << "expect 'END' at the end of a function";
+  
+  stream.skipWhiteSpaces();
 }
 
 void RTParser::parseArrayDecl(Stream &stream,const Stream::String &name)
@@ -853,4 +909,79 @@ void RTParser::parseArrayDecl(Stream &stream,const Stream::String &name)
   }
   
   Error::expect(stream.skipWhiteSpaces().read() == '}') << stream << "missing '}'";  
+  
+  stream.skipWhiteSpaces();
+}
+
+void RTParser::streamCallback(uint32_t line,bool invalidate)
+{
+  if(invalidate)
+  {
+    auto i=codeTolineMapping_.begin();
+    for(;i!=codeTolineMapping_.end();)
+    {
+      if(i->second > line)
+      {
+        i=codeTolineMapping_.erase(i);
+      }
+      else
+      {
+        ++i;
+      }
+    }
+
+    return;
+  }
+  
+  auto it=codeTolineMapping_.find(codeGen_.getCurCodeAddr()*10);
+      
+  uint32_t subIndex=0;
+  while(it != codeTolineMapping_.end() && (it->first/10) == codeGen_.getCurCodeAddr())
+  {
+    ++it;
+    ++subIndex;
+  }
+
+  codeTolineMapping_.insert(std::make_pair(codeGen_.getCurCodeAddr()*10+subIndex,line));
+}
+
+void RTParser::codeMovedCallback(uint32_t startAddr,uint32_t size,uint32_t targetAddr)
+{
+  startAddr*=10;
+  targetAddr*=10;
+
+  auto i1=codeTolineMapping_.lower_bound(std::min(startAddr+size,targetAddr));
+  auto i2=codeTolineMapping_.upper_bound(std::max(startAddr+size,targetAddr));
+  if(i2 != codeTolineMapping_.end())
+  {
+    --i2;
+  }
+  std::map<uint32_t,uint32_t> t;
+  t.insert(i1,i2);
+  codeTolineMapping_.erase(i1,i2);
+  
+  for(auto &j : t)
+  {
+    int32_t value=j.first;
+    
+    if((j.second&NonMovableLineFlag) == 0 || ((startAddr/10) < (j.first/10) && (targetAddr/10) > (j.first/10)))
+    {
+      if(targetAddr > startAddr)
+      {
+        value-=size*10;
+      }
+      else
+      {
+        value+=size*10;
+      }
+    }
+    
+    codeTolineMapping_.insert(std::make_pair(value,j.second));
+  }
+}
+  
+void RTParser::markLineAsNoMovable()
+{
+  auto itLastElement=--(codeTolineMapping_.end());
+  itLastElement->second|=NonMovableLineFlag;
 }
