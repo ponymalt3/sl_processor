@@ -90,6 +90,8 @@ public:
   enum {UnaryMinus=1};
 
   RTParser(CodeGen &codeGen);
+  
+  const std::map<uint32_t,uint32_t>& getLineMapping() const;
 
   void parse(Stream &stream,uint32_t inlineFunctionThreshold=0);
 
