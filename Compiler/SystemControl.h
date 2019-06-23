@@ -1,4 +1,4 @@
-#pragma concept
+#pragma once
 
 #include "UartInterface.h"
 
