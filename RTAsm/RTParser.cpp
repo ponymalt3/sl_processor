@@ -725,7 +725,13 @@ bool RTParser::parseStatement(Stream &stream)
     if(stream.skipWhiteSpaces().peek() != ';')
     {
       _Operand result=parseExpr(stream);
-      codeGen_.instrMov(_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,7))),result);      
+      codeGen_.instrMov(_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15))),result);      
+    }
+    else
+    {
+      //return 0 by default
+      codeGen_.instrMov(_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15))),
+                        _Operand(qfp32::fromRealQfp32(qfp32_t::initFromRaw(0))));
     }
     
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
@@ -906,6 +912,9 @@ void RTParser::parseFunctionDecl(Stream &stream)
   if(codeGen_.getCurCodeAddr() == codeAddrBeg || codeGen_.getCodeAt(codeGen_.getCurCodeAddr()-1) != SLCode::Goto::Code)
   {
     //generate return if not explicit written
+    codeGen_.instrMov(_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15))),
+                      _Operand(qfp32::fromRealQfp32(qfp32_t::initFromRaw(0))));
+    
     codeGen_.instrMov(_Operand::createResult(),_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7))));
     codeGen_.instrGoto2();
   }
