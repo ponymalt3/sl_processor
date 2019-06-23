@@ -3,19 +3,24 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <unistd.h>
 
 #include "qfp32.h"
 
 #include "RTAsm/RTParser.h"
 #include "RTAsm/CodeGen.h"
 #include "RTAsm/RTProg.h"
+#include "RTAsmTest/DisAsm.h"
 
 #include "UartInterface.h"
 #include "SystemControl.h"
-
-#include <regex>
-
 #include "IncludeResolver.h"
+
+#include "Debugger.h"
+#include "Simulator.h"
+#include "CommonPrefixTree.h"
+
+#include "termios.h"
 
 uint32_t swap16(uint32_t value)
 {
@@ -29,6 +34,8 @@ uint32_t swap32(uint32_t value)
   return result;
 }
 
+enum {KEY_UP=165,KEY_DOWN=166,KEY_BACKSPACE=127};
+
 int main(int argc, char **argv)
 {
   bool compile=false;
@@ -36,9 +43,11 @@ int main(int argc, char **argv)
   bool read=false;
   bool write=false;
   bool enableCores=false;
+  bool debug=false;
   std::string arg0="";
   std::string arg1="";
   std::string arg2="";
+  std::string debugTarget="";
   
   for(uint32_t i=1;i<argc;++i)
   {
@@ -51,8 +60,19 @@ int main(int argc, char **argv)
         case 'r' | 'R': read=true; break;
         case 'w' | 'W': write=true; break;
         case 'e' | 'E': enableCores=true; break;
+        case 'd' | 'D':
+          debug=true;
+          if(argc > (i+1))
+          {
+            debugTarget=argv[i+1];
+            ++i;
+          }
+          break;
         case 'h':
-          std::cout<<"-c compile input output\n-p write compiled program to fpga\n-t execute test case specified in input\n-d dump all memory to stdout\n";
+          std::cout<<"-c compile input output\n"
+                     "-p write compiled program to fpga\n"
+                     "-t execute test case specified in input\n"
+                     "-d sim/target start debugging after compile\n";
           break;
         default:
           std::cout<<"unknown switch '"<<(argv[i]+1)<<"'\n";
@@ -100,12 +120,16 @@ int main(int argc, char **argv)
       return -1;
     }
     
+    auto filesAsLineVectors=ir.getFilesAsLineVectors();
+    auto lineToFileMap=ir.getLineToFileMap();
     RTProg prog(ir.getResolvedCode().c_str());
     Stream s(prog);
-    CodeGen gen(s,4);
+    CodeGen gen(s,6);
     
     RTParser parser(gen);
     parser.parse(s);
+    gen.generateEntryVector(1,4);
+    
     
     if(Error(prog.getErrorHandler()).getNumErrors() == 0)
     {
@@ -116,7 +140,149 @@ int main(int argc, char **argv)
       return -1;
     }
     
-    if(!program)
+    uint16_t *code=new uint16_t[gen.getCurCodeAddr()];
+    for(uint32_t i=0;i<gen.getCurCodeAddr();++i)
+    {
+      code[i]=gen.getCodeAt(i);
+    }
+    
+   
+    if(debug)
+    {
+      DebuggerInterface *debIfc=0;
+      
+      if(debugTarget == "sim")
+      {
+        debIfc=new Simulator(4096,512,4096);
+      }
+      else if(debugTarget == "target")
+      {
+        
+      }
+      else
+      {
+        std::cout<<"invalid debug target\n";
+        return -1;
+      }
+      
+      Debugger deb(debIfc,
+                   gen.getDefaultSymbols(),
+                   gen.getFunctions(),
+                   parser.getLineMapping(),
+                   ir.getLineToFileMap(),
+                   ir.getFilesAsLineVectors(),
+                   code,
+                   gen.getCurCodeAddr(),
+                   0x80000000);
+                   
+      deb.loadCode();
+      
+      termios t;
+      tcgetattr(0,&t);
+      t.c_lflag&=(~ICANON) & (~ECHO);
+      tcsetattr(0,TCSANOW,&t);
+      
+      CommonPrefixTree cpt;
+      cpt.insert("show ");
+      cpt.insert("run ");
+      cpt.insert("quit");
+      cpt.insert("show callstack");
+      cpt.insert("show mem[");
+      cpt.insert("step");
+      
+      for(auto &i : ir.getFilesAsLineVectors())
+      {
+        cpt.insert(std::string("run ") + i.first + ":");
+      }
+                   
+      std::string result;
+      std::vector<std::string> prevCmds;
+      do
+      {
+        std::cout<<"> ";
+        bool newCmd=true;
+        uint32_t index=prevCmds.size();
+        std::string cmd;
+        std::string cmdTmp;
+        int16_t ch=getchar();
+        while(ch != '\n' || cmd.length() == 0)
+        {
+          if(ch == 27)
+          {
+            ch=getchar();
+            ch=getchar()+100;
+          }
+          
+          switch(ch)
+          {
+          case KEY_BACKSPACE:
+            if(cmd.length() > 0)
+            {
+              cmd=cmd.substr(0,cmd.length()-1);
+              std::cout<<"\b \b";
+            }
+            break;
+            
+          case KEY_UP:
+            if(prevCmds.size() == 0)
+            {
+              break;
+            }
+            for(uint32_t i=0;i<cmd.length();++i) std::cout<<"\b \b";
+            if(index > 0)
+            {
+              --index;
+            }
+            cmd=prevCmds[index];
+            std::cout<<cmd;
+            break; 
+            
+          case KEY_DOWN:
+            for(uint32_t i=0;i<cmd.length();++i) std::cout<<"\b \b";
+            if(index < (prevCmds.size()-1))
+            {
+              ++index;
+              cmd=prevCmds[index];
+            }
+            else
+            {
+              index=prevCmds.size();
+              cmd=cmdTmp;
+            }
+            std::cout<<cmd;            
+            break;  
+          
+          case '\t':
+          {
+            std::string extend=cpt.getCommonPrefix(cmd);
+            std::cout<<extend;
+            cmd+=extend;
+            cmdTmp=cmd;
+            break;            
+          }
+              
+          default:
+            if(ch != '\n')
+            {
+              cmd.push_back(ch);
+              std::cout<<(uint8_t(ch));
+            }
+            cmdTmp=cmd;
+          }
+          
+          ch=getchar();
+        }
+        
+        prevCmds.push_back(cmd);
+        result=deb.command(cmd);
+        std::cout<<"\n"<<(result)<<"\n";        
+      }
+      while(result.length() > 0);
+    }
+    
+    delete [] code;
+    
+    if(!program && !debug)
     {
       return 0;
     }
