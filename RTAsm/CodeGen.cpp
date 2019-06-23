@@ -19,7 +19,6 @@ void swap(_T &a,_T &b)
   a=b;
   b=t;
 } 
-
 Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
   labelRef_=codeGen_.getLabelId(this);
@@ -42,6 +41,8 @@ void Label::setLabel()
 
 void Label::deleteLabel()
 {
+  Error::expect(labelRef_ != CodeGen::NoRef) << "invalid label" << ErrorHandler::FATAL;
+  
   codeGen_.patchLabelInCode(*this,codeAddr_);
   codeGen_.releaseLabel(*this);
   labelRef_=CodeGen::NoRef;
@@ -303,6 +304,15 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
     
     symRef=b.mapIndex_;
     irsOffset=b.arrayOffset_;
+  }
+  
+  if(a.type_ == _Operand::TY_MEM && a.regaIndex_ == 1)
+  {
+    //potential external mem acces which is not possible
+      instrMov(_Operand::createResult(),a);
+      a=_Operand::createResult();
+    instrOperation(a,b,op,tmpStorage);
+    return;
   }
 
   writeCode(SLCode::Op::create(translateOperand(a),translateOperand(b),translateOperation(op),irsOffset,aIncAddr,bIncAddr),symRef);
@@ -796,6 +806,11 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
       return _Operand::createSymAccess(symRef,0);
       
     if(symInf.flagIsArray_)//is a array
+      if(op.index_ == 0xFFFF)
+      {
+        //is array base access
+        symInf.flagStayAllocated_=1;
+      }
       return _Operand::createSymAccess(symRef,op.index_);
       
     //normal variable      
