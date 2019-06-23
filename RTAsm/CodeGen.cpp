@@ -759,6 +759,11 @@ void CodeGen::generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInI
   }
 }
 
+void CodeGen::setCodeMovedCallback(const std::function<void(uint32_t,uint32_t,uint32_t)> &callback)
+{
+  callback_=callback;
+}
+
 _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 {
   if(op.type_ == _Operand::TY_SYMBOL)
@@ -1010,6 +1015,11 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
     {
       //activeLabels_[i]->rebase(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
     }
+  }
+  
+  if(callback_ != nullptr)
+  {
+    callback_(startAddr,size,targetAddr);
   }
 }
 

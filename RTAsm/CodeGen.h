@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <functional>
 
 #include "Error.h"
 #include "ErrorHandler.h"
@@ -315,6 +316,9 @@ public:
   void generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInInstrs);
 
 protected:
+  
+  void setCodeMovedCallback(const std::function<void(uint32_t,uint32_t,uint32_t)> &callback);
+  
   const std::map<std::string,_FunctionInfo>& getFunctions() const { return functions_; }
   
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
@@ -346,6 +350,8 @@ protected:
   uint32_t entryVectorSize_;
   
   std::multimap<uint32_t,uint32_t> arrayAllocInfo_;
+  
+  std::function<void(uint32_t,uint32_t,uint32_t)> callback_;
   
   SymStack<4> symbolMaps_;
   Stream &stream_;
