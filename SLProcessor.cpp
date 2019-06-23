@@ -138,6 +138,8 @@ void SLProcessor::reset()
   state_.loadState_=1;
   
   state_.loopCount_=0x00000000;
+  
+  cycleCount_=0;
 }
 
 _CodeFetch SLProcessor::codeFetch()
@@ -623,6 +625,8 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
 
 void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue)
 {
+  ++cycleCount_;
+  
   //comb inputs
   decEx_.a_=(decEx_.mux0_ == SLCode::MUX1_MEM)?decEx_.mem0_:state_.result_;
   decEx_.b_=(decEx_.writeExt_)?decEx_.memX_:decEx_.mem1_;

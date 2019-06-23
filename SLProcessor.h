@@ -130,6 +130,13 @@ public:
   void update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue);
   
   uint32_t getExecutedAddr();
+  
+  uint32_t getCurrentPC() const
+  {
+    return decode_.curPc_;
+  }
+  
+  bool isDecodeActive() const { return enable_(_State::S_DECEX); }
 
 protected:
   _CodeFetch codeFetch();
@@ -160,6 +167,8 @@ protected:
 
   uint32_t SharedAddrBase_;
   uint32_t executedAddr_;
+  
+  uint32_t cycleCount_;
 };
 
 #endif /* SLPROCESSOR_H_ */
