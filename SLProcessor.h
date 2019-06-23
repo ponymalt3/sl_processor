@@ -48,10 +48,37 @@
 
 #include <stdint.h>
 #include <assert.h>
+#include <map>
 
 class Memory
 {
 public:
+  class FaultException : public std::exception
+  {
+  public:
+    enum Type {Read,Write};
+    
+    FaultException(uint32_t addr,Type type)
+    {
+      addr_=addr;
+      type_=type;
+    }
+    
+    uint32_t getAddr() const { return addr_; }
+    Type getType() const { return type_; }
+    
+    virtual const char* what() const noexcept
+    {
+      static std::string s;
+      s=(getType()==Read?"read fault at ":"write fault at ") + std::to_string(getAddr());
+      return s.c_str();
+    }
+  
+  protected:
+  uint32_t addr_;
+  Type type_;
+  };
+  
   class Port
   {
   public:
@@ -66,21 +93,27 @@ public:
 
   protected:
     Port(Memory &mem);
+    bool checkAccess(uint32_t addr);
 
     Memory &memory_;
-    uint32_t pendingWrite_ : 1;
+    bool pendingWrite_;
     uint32_t wData_;
-    uint32_t wAddr_ : 16;
+    uint32_t wAddr_;
   };
 
   Memory(uint32_t size);
 
   Port createPort();
   uint32_t getSize() const;
+  
+  void setInvalidRegion(uint32_t beg,uint32_t size);  
+  void setFaultHandler(const std::function<uint32_t(uint32_t,uint32_t,bool)> &faultHandler);
 
 protected:
   uint32_t size_;
   uint32_t *data_;
+  std::function<uint32_t(uint32_t,uint32_t,bool)> faultHandler_;
+  std::map<uint32_t,uint32_t> invalidRegions_;
 };
 
 

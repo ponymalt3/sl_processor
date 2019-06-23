@@ -27,6 +27,10 @@ Memory::Memory(uint32_t size)
 {
   size_=size;
   data_=new uint32_t[size];
+  faultHandler_=[](uint32_t addr,uint32_t,bool write){
+    throw FaultException(addr,write?FaultException::Write:FaultException::Read);
+    return 0U;
+  };
 }
 
 Memory::Port Memory::createPort()
@@ -36,11 +40,21 @@ Memory::Port Memory::createPort()
 
 uint32_t Memory::getSize() const { return size_; }
 
+void Memory::setInvalidRegion(uint32_t beg,uint32_t size)
+{
+  invalidRegions_.insert(std::make_pair(beg,size));
+}
+
+void Memory::setFaultHandler(const std::function<uint32_t(uint32_t,uint32_t,bool)> &faultHandler)
+{
+  faultHandler_=faultHandler;
+}
+
 
 Memory::Port::Port(Memory &mem)
   : memory_(mem)
 {
-  pendingWrite_=0;
+  pendingWrite_=false;
   wData_=0;
   wAddr_=0;
 }
@@ -55,16 +69,25 @@ Memory::Port::Port(const Memory::Port &cpy)
 
 uint32_t Memory::Port::read(uint32_t addr) const
 {
-  assert(addr < memory_.size_);
+  if(addr >= memory_.size_)
+  {
+    return memory_.faultHandler_(addr,0,false);    
+  }
+  
   return memory_.data_[addr];
 }
 
 void Memory::Port::write(uint32_t addr,uint32_t data)
 {
-  assert(addr < memory_.size_);
+  if(addr >= memory_.size_)
+  {
+    memory_.faultHandler_(addr,0,true);
+    return;
+  }
+  
   wAddr_=addr;
   wData_=data;
-  pendingWrite_=1;
+  pendingWrite_=true;
 }
 
 void Memory::Port::update()
@@ -72,10 +95,22 @@ void Memory::Port::update()
   if(pendingWrite_)
   {
     memory_.data_[wAddr_]=wData_;
-    pendingWrite_=0;
+    pendingWrite_=false;
   }
 }
 
+bool Memory::Port::checkAccess(uint32_t addr)
+{
+  auto it=memory_.invalidRegions_.upper_bound(addr);
+  --it;
+  
+  if(it != memory_.invalidRegions_.end() && it->first >= addr && addr < (it->first+it->second))
+  {
+    return false;
+  }
+  
+  return true;
+}
 
 SLProcessor::SLProcessor(Memory &localMem,const Memory::Port &portExt,const Memory::Port &portCode)
   : portExt_(portExt)
