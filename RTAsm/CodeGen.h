@@ -50,61 +50,71 @@ protected:
 
 class CodeGen;
 
-  struct _Instr
+struct _Instr
+{
+  bool isGoto() const
   {
-    bool isGoto() const
-    {
-      return (code_^SLCode::Goto::Code)>>(16-SLCode::Goto::Bits) == 0 && (code_&1) == 1;
-    }
+    return (code_^SLCode::Goto::Code)>>(16-SLCode::Goto::Bits) == 0 && (code_&1) == 1;
+  }
+  
+  bool isMovToIrsInstr() const
+  {
+    return (code_^SLCode::Mov::Code1)>>(16-SLCode::Mov::Bits1) == 0 && (code_&0x1000) != 0;
+  }
+  
+  uint32_t getIrsOffset() const
+  {
+    return SLCode::IRS::getOffset(code_);
+  }
+  
+  bool isIrsInstr() const
+  {
+    bool isIrs=false;
     
-    bool isIrsInstr() const
+    isIrs=isIrs || (code_^SLCode::Mov::Code1)>>(16-SLCode::Mov::Bits1) == 0;//mov
+    isIrs=isIrs || (code_^SLCode::Op::Code1)>>(16-SLCode::Op::Bits1) == 0;//ops
+    isIrs=isIrs || (code_^SLCode::Cmp::Code)>>(16-SLCode::Cmp::Bits) == 0;//cmp
+    
+    return isIrs;
+  }
+  
+  bool isLoadAddr() const
+  {
+    return (code_^SLCode::Load::Code)>>(16-SLCode::Load::Bits) == 0;
+  }
+  
+  static qfp32_t restoreValueFromLoad(_Instr a,_Instr b={0,0},_Instr c={0,0})
+  {
+    if((a.code_&0xF000) == 0xB000)
     {
-      bool isIrs=false;
+      uint32_t raw=((a.code_&0x7FF)<<19) + ((a.code_&0x800)<<20);
       
-      isIrs=isIrs || (code_^SLCode::Mov::Code1)>>(16-SLCode::Mov::Bits1) == 0;//mov
-      isIrs=isIrs || (code_^SLCode::Op::Code1)>>(16-SLCode::Op::Bits1) == 0;//ops
-      isIrs=isIrs || (code_^SLCode::Cmp::Code)>>(16-SLCode::Cmp::Bits) == 0;//cmp
-      
-      return isIrs;
-    }
-    
-    bool isLoadAddr() const
-    {
-      return (code_^SLCode::Load::Code)>>(16-SLCode::Load::Bits) == 0;
-    }
-    
-    static qfp32_t restoreValueFromLoad(_Instr a,_Instr b={0,0},_Instr c={0,0})
-    {
-      if((a.code_&0xF000) == 0xB000)
+      if((b.code_&0xF000) == 0xB000)
       {
-        uint32_t raw=((a.code_&0x7FF)<<19) + ((a.code_&0x800)<<20);
+        raw+=((b.code_&0x7FF)<<8);
+        raw+=((b.code_&0x800)<<19);
         
-        if((b.code_&0xF000) == 0xB000)
+        if((c.code_&0xF000) == 0xB000)
         {
-          raw+=((b.code_&0x7FF)<<8);
-          raw+=((b.code_&0x800)<<19);
-          
-          if((c.code_&0xF000) == 0xB000)
-          {
-            raw+=(c.code_&0x0FF);
-          }
+          raw+=(c.code_&0x0FF);
         }
-        
-        return qfp32_t::initFromRaw(raw);
       }
       
-      return qfp32_t(0);
+      return qfp32_t::initFromRaw(raw);
     }
+    
+    return qfp32_t(0);
+  }
 
-    void patchIrsOffset(uint32_t irsOffset);
-    void patchConstant(uint32_t value,bool patch2ndWord);
-    void patchGotoTarget(int32_t target);
-    
-    uint32_t getGotoTarget();
-    
-    uint16_t code_;
-    uint16_t symRef_;
-  };
+  void patchIrsOffset(uint32_t irsOffset);
+  void patchConstant(uint32_t value,bool patch2ndWord);
+  void patchGotoTarget(int32_t target);
+  
+  uint32_t getGotoTarget();
+  
+  uint16_t code_;
+  uint16_t symRef_;
+};
 
 class Label : public Error
 {

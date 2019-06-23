@@ -143,8 +143,7 @@ CodeGen::CodeGenDelegate::CodeGenDelegate(CodeGen &codeGen,Label &target):codeGe
 
 void _Instr::patchIrsOffset(uint32_t irsOffset)
 {
-  //array index already addressed => add irsOffset
-  code_=SLCode::IRS::patchOffset(code_,SLCode::IRS::getOffset(code_)+irsOffset);
+  code_=SLCode::IRS::patchOffset(code_,irsOffset);
 }
 
 void _Instr::patchConstant(uint32_t value,bool patch2ndWord)
@@ -626,7 +625,8 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
       
       if(instrs_[i].isIrsInstr())
       {
-        instrs_[i].patchIrsOffset(symInf.allocatedAddr_);
+        //array index already addressed => add irsOffset
+        instrs_[i].patchIrsOffset(instrs_[i].getIrsOffset()+symInf.allocatedAddr_);
       }
       
       if(instrs_[i].isLoadAddr())
