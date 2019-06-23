@@ -48,6 +48,7 @@
 
 #include <stdint.h>
 #include <assert.h>
+#include <functional>
 #include <map>
 
 class Memory

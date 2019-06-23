@@ -6,23 +6,6 @@
 
 #include <iostream>
 
-uint32_t simClockEnable(uint32_t oldValue,uint32_t newValue,uint32_t clkEnMask,uint32_t bitsUsed)
-{
-  uint32_t result=oldValue;
-  for(uint32_t i=0;i<bitsUsed;++i)
-  {
-    uint32_t mask=1<<i;
-
-    if(!(clkEnMask&mask))
-      continue;
-
-    result&=~mask;
-    result|=newValue&mask;
-  }
-
-  return result;
-}
-
 Memory::Memory(uint32_t size)
 {
   size_=size;
@@ -321,8 +304,6 @@ _Decode SLProcessor::decodeInstr() const
   decode.jmpBack_=(decode.cData_>>9)&1;
   decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)+(((decode.cData_>>9)&1)*0xFE00);
   
-  incAD2=incAD2 || (!bdata(15) && incAD);
-
   //addr inc
   decode.incAD0_=(incAD && (decode.muxAD1_ == 0)) || (incAD2 && (decode.muxAD0_ == 0));
   decode.incAD1_=(incAD && (decode.muxAD1_ == 1)) || (incAD2 && (decode.muxAD0_ == 1)); 
@@ -516,9 +497,6 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
       pcNext=execNext.intResult_;// (int32_t)(_qfp32_t::initFromRaw(state_.result_).abs());
     }
   }
-
-  if(setPcEnable)//external pc set
-    pcNext=pcValue;
   
   stateNext.loopCount_=state_.loopCount_;
     
@@ -682,8 +660,6 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   if(enable_(_State::S_EXEC) && decEx_.wbEn_)
   {
     _qfp32_t a=_qfp32_t::initFromRaw(state_.result_);
-    //a.asUint=decEx_.writeDataSel_?decEx_.a_:decEx_.b_;
-    int32_t test=(int32_t)(a.abs());
     switch(decEx_.wbReg_)
     {
     case SLCode::REG_AD0: stateNext.addr_[0]=execNext.intResult_; break;
@@ -699,7 +675,6 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   }
 
   //************************************ update register *******************************************
-  
   if(false)
   {
     stateNext.resultPrefetch_=0;
