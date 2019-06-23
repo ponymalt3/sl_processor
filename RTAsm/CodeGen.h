@@ -319,6 +319,7 @@ protected:
   
   void setCodeMovedCallback(const std::function<void(uint32_t,uint32_t,uint32_t)> &callback);
   
+  const SymbolMap& getDefaultSymbols() const { return defaultSymbols_; }
   const std::map<std::string,_FunctionInfo>& getFunctions() const { return functions_; }
   
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
