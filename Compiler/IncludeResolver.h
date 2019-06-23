@@ -34,7 +34,7 @@ public:
   }
   
   
-  const std::map<uint32_t,std::string>& getLineToFileMap() const
+  const std::map<uint32_t,std::pair<std::string,uint32_t> >& getLineToFileMap() const
   {
     return lineToFileMap_;
   }
@@ -76,7 +76,7 @@ protected:
     }
     
     std::vector<std::string> &lines=includedFiles_.insert(std::make_pair(filename,std::vector<std::string>())).first->second;
-    lineToFileMap_.insert(std::make_pair(curLine_,filename));
+    lineToFileMap_.insert(std::make_pair(curLine_,std::make_pair(filename,0)));
     
     std::regex regex("include\\((.*)\\)");
     
@@ -102,13 +102,13 @@ protected:
         ++curLine_;
         
         //check if already included
-        if(includedFiles_.find(toReplace) != includedFiles_.end())
+        if(includedFiles_.find(m[1].str()) != includedFiles_.end())
         {          
           continue;
         }
         
         resolveIncludes(path + "/" + m[1].str());
-        lineToFileMap_.insert(std::make_pair(curLine_,filename));
+        lineToFileMap_.insert(std::make_pair(curLine_,std::make_pair(filename,lines.size())));
       }
       else
       {
@@ -122,5 +122,5 @@ protected:
   uint32_t curLine_;
   std::set<std::string> alreadyIncludedFiles_;
   std::map<std::string,std::vector<std::string> > includedFiles_;
-  std::map<uint32_t,std::string> lineToFileMap_;
+  std::map<uint32_t,std::pair<std::string,uint32_t> > lineToFileMap_;
 };
