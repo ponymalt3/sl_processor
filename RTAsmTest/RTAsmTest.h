@@ -5,6 +5,7 @@
 #include "RTAsm/Error.h"
 #include "RTAsm/RTProg.h"
 #include "../ProcessorTest/SLProcessorTest.h"
+#include "Peripherals.h"
 
 #include "DisAsm.h"
 
@@ -18,18 +19,27 @@ public:
     {
       proc_.writeMemory(i,0,true);
     }  
+    
+    peripherals_.createPeripherals();
+    proc_.getExternalMemory().setFaultHandler([&](uint32_t addr,uint32_t data,bool write){
+      auto result=peripherals_.accessPeripheral(addr,data,write);
+      if(!result.first)
+      {
+        throw Memory::FaultException(addr,write?Memory::FaultException::Write:Memory::FaultException::Read);
+      }
+      return result.second;
+    });    
   }
   
-  Error parse(uint32_t reserveParameter=0,bool generateFullEntryVector=false)
+  Error parse(uint32_t reserveParameter=0,bool generateFullEntryVector=false,uint32_t inlineFunctionThreshold=0)
   {
-    parser_.parse(s_);
+    parser_.parse(s_,inlineFunctionThreshold);
     
     if(generateFullEntryVector)
     {
       codeGen_.generateEntryVector(4,4);
     }
-    
-    if(Error(prog_.getErrorHandler()).getNumErrors() == 0)
+    else if(Error(prog_.getErrorHandler()).getNumErrors() == 0)
     {
       codeGen_.storageAllocationPass(512,reserveParameter);
     }
@@ -55,7 +65,14 @@ public:
       code[i]=getCodeAt(i);
     }
     
-    return DisAsm::getStringFromCode(code,getCodeSize());
+    std::string result;
+    auto lines=DisAsm::getLinesFromCode(code,getCodeSize());
+    uint32_t i=0;
+    for(auto &j : lines)
+    {
+      result+=std::to_string(i++)+". "+j+"\n";
+    }
+    return result;
   }
   
   uint32_t getIRSAddrOfSymbol(const char *symbol)
@@ -94,26 +111,21 @@ public:
     }
     
     proc_.writeCodeComplete(codeGen_.getCurCodeAddr()+3);
+    
+    proc_.reset();
   }
   
   void execute()
   {    
-    proc_.reset();
     uint32_t cycles=proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
     std::cout<<"cycles executed: "<<(cycles)<<"\n";
   }
   
   void execute(uint32_t cycles)
   {    
-    proc_.reset();
     for(uint32_t i=0;i<cycles;++i)
     {
       proc_.execute(1);
-      
-      if(i > 144 && proc_.readMemory(56) == 0)
-      {
-        int a=0;
-      }
     }
     
     std::cout<<"cycles executed: "<<(cycles)<<"\n";
@@ -147,4 +159,5 @@ protected:
   CodeGen codeGen_;
   RTParser parser_;
   LoadAndSimulateProcessor proc_;
+  Peripherals peripherals_;
 };
