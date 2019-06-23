@@ -696,6 +696,29 @@ CodeGen::_FunctionInfo& CodeGen::addFunctionAtCurrentAddr(const Stream::String &
   return (functions_.insert(std::make_pair(s,function)).first)->second;
 }
 
+std::vector<_Instr> CodeGen::extractRecentInstrs(uint32_t numInstrs)
+{
+  std::vector<_Instr> instrs;
+  
+  instrs.reserve(numInstrs);
+  for(uint32_t i=getCurCodeAddr()-numInstrs;i<getCurCodeAddr();++i)
+  {
+    instrs.push_back(instrs_[i]);
+  }
+  
+  codeAddr_-=numInstrs;
+  
+  return instrs;
+}
+
+void CodeGen::appendInstrs(const std::vector<_Instr> &instrs)
+{
+  for(uint32_t i=0;i<instrs.size();++i)
+  {
+    instrs_[codeAddr_++]=instrs[i];
+  }
+}
+
 void CodeGen::pushSymbolMap(SymbolMap &currentSymbolMap)
 {
   Error::expect(symbolMaps_.full() == false) << "SymbolMaps stack overflow" << ErrorHandler::FATAL;

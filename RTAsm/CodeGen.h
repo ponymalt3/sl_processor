@@ -306,6 +306,8 @@ public:
   CodeGen::_FunctionInfo& findFunction(const Stream::String &symbol);
   CodeGen::_FunctionInfo& addFunctionAtCurrentAddr(const Stream::String &symbol);
   
+  std::vector<_Instr> extractRecentInstrs(uint32_t numInstrs);
+  void appendInstrs(const std::vector<_Instr> &instrs);  
   
   void pushSymbolMap(SymbolMap &currentSymbolMap);
   void popSymbolMap();
