@@ -109,8 +109,13 @@ public:
   void parseArrayDecl(Stream &stream,const Stream::String &name);
 
 protected:
+  enum {NonMovableLineFlag=0x80000000};
+  
+  void markLineAsNoMovable();
+
   CodeGen &codeGen_;
   uint32_t startAddr_;
+  std::map<uint32_t,uint32_t> codeTolineMapping_;
 };
 
 #endif /* RTPARSER_H_ */
