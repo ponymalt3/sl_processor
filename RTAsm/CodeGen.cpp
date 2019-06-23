@@ -172,7 +172,7 @@ uint32_t _Instr::getGotoTarget()
   return offset;
 }
 
-CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize):Error(stream.getErrorHandler()),stream_(stream),functions_(stream,0),defaultSymbols_(stream,0)
+CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize):Error(stream.getErrorHandler()),stream_(stream),defaultSymbols_(stream,0)
 {
   loopDepth_=0;
   codeAddr_=entryVectorSize;
@@ -192,6 +192,14 @@ CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize):Error(stream.getErrorH
   for(uint32_t i=0;i<sizeof(activeLabels_)/sizeof(activeLabels_[0]);++i)
   {
     activeLabels_[i]=0;
+  }
+}
+
+CodeGen::~CodeGen()
+{
+  for(auto &i : functions_)
+  {
+    delete i.second.symbols_;
   }
 }
 
@@ -645,6 +653,40 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
   }
 }
 
+CodeGen::_FunctionInfo& CodeGen::findFunction(const Stream::String &symbol)
+{  
+  std::string s=std::string(symbol.getBase()+symbol.getOffset(),symbol.getLength());
+  
+  auto it=functions_.find(s);
+  
+  if(it == functions_.end())
+  {
+    static _FunctionInfo fi{nullptr,NoRef,0,0};
+    return fi;
+  }
+  
+  return it->second;
+}
+
+CodeGen::_FunctionInfo& CodeGen::addFunctionAtCurrentAddr(const Stream::String &symbol)
+{
+  std::string s=std::string(symbol.getBase()+symbol.getOffset(),symbol.getLength());
+  
+  _FunctionInfo function{new SymbolMap(stream_,getCurCodeAddr()),
+                         getCurCodeAddr(),
+                         0,
+                         0,
+                         false,
+                         {
+                           0,
+                           std::vector<_Instr>(),
+                           std::vector<std::list<uint32_t>>()                          
+                         }
+                         };
+  
+  return (functions_.insert(std::make_pair(s,function)).first)->second;
+}
+
 void CodeGen::pushSymbolMap(SymbolMap &currentSymbolMap)
 {
   Error::expect(symbolMaps_.full() == false) << "SymbolMaps stack overflow" << ErrorHandler::FATAL;
@@ -682,7 +724,7 @@ void CodeGen::generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInI
 {
   Error::expect(entryVectorSize_ >= numberOfEntries*entrySizeInInstrs) << "Entry vector size too small" << ErrorHandler::FATAL;
   
-  uint32_t defFunction=functions_.findSymbol(Stream::String("main",0,4));
+  int32_t defFunctionAddr=findFunction(Stream::String("main",0,4)).address_;
   
   uint32_t addr=0;
   for(uint32_t i=0;i<numberOfEntries;++i)
@@ -695,18 +737,16 @@ void CodeGen::generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInI
     }    
     buf[j++]='0'+(i+1)%10;
         
-    uint32_t specFunction=functions_.findSymbol(Stream::String(buf,0,j));
+    int32_t specFunctionAddr=findFunction(Stream::String(buf,0,j)).address_;
     
-    if(specFunction == SymbolMap::InvalidLink)
+    if(specFunctionAddr == NoRef)
     {
-      specFunction=defFunction;
+      specFunctionAddr=defFunctionAddr;
     }
     
-    Error::expect(specFunction != SymbolMap::InvalidLink) << "No entry function for core '" << (i) << "'";
-
-    SymbolMap::_Symbol s=functions_[specFunction];
+    Error::expect(specFunctionAddr != NoRef) << "No entry function for core '" << (i) << "'";
     
-    uint32_t fctAddrAsRaw=qfp32::fromRealQfp32(s.allocatedAddr_).toRealQfp32().getAsRawUint();    
+    uint32_t fctAddrAsRaw=qfp32::fromRealQfp32(qfp32_t(specFunctionAddr)).toRealQfp32().getAsRawUint();    
     instrs_[addr++]={SLCode::Load::create1(fctAddrAsRaw),NoRef};
     instrs_[addr++]={SLCode::Load::create2(fctAddrAsRaw),NoRef};
     instrs_[addr++]={SLCode::Goto::create(),NoRef};

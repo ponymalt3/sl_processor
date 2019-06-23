@@ -119,7 +119,7 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream &stream,CodeGen::TmpStorage &
     return result;
   }
   
-  if(codeGen_.findFunction(token.getName(stream)).flagsIsFunction_)
+  if(codeGen_.findFunction(token.getName(stream)).symbols_ != nullptr)
   {
     _Operand result=parseFunctionCall(stream,token.getName(stream));
    
@@ -624,7 +624,7 @@ bool RTParser::parseStatement(Stream &stream)
     
     if(token.getType() == Token::TOK_NAME)
     {
-      if(codeGen_.findFunction(token.getName(stream)).flagsIsFunction_)
+      if(codeGen_.findFunction(token.getName(stream)).symbols_ != nullptr)
       {
         parseFunctionCall(stream,token.getName(stream));
         Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
@@ -695,9 +695,9 @@ void RTParser::parseStatements(Stream &stream)
 }
 
 _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
-{  
-  SymbolMap::_Symbol s=codeGen_.findFunction(name);
-  Error::expect(s.flagsIsFunction_ == 1) << stream << "function '" << name << "' not found";  
+{
+  CodeGen::_FunctionInfo &fi=codeGen_.findFunction(name);
+  Error::expect(fi.symbols_ != nullptr) << stream << "function '" << name << "' not found";  
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' for function call";
 
   CodeGen::TmpStorage callFrame(codeGen_);
@@ -728,6 +728,8 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   
   stream.skipWhiteSpaces().read();//discards ')'
   
+  Error::expect(fi.parameters == numParameter) << stream << "parameter missmatch";
+  
   
   _Operand currentIRS=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15)));
   
@@ -749,7 +751,7 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   codeGen_.instrMov(_Operand::createInternalReg(_Operand::TY_IR_IRS),irsAddr);
 
   //call
-  codeGen_.instrMov(_Operand::createResult(),_Operand(qfp32::fromRealQfp32(s.allocatedAddr_)));
+  codeGen_.instrMov(_Operand::createResult(),_Operand(qfp32::fromRealQfp32(qfp32_t(fi.address_))));
   codeGen_.instrGoto2();
   
   ret.setLabel();
@@ -763,8 +765,17 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
 
 void RTParser::parseFunctionDecl(Stream &stream)
 {
-  SymbolMap curSymbols(stream,codeGen_.getCurCodeAddr());
-  codeGen_.pushSymbolMap(curSymbols);
+  Token name=stream.readToken();
+  Error::expect(name.getType() == Token::TOK_NAME) << stream << "expect function name";
+  
+  //pad to 8-word aligned code mem addr
+  while(codeGen_.getCurCodeAddr()&7) codeGen_.instrNop();
+  
+  //SymbolMap curSymbols(stream,codeGen_.getCurCodeAddr());
+  CodeGen::_FunctionInfo &fi=codeGen_.addFunctionAtCurrentAddr(name.getName(stream));  
+  codeGen_.pushSymbolMap(*(fi.symbols_));
+  
+  uint32_t codeAddrBeg=codeGen_.getCurCodeAddr();
   
   //add default symbols
   static const char irsSym[]="__IRS_AND_RES__";
@@ -772,9 +783,6 @@ void RTParser::parseFunctionDecl(Stream &stream)
   static const char retSym[]="__RET__";
   codeGen_.addReference(Stream::String(retSym,0,7),1);
   static const char irsRestSym[]="__IRS_REST__";
-  
-  Token name=stream.readToken();
-  Error::expect(name.getType() == Token::TOK_NAME) << stream << "expect function name";
   codeGen_.addReference(Stream::String(irsRestSym,0,12),2);
   
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' after function name";
@@ -801,19 +809,11 @@ void RTParser::parseFunctionDecl(Stream &stream)
   
   stream.skipWhiteSpaces().read();//discards ')'
   
-  uint32_t codeAddrBeg=codeGen_.getCurCodeAddr();
+  fi.parameters=numParameter;
   
-  //pad to 8-word aligned code mem addr
-  while(codeGen_.getCurCodeAddr()&7) codeGen_.instrNop();
+  parseStatements(stream);
   
-  if(name.getType() == Token::TOK_NAME)
-  {
-    codeGen_.addFunctionAtCurrentAddr(name.getName(stream),numParameter);
-  }
-  
-  RTParser(codeGen_).parseStatements(stream);
-  
-  if(codeGen_.getCurCodeAddr() == 0 || codeGen_.getCodeAt(codeGen_.getCurCodeAddr()-1) != SLCode::Goto::Code)
+  if(codeGen_.getCurCodeAddr() == codeAddrBeg || codeGen_.getCodeAt(codeGen_.getCurCodeAddr()-1) != SLCode::Goto::Code)
   {
     //generate return if not explicit written
     codeGen_.instrMov(_Operand::createResult(),_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7))));
@@ -821,10 +821,11 @@ void RTParser::parseFunctionDecl(Stream &stream)
   }
   
   codeGen_.storageAllocationPass(512,4+numParameter);
+  fi.size_=codeGen_.getCurCodeAddr()-codeAddrBeg;
   
   codeGen_.popSymbolMap();
   
-  Error::info() << "function " << name.getName(stream) << " " << (codeGen_.getCurCodeAddr()-codeAddrBeg)<<" instrs";
+  Error::info() << "function " << name.getName(stream) << " " << (fi.size_) << " instrs " << (fi.isInlineFunction_?"inlined":"");
   
   Token token=stream.readToken();
   Error::expect(token.getType() == Token::TOK_END) << stream << "expect 'END' at the end of a function";

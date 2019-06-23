@@ -11,6 +11,8 @@
 #include <stdint.h>
 
 #include <map>
+#include <vector>
+#include <list>
 
 #include "Error.h"
 #include "ErrorHandler.h"
@@ -214,6 +216,21 @@ public:
     bool isComplex_;
   };
   
+  struct _FunctionInfo
+  {
+    SymbolMap *symbols_;
+    int32_t address_;
+    uint32_t parameters;
+    uint32_t size_;
+    bool isInlineFunction_;
+    struct _Inline
+    {
+      uint32_t parameterWrittenMap_;
+      std::vector<_Instr> instrs_;
+      std::vector<std::list<uint32_t>> parameterAccessLists_;      
+    } inline_;
+  };
+  
   class CodeGenDelegate
   {
   public:
@@ -232,6 +249,7 @@ public:
   };
   
   CodeGen(Stream &stream,uint32_t entryVectorSize=0);
+  ~CodeGen();
 
   void instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage);
   void instrMov(const _Operand &opa,const _Operand &opb);
@@ -284,22 +302,9 @@ public:
     return symbolMaps_.top().findSymbol(symbol);
   }
   
-  SymbolMap::_Symbol findFunction(const Stream::String &symbol)
-  {
-    uint32_t sym=functions_.findSymbol(symbol);
-    
-    if(sym == SymbolMap::InvalidLink)
-    {
-      return SymbolMap::_Symbol();
-    }
-    
-    return functions_[sym];
-  }
+  CodeGen::_FunctionInfo& findFunction(const Stream::String &symbol);
+  CodeGen::_FunctionInfo& addFunctionAtCurrentAddr(const Stream::String &symbol);
   
-  void addFunctionAtCurrentAddr(const Stream::String &symbol,uint32_t parameters)
-  {
-    functions_.createFunction(symbol,getCurCodeAddr());
-  }
   
   void pushSymbolMap(SymbolMap &currentSymbolMap);
   void popSymbolMap();
@@ -310,6 +315,8 @@ public:
   void generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInInstrs);
 
 protected:
+  const std::map<std::string,_FunctionInfo>& getFunctions() const { return functions_; }
+  
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
   
   SLCode::Operand translateOperand(_Operand op);
@@ -342,7 +349,7 @@ protected:
   
   SymStack<4> symbolMaps_;
   Stream &stream_;
-  SymbolMap functions_;
+  std::map<std::string,_FunctionInfo> functions_;
   SymbolMap defaultSymbols_;
 };
 
