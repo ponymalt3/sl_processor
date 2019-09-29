@@ -619,6 +619,7 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
     while(arrayAllocInfo_.size() > 0 && arrayAllocInfo_.begin()->first == i)
     {
       SymbolMap::_Symbol &symInf=symbolMaps_.top()[arrayAllocInfo_.begin()->second];
+      Error::expect(symInf.flagAllocated_ == 0) << "error symbopl allocated twice";
       symInf.flagAllocated_=1;
       symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_,symInf.flagsAllocateHighest_,symInf.flagIsArray_);
       arrayAllocInfo_.erase(arrayAllocInfo_.begin());
@@ -728,6 +729,7 @@ void CodeGen::pushSymbolMap(SymbolMap &currentSymbolMap)
 void CodeGen::popSymbolMap()
 {
   Error::expect(symbolMaps_.empty() == false) << "SymbolMaps stack underflow" << ErrorHandler::FATAL;
+  Error::expect(arrayAllocInfo_.size() == 0) << "pending allocations";
   symbolMaps_.pop();
 }
 
@@ -1110,13 +1112,13 @@ void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
       }
     }
     
-    auto search=arrayAllocInfo_.find(i);
+    auto search=arrayAllocInfo_.find(i-offset);
     
     if(search != arrayAllocInfo_.end())
     {
-      while(search->first == i)
+      while(search->first == (i-offset))
       {
-        rebasedAllocInfo.insert({std::min(search->first,search->first+offset),search->second});
+        rebasedAllocInfo.insert({search->first+offset,search->second});
         auto rm=search;
         ++search;
         arrayAllocInfo_.erase(rm);
