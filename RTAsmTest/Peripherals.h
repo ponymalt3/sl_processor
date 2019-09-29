@@ -17,7 +17,7 @@ public:
   {
     auto it=--(peripherals_.upper_bound(addr));
 
-    if(it != peripherals_.end() && it->first >= addr && addr < (it->first+it->second.first))
+    if(it != peripherals_.end() && it->first <= addr && addr < (it->first+it->second.first))
     {
       return std::make_pair(true,it->second.second(addr-it->first,data,write));
     }
