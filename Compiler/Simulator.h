@@ -13,7 +13,7 @@ public:
   Simulator(uint32_t codeMemSize=16384,uint32_t localMemSize=512,uint32_t extMemSize=16384)
   : localMem_(localMemSize)
   , codeMem_(codeMemSize)
-  , extMem_(extMemSize)
+  , extMem_(localMemSize+extMemSize)
   , codePort_(codeMem_.createPort())
   , localPort_(localMem_.createPort())
   , extPort_(extMem_.createPort()) 

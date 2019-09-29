@@ -153,7 +153,7 @@ int main(int argc, char **argv)
       
       if(debugTarget == "sim")
       {
-        debIfc=new Simulator(4096,512,4096);
+        debIfc=new Simulator(4096,512,512);
       }
       else if(debugTarget == "target")
       {
