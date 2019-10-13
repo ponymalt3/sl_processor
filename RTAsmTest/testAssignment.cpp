@@ -214,3 +214,54 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("arr")+1) == qfp32_t(1).toRaw());
   tester.expectSymbolWithOffset("arr",1,1);
 }
+      
+MTEST(testAssignment,test_that_assign_in_if_branch_with_reallocate_var_works_correctly)
+{
+  RTProg testAssign=R"(
+  x=99;
+  loop(2)
+    if(i == 1)
+      y=x;  ## last access of x => reallocate its address to y but makes irs[z]=irs[z] which is invalid 
+    else
+      y=0;  ## first iteration y=0
+    end
+  end
+  t=y; 
+  )";
+  
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbol("y",99);
+}
+
+MTEST(testAssignment,test_that_var_created_outsid_loop_is_released_after_loop_only)
+{
+  RTProg testAssign=R"(
+  x=99;
+  loop(2)
+    if(i == 1)
+      y=x;  ## last access of x => reallocate its address to y but makes irs[z]=irs[z] which is invalid 
+    else
+      y=0;  ## first iteration y=0
+      z=8;
+    end
+  end
+  t=y; 
+  )";
+  
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbol("y",99);
+}

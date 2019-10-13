@@ -21,6 +21,7 @@ SymbolMap::_Symbol::_Symbol()
   allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
+  loopIndexScope_=0;
   link_=InvalidLink;
 }
 
@@ -37,6 +38,7 @@ SymbolMap::_Symbol::_Symbol(const Stream::String &str)
   allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
+  loopIndexScope_=0;
   link_=InvalidLink;
 }
 
@@ -44,6 +46,11 @@ void SymbolMap::_Symbol::changeArraySize(uint32_t size)
 {
   flagIsArray_=size!=0;
   allocatedSize_=size==0?1:size;
+}
+
+void SymbolMap::_Symbol::setLoopScope(uint32_t loopIndex)
+{
+  loopIndexScope_=loopIndex;
 }
 
 SymbolMap::SymbolMap(Stream &stream,uint32_t startAddr):Error(stream.getErrorHandler()), stream_(stream)

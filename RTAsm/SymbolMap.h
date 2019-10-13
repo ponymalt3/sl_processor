@@ -21,8 +21,16 @@ public:
     _Symbol();
     _Symbol(const Stream::String &str);
 
-    void updateLastAccess(uint32_t codeAddr) { lastAccess_=codeAddr; }
+    void updateLastAccess(uint32_t codeAddr)
+    {
+      //if(lastAccess_ < codeAddr)
+      {
+        lastAccess_=codeAddr;
+      }
+    }
     void changeArraySize(uint32_t size);
+    
+    void setLoopScope(uint32_t loopIndex);
 
     const char *customStr_;
     uint16_t strLength_ : 8;
@@ -33,6 +41,7 @@ public:
     uint16_t flagsAllocateHighest_ : 1;
     uint16_t flagsIsFunction_ : 1;
     uint16_t flagsHasCustomStr_ : 1;
+    uint16_t loopIndexScope_;
     uint16_t allocatedSize_;
     uint16_t link_;
     union

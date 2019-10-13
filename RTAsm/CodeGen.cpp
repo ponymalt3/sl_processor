@@ -173,7 +173,7 @@ uint32_t _Instr::getGotoTarget()
   return offset;
 }
 
-CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize):Error(stream.getErrorHandler()),stream_(stream),defaultSymbols_(stream,0)
+CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize,bool safeAllocationInsideLoop):Error(stream.getErrorHandler()),stream_(stream),defaultSymbols_(stream,0)
 {
   loopDepth_=0;
   codeAddr_=entryVectorSize;
@@ -194,6 +194,8 @@ CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize):Error(stream.getErrorH
   {
     activeLabels_[i]=0;
   }
+  
+  safeAllocationInsideLoop_=safeAllocationInsideLoop;
 }
 
 CodeGen::~CodeGen()
@@ -590,6 +592,11 @@ void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,con
 void CodeGen::removeLoopFrame()
 {
   Error::expect(loopDepth_ > 0) << "loop frame expected" << ErrorHandler::FATAL;
+  
+  for(auto i : loopFrames_[loopDepth_-1].symbolRefsToRelease_)
+  {
+    symbolMaps_.top()[i].updateLastAccess(getCurCodeAddr());
+  }
 
   --loopDepth_;
 
@@ -806,7 +813,10 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
     uint32_t symRef=symbolMaps_.top().findSymbol(name);
 
     if(createSymIfNotExists && symRef == SymbolMap::InvalidLink)
+    {
       symRef=symbolMaps_.top().createSymbol(name,0);//single element
+      symbolMaps_.top()[symRef].setLoopScope(loopDepth_);
+    }
      
     //check outer symbol map (if exist) and use if it is a constant
     if(symRef == SymbolMap::InvalidLink && symbolMaps_.size() > 1)
@@ -996,7 +1006,26 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
   instrs_[codeAddr_].symRef_=ref;
 
   if(ref != NoRef && !instrs_[codeAddr_].isGoto() && !instrs_[codeAddr_].isLoadAddr())
-    symbolMaps_.top()[ref].updateLastAccess(getCurCodeAddr());
+  {
+    //if variable is allocated outside loop, release after loop ends
+    if(loopDepth_ > 0 && (symbolMaps_.top()[ref].loopIndexScope_ < loopDepth_ || safeAllocationInsideLoop_))
+    {
+      uint32_t loopToRelaseAfter=symbolMaps_.top()[ref].loopIndexScope_;
+      
+      if(loopToRelaseAfter > (loopDepth_-1))
+      {
+        //allocated in current loop frame and must be released after it ends
+        loopToRelaseAfter=loopDepth_-1;
+      }
+      
+      loopFrames_[loopToRelaseAfter].symbolRefsToRelease_.insert(ref);
+    }
+    else
+    {
+      //release now
+      symbolMaps_.top()[ref].updateLastAccess(getCurCodeAddr());
+    }
+  }
     
   if(ref < RefLabelOffset && instrs_[codeAddr_].isLoadAddr())
   {
@@ -1022,22 +1051,30 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   uint32_t blockTarget=0;
   if(startAddr < targetAddr)
   {
-    blockStart=startAddr+size;//memmove(instrs_+startAddr,instrs_+startAddr+size,sizeof(_Instr)*size2);
-    blockTarget=startAddr;//rebaseCode(startAddr,startAddr+size2-1,-size);
+    blockStart=startAddr+size;
+    blockTarget=startAddr;
   }
   else
   {
-    blockStart=targetAddr;//memmove(instrs_+targetAddr+size,instrs_+targetAddr,sizeof(_Instr)*size2);
-    blockTarget=targetAddr+size;//rebaseCode(targetAddr+size,targetAddr+size+size2-1,size);
+    blockStart=targetAddr;
+    blockTarget=targetAddr+size;
   }
   
   memcpy(instrs_+getCurCodeAddr(),instrs_+startAddr,sizeof(_Instr)*size);
-  
   memmove(instrs_+blockTarget,instrs_+blockStart,sizeof(_Instr)*size2);
-  rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
-    
   memcpy(instrs_+targetAddr,instrs_+getCurCodeAddr(),sizeof(_Instr)*size);
-  rebaseCode(targetAddr,targetAddr+size-1,targetAddr-startAddr);
+
+  //cause update last access the higher code addresses must be executed after first lower ones
+  if(startAddr < targetAddr)
+  {
+    rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
+    rebaseCode(targetAddr,targetAddr+size-1,targetAddr-startAddr);
+  }
+  else
+  {
+    rebaseCode(targetAddr,targetAddr+size-1,targetAddr-startAddr);
+    rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);    
+  }
   
   //rebase labels
   for(uint32_t i=0;i<sizeof(activeLabels_)/sizeof(activeLabels_[0]);++i)

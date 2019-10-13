@@ -215,6 +215,7 @@ public:
     const Label *labBreak_;
     const _Operand *counter_;
     bool isComplex_;
+    std::set<uint32_t> symbolRefsToRelease_;
   };
   
   struct _FunctionInfo
@@ -249,7 +250,7 @@ public:
     Label &target_;
   };
   
-  CodeGen(Stream &stream,uint32_t entryVectorSize=0);
+  CodeGen(Stream &stream,uint32_t entryVectorSize=0,bool safeAllocationInsideLoop=true);
   ~CodeGen();
 
   void instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op,TmpStorage &tmpStorage);
@@ -360,6 +361,9 @@ protected:
   Stream &stream_;
   std::map<std::string,_FunctionInfo> functions_;
   SymbolMap defaultSymbols_;
+  
+  //settings
+  bool safeAllocationInsideLoop_;
 };
 
 #endif /* CODEGEN_H_ */
