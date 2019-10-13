@@ -116,17 +116,17 @@ public:
   }
   
   void execute()
-  {    
-    uint32_t cycles=proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
-    std::cout<<"cycles executed: "<<(cycles)<<"\n";
+  {
+    uint32_t cycles=0;
+    
+    cycles=proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
+    
+    std::cout<<"cycles: "<<(cycles)<<"\n";
   }
   
   void execute(uint32_t cycles)
   {    
-    for(uint32_t i=0;i<cycles;++i)
-    {
-      proc_.execute(1);
-    }
+    proc_.execute(cycles);
     
     std::cout<<"cycles executed: "<<(cycles)<<"\n";
   }
@@ -151,6 +151,13 @@ public:
     std::stringstream ss;
     ss<<symbol<<"["<<(offset)<<"]";
     proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data,ss.str());
+  }
+  
+  void expectSymbolWithOffset(const std::string &symbol,int32_t offset,qfp32_t minValue,qfp32_t maxValue)
+  {
+    std::stringstream ss;
+    ss<<symbol<<"["<<(offset)<<"]";
+    proc_.expectThatMemIs(qfp32_t::fromDouble(getIRSAddrOfSymbol(symbol.c_str())+offset),minValue,maxValue,ss.str());
   }
 
 protected:

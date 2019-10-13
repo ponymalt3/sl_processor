@@ -190,11 +190,8 @@ MTEST(testOperationsSpecialBehaviour,test_that_add_var_const_works)
 
   tester.loadCode();
   tester.execute();
-   
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(11).toRaw())
-     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
-     
-  tester.expectSymbol("a",11);
+  
+  tester.expectSymbol("b",11);
 }
 
 MTEST(testOperationsSpecialBehaviour,test_that_mul_var_const_works)
@@ -209,12 +206,10 @@ MTEST(testOperationsSpecialBehaviour,test_that_mul_var_const_works)
 
   tester.loadCode();
   tester.execute();
-   
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(40).toRaw())
-     << "read value is: " << qfp32_t::initFromRaw(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")));
-     
-  tester.expectSymbol("a",40);
+
+  tester.expectSymbol("b",40);
 }
+
 MTEST(testOperationsExtended,test_that_expr_with_both_mem_inc_works)
 {
   RTProg testCode=R"(

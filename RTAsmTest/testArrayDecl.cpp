@@ -78,7 +78,7 @@ MTEST(testArrayDecl,test_that_array_sizeof_operator_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(0,0);
+  tester.getProcessor().writeMemory(0,0.0);
 
   tester.loadCode();
   tester.execute();

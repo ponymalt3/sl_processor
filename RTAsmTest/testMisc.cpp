@@ -111,87 +111,10 @@ MTEST(testMisc,test_that_array_alloc_with_array_address_access_works)
 
 MTEST(testMisc,test_that_math_lib_works_correct)
 {
-  RTProg testCode=R"abc(
-    def pi 3.141592654;
-    
-    function mod(a,b)
-      div=a/b;
-      return a-(int(div)*b);
-    end
-
-    function sqrt(x)
-      s=shft(1.0,log2(x));
-      s=2*s/(s*s+x);
-
-      ## use 1/sqrt(x)
-      loop(6)
-        s=0.5*s*(3-x*s*s);
-      end
-
-      return s*x;
-    end
-
-    function sin(x)
-      x=mod(x,2*pi);
-      
-      if(x > pi)
-        x=-x+pi;
-      end
-      
-      x2=x*x;
-
-      ## taylor approximation
-      t=x;
-      x=x*x2;
-      s=t-x*(1/6);
-      x=x*x2;
-      s=s+x*(1/120);
-      x=x*x2;
-      s=s-x*(1/5040);
-      x=x*x2;
-      s=s+x*(1/362880);
-
-      return s;
-    end
-
-    function cos(x)
-      return sin(x+0.5*pi);
-    end
-
-    function ln(x)
-      return log2(x)*0.693147181;
-    end
-
-    function exp(x)
-    
-      x=x*1.442695041;
-      ix=int(x);
-
-      fx=x-ix;
-
-      ## taylor approximation of 2^fraction
-      t=0.693147181*fx;
-      
-      x=t;
-      s=1+x;
-      x=x*t;
-      s=s+x*(1/2);
-      x=x*t;
-      s=s+x*(1/6);
-      x=x*t;
-      s=s+x*(1/24);
-      
-      return s*shft(1,ix);
-      
-    end
-    
-    function boxMuellerTransform(u1,u2,outAddr)
-      a0=outAddr;
-      t=sqrt(-2*ln(u1));
-      t2=2*pi*u2;
-      [a0++]=t*cos(t2);
-      [a0++]=t*sin(t2);
-    end
+  std::string file=__FILE__;
+  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  
+  testCode.append(R"(
 
     ## evaluate functions
     resultSin1=sin(0.5);
@@ -219,7 +142,7 @@ MTEST(testMisc,test_that_math_lib_works_correct)
     resultLn=resultLn;
     resultExp=resultExp;
    
-  )abc";
+  )");
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);

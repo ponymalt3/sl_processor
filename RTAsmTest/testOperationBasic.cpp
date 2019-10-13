@@ -612,7 +612,7 @@ MTEST(testOperationsBasic,test_that_array_base_addr_load_in_expr_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(0,0);
+  tester.getProcessor().writeMemory(0,0.0);
   
   std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   
@@ -634,7 +634,7 @@ MTEST(testOperationsBasic,test_that_array_base_addr_load_in_expr_with_result_ope
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(0,0);
+  tester.getProcessor().writeMemory(0,0.0);
   
   std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   
@@ -656,7 +656,7 @@ MTEST(testOperationsBasic,test_that_array_base_addr_load_as_right_part_of_expr_w
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
-  tester.getProcessor().writeMemory(0,0);
+  tester.getProcessor().writeMemory(0,0.0);
   
   std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   

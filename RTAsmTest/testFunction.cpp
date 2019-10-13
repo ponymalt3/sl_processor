@@ -205,7 +205,7 @@ MTEST(testFunction,test_function_with_local_storage_works)
 
 MTEST(testFunction,test_recursive_function_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function fib(n)
       if(n == 1)
         return 1;
@@ -214,7 +214,7 @@ MTEST(testFunction,test_recursive_function_works)
     end
     
     x=fib(5);
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -347,7 +347,7 @@ MTEST(testFunction,test_that_function_inlining_in_expr_works)
     
     a=9;
     b=-2;
-    e=(5*a+f(99))-b*f(2);  
+    e=(5*a+f(99))-b*f(2);
   )";
   
   RTProgTester tester(testCode);

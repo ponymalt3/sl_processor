@@ -7,7 +7,7 @@ class testIfThenElse : public mtest::test
 
 MTEST(testIfThenElse,test_that_then_branch_only_works_and_execute)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=5;
     if(x == 4)
@@ -15,7 +15,8 @@ MTEST(testIfThenElse,test_that_then_branch_only_works_and_execute)
     end
     c=99;
     d=ok;
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -31,7 +32,7 @@ MTEST(testIfThenElse,test_that_then_branch_only_works_and_execute)
 
 MTEST(testIfThenElse,test_that_then_branch_only_works_and_not_execute_branch)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=1;
     if(x == 5)
@@ -39,7 +40,8 @@ MTEST(testIfThenElse,test_that_then_branch_only_works_and_not_execute_branch)
     end
     c=99;    
     d=ok;
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -55,7 +57,7 @@ MTEST(testIfThenElse,test_that_then_branch_only_works_and_not_execute_branch)
 
 MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_then_branch)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=1;
     if(x == 4)
@@ -65,7 +67,8 @@ MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_then_branch)
     end
     c=99;
     d=ok; 
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -81,7 +84,7 @@ MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_then_branch)
 
 MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_else_branch)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=1;
     if(x == 5)
@@ -91,7 +94,8 @@ MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_else_branch)
     end
     c=99;  
     d=ok;
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -107,7 +111,7 @@ MTEST(testIfThenElse,test_that_then_else_branches_works_and_execute_else_branch)
 
 MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_then_branch)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=1;
     if(x == 4)
@@ -116,7 +120,8 @@ MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_then_branc
     end
     c=99; 
     d=ok;
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -132,7 +137,7 @@ MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_then_branc
 
 MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_else_branch)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=5;
     if(x == 5)
@@ -141,7 +146,8 @@ MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_else_branc
     end
     c=99; 
     d=ok;
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -157,7 +163,7 @@ MTEST(testIfThenElse,test_that_empty_then_branch_works_when_executing_else_branc
 
 MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_then_branch)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=5;
     if(x == 4)
@@ -166,7 +172,8 @@ MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_then_branc
     end
     c=99;
     d=ok;
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -182,7 +189,7 @@ MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_then_branc
 
 MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_else_branch)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     def x 4;
     ok=1;
     if(x == 5)
@@ -191,7 +198,8 @@ MTEST(testIfThenElse,test_that_empty_else_branch_works_when_executing_else_branc
     end
     c=99; 
     d=ok;
-  );
+    c=c;
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
