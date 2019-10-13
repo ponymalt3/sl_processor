@@ -30,7 +30,7 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad1,value.toRaw());
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(8);//include one cycle stall
   
@@ -58,7 +58,7 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad1,0);
+  proc.writeMemory(ad1,0U);
   
   proc.run(7);
   
@@ -89,9 +89,9 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_with_inc_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   proc.writeMemory(ad1,value.toRaw());
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(9);
   
@@ -123,8 +123,8 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_with_inc_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad1,0);
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1,0U);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(9);
   
@@ -159,8 +159,8 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_stalls_while_external_write_i
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
-  proc.writeMemory(ad1,0);
+  proc.writeMemory(5,0U);
+  proc.writeMemory(ad1,0U);
   proc.writeMemory(ad1+1,value2.toRaw());
   
   proc.run(10);
@@ -193,8 +193,8 @@ MTEST(TestMemXMov,test_that_mov_to_Result_from_AD1_works_while_external_mem_is_s
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
-  proc.writeMemory(ad1,0);
+  proc.writeMemory(5,0U);
+  proc.writeMemory(ad1,0U);
   
   proc.reset();
   proc.executeWithMemExtStall(7);
@@ -228,8 +228,8 @@ MTEST(TestMemXMov,test_that_mov_to_AD1_from_Result_works_while_external_mem_is_s
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
-  proc.writeMemory(ad1,0);
+  proc.writeMemory(5,0U);
+  proc.writeMemory(ad1,0U);
   
   proc.reset();
   proc.executeWithMemExtStall(10);
@@ -262,8 +262,8 @@ MTEST(TestMemXMov,test_that_change_AD1_is_blocked_while_external_mem_is_in_progr
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
-  proc.writeMemory(ad1,0);
+  proc.writeMemory(5,0U);
+  proc.writeMemory(ad1,0U);
   
   proc.reset();
   proc.execute(6);

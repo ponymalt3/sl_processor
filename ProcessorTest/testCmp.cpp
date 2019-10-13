@@ -23,7 +23,7 @@ MTEST(TestCmp,testEqualExpectTrue)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -49,7 +49,7 @@ MTEST(TestCmp,testEqualExpectFalse)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -75,7 +75,7 @@ MTEST(TestCmp,testNotEqualExpectTrue)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -101,7 +101,7 @@ MTEST(TestCmp,testNotEqualExpectFalse)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -127,7 +127,7 @@ MTEST(TestCmp,testLessEqualExpectTrue)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -153,7 +153,7 @@ MTEST(TestCmp,testLessEqualWithBothOperandsEqualExpectTrue)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -179,7 +179,7 @@ MTEST(TestCmp,testLessEqualExpectFalse)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -205,7 +205,7 @@ MTEST(TestCmp,testLessThanExpectTrue)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -231,7 +231,7 @@ MTEST(TestCmp,testLessThanWithBothOperandsEqualExpectFalse)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -257,7 +257,7 @@ MTEST(TestCmp,testLessThanExpectFalse)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(10,0);
+  proc.writeMemory(10,0U);
   
   proc.run(5);
   
@@ -293,7 +293,7 @@ MTEST(TestCmp,testBlockAddrIncIfCondNotMet)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,compare.toRaw());
-  proc.writeMemory(11,0);
+  proc.writeMemory(11,0U);
   
   proc.run(9);
   

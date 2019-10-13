@@ -37,7 +37,7 @@ MTEST(TestGotoAbs,test_that_goto_with_abs_addr_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,0);
+  proc.writeMemory(ad0,0U);
   
   proc.run(11);
   
@@ -76,7 +76,7 @@ MTEST(TestGotoAbs,test_that_goto_flushes_pipeline_and_prevent_addr_inc)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,0);
+  proc.writeMemory(ad0,0U);
   
   proc.run(10);
   

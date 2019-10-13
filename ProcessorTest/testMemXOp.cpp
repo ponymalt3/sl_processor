@@ -33,7 +33,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_Result_works)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad1,value2.toRaw());
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(9);
   
@@ -72,7 +72,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_works)
   
   proc.writeMemory(ad0,value.toRaw());
   proc.writeMemory(ad1,value2.toRaw());
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(11);
   
@@ -105,7 +105,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_Result_with_inc_works)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad1,value2.toRaw());
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(9);
   
@@ -144,7 +144,7 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_with_inc_works)
   
   proc.writeMemory(ad0,value.toRaw());
   proc.writeMemory(ad1,value2.toRaw());
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(11);
   
@@ -183,8 +183,8 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_stalls_while_external_write_is_in_pr
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad0,value.toRaw());
-  proc.writeMemory(ad1,0);
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1,0U);
+  proc.writeMemory(ad1+1,0U);
   
   uint32_t xx=(value-value2).toRaw();
   
@@ -224,8 +224,8 @@ MTEST(TestMemXOp,test_that_sub_AD1_from_AD0_stalls_while_external_mem_is_stalled
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad0,value.toRaw());
-  proc.writeMemory(5,0);
-  proc.writeMemory(ad1,0);
+  proc.writeMemory(5,0U);
+  proc.writeMemory(ad1,0U);
   
   proc.reset();
   proc.executeWithMemExtStall(9);

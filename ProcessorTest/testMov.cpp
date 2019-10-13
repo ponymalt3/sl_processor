@@ -276,7 +276,7 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD0_works_and_expect_stall)
 
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0.0);
   proc.writeMemory(ad0,value.toRaw());
   
   proc.run(7);
@@ -307,8 +307,8 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD0_with_inc_works_and_expect_stall)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad0,value.toRaw());
-  proc.writeMemory(ad0+1,0);
-  proc.writeMemory(ad0+2,0);
+  proc.writeMemory(ad0+1,0U);
+  proc.writeMemory(ad0+2,0U);
   
   proc.run(8);
   
@@ -339,7 +339,7 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD1_works_and_expect_stall)
 
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0.0);
   proc.writeMemory(ad1,value.toRaw());
   
   proc.run(7);
@@ -404,8 +404,8 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD0_works_and_does_not_stall_when_AD1
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad0,value.toRaw());
-  proc.writeMemory(ad0+1,0);
-  proc.writeMemory(ad0+2,0);
+  proc.writeMemory(ad0+1,0U);
+  proc.writeMemory(ad0+2,0U);
   
   proc.run(8);
   
@@ -438,8 +438,8 @@ MTEST(TestMov,test_that_mov_to_Result_from_AD1_works_and_does_not_stall_when_AD0
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad1,value.toRaw());
-  proc.writeMemory(ad1+1,0);
-  proc.writeMemory(ad1+2,0);
+  proc.writeMemory(ad1+1,0U);
+  proc.writeMemory(ad1+2,0U);
   
   proc.run(8);
   
@@ -467,7 +467,7 @@ MTEST(TestMov,test_that_mov_to_Result_from_IRS_works)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0U);
   
   proc.run(4);
   
@@ -491,7 +491,7 @@ MTEST(TestMov,test_that_mov_to_IRS_from_Result_works)
 
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(4);
   

@@ -23,7 +23,7 @@ MTEST(TestUnaryOps,test_that_negate_Result_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(5);
   
@@ -48,7 +48,7 @@ MTEST(TestUnaryOps,test_that_small_number_trunc_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(5);
   
@@ -73,7 +73,7 @@ MTEST(TestUnaryOps,test_that_mid_number_trunc_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(6);
   
@@ -98,7 +98,7 @@ MTEST(TestUnaryOps,test_that_large_number_trunc_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(6);
   
@@ -124,7 +124,7 @@ MTEST(TestUnaryOps,test_that_very_large_number_trunc_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(7);
   
@@ -148,7 +148,7 @@ MTEST(TestUnaryOps,test_that_trunc_to_zero_removes_sign_bit)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(5);
   
@@ -173,7 +173,7 @@ MTEST(TestUnaryOps,test_that_log2_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(6);
   
@@ -197,7 +197,7 @@ MTEST(TestUnaryOps,test_that_log2_with_numbers_below_one_works)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   
   proc.run(6);
   

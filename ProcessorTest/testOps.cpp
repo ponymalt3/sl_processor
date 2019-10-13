@@ -25,7 +25,7 @@ MTEST(TestOp,testOpWithOperandsResultAndIRS)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value2.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0U);
   
   proc.run(7);
   
@@ -88,7 +88,7 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA0AndIncAddr)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad0,value2.toRaw());
-  proc.writeMemory(ad0+1,0);
+  proc.writeMemory(ad0+1,0U);
   
   proc.run(8);
   
@@ -151,7 +151,7 @@ MTEST(TestOp,testOpWithOperandsResultAndDATA1AndIncAddr)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(ad1,value2.toRaw());
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(8);
   
@@ -183,7 +183,7 @@ MTEST(TestOp,testOpWithOperandsDATA0WithAddrIncAndIRS)
   
   proc.writeMemory(5,value2.toRaw());
   proc.writeMemory(ad0,value.toRaw());
-  proc.writeMemory(ad0+1,0);
+  proc.writeMemory(ad0+1,0U);
   
   proc.run(8);
   
@@ -215,7 +215,7 @@ MTEST(TestOp,testOpWithOperandsDATA1WithAddrIncAndIRS)
   
   proc.writeMemory(5,value.toRaw());
   proc.writeMemory(ad1,value2.toRaw());
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(8);
   
@@ -254,7 +254,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall1)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   proc.writeMemory(ad0,value.toRaw());
   proc.writeMemory(ad1,value2.toRaw());
   
@@ -292,7 +292,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndNoIncExpectStall2)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(5,0);
+  proc.writeMemory(5,0U);
   proc.writeMemory(ad0,value2.toRaw());
   proc.writeMemory(ad1,value.toRaw());
   
@@ -399,7 +399,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpA)
   
   proc.writeMemory(ad0,value2.toRaw());
   proc.writeMemory(ad1,value.toRaw());
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(11);
   
@@ -440,7 +440,7 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncOpB)
   
   proc.writeMemory(ad0,value2.toRaw());
   proc.writeMemory(ad1,value.toRaw());
-  proc.writeMemory(ad0+1,0);
+  proc.writeMemory(ad0+1,0U);
   
   proc.run(11);
   
@@ -481,8 +481,8 @@ MTEST(TestOp,testOpWithTwoMemoryOperandsAndIncBoth)
   
   proc.writeMemory(ad0,value2.toRaw());
   proc.writeMemory(ad1,value.toRaw());
-  proc.writeMemory(ad0+1,0);
-  proc.writeMemory(ad1+1,0);
+  proc.writeMemory(ad0+1,0U);
+  proc.writeMemory(ad1+1,0U);
   
   proc.run(11);
   
@@ -513,7 +513,7 @@ MTEST(TestOp,testOpAddition)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0U);
   
   proc.run(6);
   
@@ -540,7 +540,7 @@ MTEST(TestOp,testOpSubstract)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0U);
   
   proc.run(6);
   
@@ -567,7 +567,7 @@ MTEST(TestOp,testOpMultiply)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0U);
   
   proc.run(6);
   
@@ -594,7 +594,7 @@ MTEST(TestOp,testOpDivide)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0U);
   
   proc.run(35);
   
@@ -621,7 +621,7 @@ MTEST(TestOp,testOpShift)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value2.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0U);
   
   proc.run(6);
   

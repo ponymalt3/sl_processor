@@ -25,7 +25,7 @@ MTEST(TestBugs,testOpWithOperandsResultAndIRS)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value2.toRaw());
-  proc.writeMemory(6,0);
+  proc.writeMemory(6,0.0);
   
   proc.run(7);
   

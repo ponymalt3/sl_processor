@@ -30,8 +30,8 @@ MTEST(TestIRS,test_that_irs_addr_is_changed)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(offset,0);
-  proc.writeMemory(irs+offset,0);
+  proc.writeMemory(offset,0U);
+  proc.writeMemory(irs+offset,0U);
   
   proc.run(8);
   
@@ -67,8 +67,8 @@ MTEST(TestIRS,test_that_irs_addr_is_changed_with_big_value)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(offset,0);
-  proc.writeMemory(irs+offset,0);
+  proc.writeMemory(offset,0U);
+  proc.writeMemory(irs+offset,0U);
   
   proc.run(8);
   

@@ -35,7 +35,7 @@ MTEST(TestGoto,testSimpleForwardJump)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,0);
+  proc.writeMemory(ad0,0U);
   
   proc.run(9);
   
@@ -77,8 +77,8 @@ MTEST(TestGoto,testSimpleBackwardJump)
   
   LoadAndSimulateProcessor proc(code);
   
-  proc.writeMemory(ad0,0);
-  proc.writeMemory(ad0+1,0);
+  proc.writeMemory(ad0,0U);
+  proc.writeMemory(ad0+1,0U);
   
   proc.run(12);
   
@@ -119,7 +119,7 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsTrue)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value.toRaw());
-  proc.writeMemory(ad0,0);
+  proc.writeMemory(ad0,0U);
   
   proc.run(10);
   
@@ -159,8 +159,8 @@ MTEST(TestGoto,testConditionalGotoWithConditionIsFalse)
   LoadAndSimulateProcessor proc(code);
   
   proc.writeMemory(5,value.toRaw());
-  proc.writeMemory(ad0,0);
-  proc.writeMemory(ad0+1,0);
+  proc.writeMemory(ad0,0U);
+  proc.writeMemory(ad0+1,0U);
   
   proc.run(10);
   

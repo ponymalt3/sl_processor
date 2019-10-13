@@ -153,6 +153,11 @@ public:
     writeMemory(addr,value.getAsRawUint());
   }
   
+  void writeMemory(uint32_t addr,double value)
+  {
+    writeMemory((int32_t)addr,qfp32_t(value));
+  }
+  
   void writeMemory(uint32_t addr,qfp32_t value)
   {
     writeMemory((int32_t)addr,value.getAsRawUint());
