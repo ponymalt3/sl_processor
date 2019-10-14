@@ -275,6 +275,8 @@ begin  -- architecture wb_wm8731_tb
 
     reset_n <= '0';
     
+    wait;
+    
   end process;
 
   
