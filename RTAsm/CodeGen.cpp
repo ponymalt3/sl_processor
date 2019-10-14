@@ -920,7 +920,7 @@ SLCode::Command CodeGen::translateOperation(char op)
 
 uint32_t CodeGen::allocateTmpStorage()
 {
-  return symbolMaps_.top().createSymbolNoToken(1,true);
+  return symbolMaps_.top().createSymbolNoToken(1,true);//for calls alloc high but why for everything else??
 }
 
 uint32_t CodeGen::getLabelId(Label* label)

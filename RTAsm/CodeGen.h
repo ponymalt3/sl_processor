@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <set>
 #include <functional>
 
 #include "Error.h"
@@ -58,6 +59,11 @@ struct _Instr
   bool isGoto() const
   {
     return (code_^SLCode::Goto::Code)>>(16-SLCode::Goto::Bits) == 0 && (code_&1) == 1;
+  }
+  
+  bool isGoto2() const
+  {
+    return (code_^SLCode::Goto::Code)>>(16-SLCode::Goto::Bits) == 0 && (code_&1) == 0;
   }
   
   bool isMovToIrsInstr() const
@@ -274,6 +280,11 @@ public:
   uint32_t getCurCodeAddr() const
   {
     return codeAddr_;
+  }
+  
+  void removeInstr()
+  {
+    --codeAddr_;
   }
 
   void createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand *counter=0);

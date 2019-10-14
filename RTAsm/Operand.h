@@ -95,6 +95,8 @@ struct _Operand
   bool isResult() const { return type_ == TY_RESULT; }
   bool isArrayBaseAddr() const { return type_ == TY_RESOLVED_SYM && arrayOffset_ == 0xFFFF; }
   bool isInternalReg() const { return type_ == TY_IR_IRS || type_ == TY_IR_ADDR0 || type_ == TY_IR_ADDR1; }
+  bool isMemAccess() const { return type_ == TY_MEM; }
+  bool isMemAccessWithInc() const { return type_ == TY_MEM && addrInc_ != 0; }
 
   uint16_t type_;
   union

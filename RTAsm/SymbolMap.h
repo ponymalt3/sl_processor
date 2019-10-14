@@ -23,10 +23,7 @@ public:
 
     void updateLastAccess(uint32_t codeAddr)
     {
-      //if(lastAccess_ < codeAddr)
-      {
-        lastAccess_=codeAddr;
-      }
+      lastAccess_=codeAddr;
     }
     void changeArraySize(uint32_t size);
     

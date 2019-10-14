@@ -427,7 +427,7 @@ void RTParser::parseIfExp(Stream &stream,CodeGen::Label &labelThen,CodeGen::Labe
         {
           Token tok=stream.readToken();
           Error::expect(tok.getType() == Token::TOK_IF_AND || tok.getType() == Token::TOK_IF_OR) << stream << "only or/and operator is allowed in condition";    
-          Error::expect(mode.getType() == Token::TOK_EOS || mode.getType() == tok.getType()) << stream << "need to use brackets when mxing or/and";
+          Error::expect(mode.getType() == Token::TOK_EOS || mode.getType() == tok.getType()) << stream << "need to use brackets when mixing or/and";
           mode=tok;
         }
         
@@ -518,11 +518,11 @@ void RTParser::parseIfStatement(Stream &stream)
 
 void RTParser::parseLoopStatement(Stream &stream)
 {
-  Error::expect(stream.read() == '(') << stream << "expect '(' after 'loop'";
+  Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' after 'loop'";
 
   _Operand op=parseExpr(stream);
 
-  Error::expect(stream.read() == ')') << stream << "missing ')'";
+  Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "missing ')'";
   
   markLineAsNoMovable();//only for line to code mapping
   stream.skipWhiteSpaces();
@@ -646,7 +646,7 @@ bool RTParser::parseStatement(Stream &stream)
   case Token::TOK_DECL:
   {
     Token name=stream.readToken();
-    assert(name.getType() == Token::TOK_NAME);
+    Error::expect(name.getType() == Token::TOK_NAME);
     codeGen_.addArrayDeclaration(stream.createStringFromToken(name.getOffset(),name.getLength()),stream.readInt(false).value_);
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
     break;
@@ -654,7 +654,7 @@ bool RTParser::parseStatement(Stream &stream)
   case Token::TOK_DEF:
   {
     Token name=stream.readToken();
-    assert(name.getType() == Token::TOK_NAME);
+    Error::expect(name.getType() == Token::TOK_NAME);
     codeGen_.addDefinition(stream.createStringFromToken(name.getOffset(),name.getLength()),stream.readQfp32());
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
     break;
@@ -662,7 +662,7 @@ bool RTParser::parseStatement(Stream &stream)
   case Token::TOK_REF:
   {
     Token name=stream.readToken();
-    assert(name.getType() == Token::TOK_NAME);
+    Error::expect(name.getType() == Token::TOK_NAME);
     int32_t value=stream.readInt(false).value_;
     Error::expect(value >= 4) << stream << "irs addresses 0-3 are reserved for callstack management";
     codeGen_.addReference(stream.createStringFromToken(name.getOffset(),name.getLength()),value);
@@ -735,7 +735,7 @@ bool RTParser::parseStatement(Stream &stream)
     }
     
     Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
-      
+    
     codeGen_.instrMov(_Operand::createResult(),_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7))));
     codeGen_.instrGoto2();
     break;
@@ -898,8 +898,8 @@ void RTParser::parseFunctionDecl(Stream &stream)
     
     if(stream.skipWhiteSpaces().peek() == ',')
     {
-      stream.skipWhiteSpaces().read();
-      Error::expect(stream.skipWhiteSpaces().peek() != '}') << stream << "expecting parameter";
+      stream.read();
+      Error::expect(stream.skipWhiteSpaces().peek() != ')') << stream << "expecting parameter";
     }
   }
   

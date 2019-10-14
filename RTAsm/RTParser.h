@@ -113,6 +113,9 @@ public:
 protected:
   enum {NonMovableLineFlag=0x80000000};
   
+  void streamCallback(uint32_t line,bool invalidate);
+  void codeMovedCallback(uint32_t startAddr,uint32_t size,uint32_t targetAddr);
+  
   void markLineAsNoMovable();
 
   CodeGen &codeGen_;

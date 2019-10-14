@@ -46,6 +46,7 @@ public:
   public:
     friend class Error;
 
+    String() { base_=0; length_=0; offset_=0; }
     String(const char *base,uint32_t offset,uint32_t length);
 
     bool operator==(const char *str) const;
@@ -65,7 +66,7 @@ public:
     uint16_t length_;
   };
 
-  Stream(RTProg &rtProg);//const char *code);
+  Stream(RTProg &rtProg);
   
   void setCallback(const std::function<void(uint32_t,bool)> &callback);
 
