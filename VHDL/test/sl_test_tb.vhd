@@ -41,13 +41,13 @@ architecture behav of sl_test_tb is
   signal ext_slave : wb_slave_ifc_out_t;
   signal ext_mem_pending : std_ulogic;
 
-  signal code_mem : mem_t(1023 downto 0);
+  signal code_mem : mem_t(4095 downto 0);
   signal code_slave : wb_slave_ifc_out_t;
   
   signal master_in : wb_master_ifc_in_array_t(2 downto 0);
   signal master_out : wb_master_ifc_out_array_t(2 downto 0);
-  signal slave_in : wb_slave_ifc_in_array_t(2 downto 0);
-  signal slave_out : wb_slave_ifc_out_array_t(2 downto 0);
+  signal slave_in : wb_slave_ifc_in_array_t(3 downto 0);
+  signal slave_out : wb_slave_ifc_out_array_t(3 downto 0);
 
   signal proc_master_out : wb_master_ifc_out_t;
 
@@ -90,7 +90,7 @@ begin  -- architecture Behav
   code_stall <= not code_complete;
 
   master_out(0) <= (
-    to_unsigned(1,23) & proc_master_out.adr(8 downto 0),
+    proc_master_out.adr+to_unsigned(512,32),
     proc_master_out.dat,
     proc_master_out.we,
     proc_master_out.sel,
@@ -117,8 +117,11 @@ begin  -- architecture Behav
 
   wb_ixs_1: entity work.wb_ixs
     generic map (
-      MasterConfig => (wb_master("ext_mem"),wb_master("core_mem ext_mem code_mem"),wb_master("code_mem")),
-      SlaveMap     => (wb_slave("core_mem",0,512),wb_slave("ext_mem",512,512),wb_slave("code_mem",1024,1024)))
+      MasterConfig => (wb_master("ext_mem xorshift"),wb_master("core_mem ext_mem code_mem"),wb_master("code_mem")),
+      SlaveMap     => (wb_slave("core_mem",0,512),
+                       wb_slave("ext_mem",512,512),
+                       wb_slave("code_mem",4096,4096),
+                       wb_slave("xorshift",16#F00100#,256)))
     port map (
       clk_i       => sl_clk,
       reset_n_i   => reset_n,
@@ -126,6 +129,13 @@ begin  -- architecture Behav
       master_in_o => master_in,
       slave_out_i => slave_out,
       slave_out_o => slave_in);
+
+  wb_xorshift_slave_1: entity work.wb_xorshift_slave
+    port map (
+      clk_i     => sl_clk,
+      reset_n_i => reset_n,
+      slave_i   => slave_in(3),
+      slave_o   => slave_out(3));
 
   wb_cache_1: entity work.wb_cache
     generic map (
@@ -143,15 +153,15 @@ begin  -- architecture Behav
       we_i            => '0',
       complete_o      => code_complete,
       err_o           => open,
-      snooping_addr_i(9 downto 0) => slave_in(2).adr(9 downto 0),
-      snooping_addr_i(31 downto 10) => "0000000000000000000001",
+      snooping_addr_i(11 downto 0) => slave_in(2).adr(11 downto 0),
+      snooping_addr_i(31 downto 12) => "00000000000000000001",
       snooping_en_i   => cache_inv,
       master_out_i    => master_in(2),
       master_out_o    => master_out(2));
 
   cache_inv <= slave_in(2).cyc and slave_in(2).stb and slave_in(2).we;
 
-  cache_addr <= ((31 downto 11 => '0') & '1' & code_addr(9 downto 0)) or cache_prefetch_addr;
+  cache_addr <= ((31 downto 13 => '0') & '1' & code_addr(11 downto 0)) or cache_prefetch_addr;
 
   process (sl_clk, reset_n) is
   begin  -- process
@@ -272,8 +282,8 @@ begin  -- architecture Behav
           wait for 0.1 ns;
           sl_clk <= '0';
 
-          for i in 0 to 1023 loop
-            mem_addr <= to_unsigned(1024+i,16);
+          for i in 0 to 4096 loop
+            mem_addr <= to_unsigned(4096+i,16);
             mem_din(15 downto 0) <= X"FFFF";
             mem_we <= '1';
             mem_en <= '1';
@@ -343,7 +353,7 @@ begin  -- architecture Behav
           read_ok := true;
           while read_ok and dummy /= LF loop
             hread(l,data16);
-            mem_addr <= to_unsigned(1024+j,16);
+            mem_addr <= to_unsigned(4096+j,16);
             mem_din(15 downto 0) <= data16;
             
             mem_we <= '1';
