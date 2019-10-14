@@ -141,7 +141,7 @@ public:
 protected:
   _CodeFetch codeFetch();
   _Decode decodeInstr() const;
-  _MemFetch1 memFetch1() const;
+  _MemFetch1 memFetch1(const _Decode &decodeComb) const;
   _MemFetch2 memFetch2(const _Decode &decComb) const;
   _DecodeEx decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1,const _MemFetch2 &mem2,uint32_t extMemStall);
   _Exec execute(uint32_t extMemStall,const _Decode &decComb);

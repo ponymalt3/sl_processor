@@ -313,12 +313,18 @@ _Decode SLProcessor::decodeInstr() const
   return decode;
 }
 
-_MemFetch1 SLProcessor::memFetch1() const
+_MemFetch1 SLProcessor::memFetch1(const _Decode &decodeComb) const
 {
   _MemFetch1 memFetch;
 
-  if(state_.addr_[1] >= SharedAddrBase_)
-    memFetch.externalData_=portExt_.read(state_.addr_[1]);//decComb.muxAD1_]);
+  //if(!decodeComb.enMEM_ && decodeComb.memEx_ && decodeComb.enADr1_)
+  {
+    //if(enable_(_State::S_EXEC) == 0 || decodeComb.enREG_ == 0 || decodeComb.muxAD1_ != decEx_.wbReg_)
+    {
+      if(state_.addr_[1] >= SharedAddrBase_)
+        memFetch.externalData_=portExt_.read(state_.addr_[1]);//decComb.muxAD1_]);
+    }
+  }
 
   return memFetch;
 }
@@ -630,13 +636,13 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   //comb inputs
   decEx_.a_=(decEx_.mux0_ == SLCode::MUX1_MEM)?decEx_.mem0_:state_.result_;
   decEx_.b_=(decEx_.writeExt_)?decEx_.memX_:decEx_.mem1_;
-  
-  //before falling edge
-  _MemFetch1 mem1Next=memFetch1();
 
   _CodeFetch codeNext=codeFetch();
   _Decode decodeNext=decodeInstr();
   _Exec execNext=execute(extMemStall,decodeNext);
+  
+    //before falling edge
+  _MemFetch1 mem1Next=memFetch1(decodeNext);
   
   //************************************ at falling edge **********************************************
   
