@@ -2,3 +2,6 @@
 	path = qfp
 	url = /home/malte/Documents/OpenCoresQFP32
 	branch = master
+[submodule "VHDL/qfp32"]
+	path = VHDL/qfp32
+	url = pi@raspberrypi:/home/pi/Repos/qfp32
