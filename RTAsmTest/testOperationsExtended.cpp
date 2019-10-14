@@ -240,3 +240,24 @@ MTEST(testOperationsExtended,test_that_expr_with_both_mem_inc_works)
   tester.expectMemoryAt(qfp32_t(7),qfp32_t(4.5));
   tester.expectMemoryAt(qfp32_t(8),qfp32_t(6.0));
 }
+
+MTEST(testOperationsExtended,test_that_a_not_allowed_potential_external_mem_acces_is_detected_handled_works)
+{
+  
+  RTProg testCode=R"(
+    s=13;
+    a1=512;
+    [a1]=[a1]-s-1;#[a1] with external mem as 'left hand side' of minus operator is not allowed/working
+    a=99;
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.getProcessor().writeMemory(512,qfp32_t(512.0));
+  
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectMemoryAt(qfp32_t(512),qfp32_t(498));
+}

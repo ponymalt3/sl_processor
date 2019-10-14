@@ -162,3 +162,44 @@ MTEST(testMisc,test_that_math_lib_works_correct)
   tester.expectSymbol("resultBM",0,-0.51357740);//-0.47561);
   tester.expectSymbol("resultBM",1,0.75377464);//0.69796);
 }
+
+MTEST(testMisc,test_that_mem_lib_works_correct)
+{
+  std::string file=__FILE__;
+  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  
+  testCode.append(R"(
+  
+  a0=0;
+  [a0]=0;
+
+  decl mem 8;
+  pool=createMem(256,256);
+  mem(0)=allocateMem(17,pool); 
+  mem(1)=allocateMem(63,pool); 
+  mem(2)=allocateMem(11,pool); 
+  mem(3)=allocateMem(11,pool); 
+  mem(4)=allocateMem(20,pool); 
+  mem(5)=allocateMem(5,pool);  
+  mem(6)=allocateMem(3,pool);  
+  mem(7)=allocateMem(4,pool);  
+  )");
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectMemoryAt(256,256-142);
+  tester.expectMemoryAt(257,0);
+  
+  tester.expectSymbolWithOffset("mem",0,495);
+  tester.expectSymbolWithOffset("mem",1,431);
+  tester.expectSymbolWithOffset("mem",2,419);
+  tester.expectSymbolWithOffset("mem",3,407);
+  tester.expectSymbolWithOffset("mem",4,386);
+  tester.expectSymbolWithOffset("mem",5,380);
+  tester.expectSymbolWithOffset("mem",6,376);
+  tester.expectSymbolWithOffset("mem",7,371);
+}

@@ -56,3 +56,31 @@ MTEST(testLoopFast,test_that_fast_loop_works_with_big_values)
     
   tester.expectSymbol("a",99999);
 }
+
+MTEST(testLoopFast,test_that_fast_loop_inside_another_loop_works)
+{
+  RTProg testCode=R"(
+    loop(1)
+      sum=0;
+      b=99;
+      a1=20;
+      a0=21;
+      ttt=1;
+      loop(ttt)
+        sum=sum+[a0++]*[a1++];
+      end
+    end
+    sum=sum;
+    ttt=ttt;)";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+  
+  tester.getProcessor().writeMemory(qfp32_t::fromDouble(20),qfp32_t::fromDouble(99.0));
+  tester.getProcessor().writeMemory(qfp32_t::fromDouble(21),qfp32_t::fromDouble(1.0));
+
+  tester.loadCode();  
+  tester.execute();
+  
+  tester.expectSymbol("sum",99);
+}

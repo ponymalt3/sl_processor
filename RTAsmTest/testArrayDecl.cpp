@@ -98,3 +98,31 @@ MTEST(testArrayDecl,test_that_array_redeclaration_is_an_error)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 2);
 }
+
+MTEST(testArrayDecl,test_that_array_stays_allocated_if_address_is_loaded)
+{
+  RTProg testCode=R"asm(
+  function ttt(a,b)
+    s=0;
+    a0=b;
+    loop(a)
+      s=s+[a0++];
+    end
+    return s;
+  end
+  
+  size=12;
+  weights {0,0,0,0,0,0,0,0,0,0,0,0};
+  xxx {99,99,99};
+    
+  x=ttt(size,weights);
+  )asm";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbol("x",0);
+}
