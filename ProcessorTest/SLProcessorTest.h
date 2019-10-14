@@ -96,8 +96,8 @@ class LoadAndSimulateProcessor
 public:
   LoadAndSimulateProcessor()
     : localMem_(512)
-    , codeMem_(16384)
-    , extMem_(16*1024)
+    , codeMem_(4096)
+    , extMem_(1024)
     , codePort_(codeMem_.createPort())
     , localPort_(localMem_.createPort())
     , extPort_(extMem_.createPort()) 
@@ -109,8 +109,8 @@ public:
   template<const uint32_t CodeSize>
   LoadAndSimulateProcessor(uint32_t (&code)[CodeSize])
     : localMem_(512)
-    , codeMem_(1024)
-    , extMem_(16*1024)
+    , codeMem_(4096)
+    , extMem_(1024)
     , codePort_(codeMem_.createPort())
     , localPort_(localMem_.createPort())
     , extPort_(extMem_.createPort()) 
@@ -126,6 +126,8 @@ public:
     getVdhlTestGenerator().addCode(code,CodeSize);
   }
   
+  Memory& getExternalMemory() { return extMem_; }
+  
   void writeCode(uint32_t addr,uint16_t value)
   {
     codePort_.write(addr,value);
@@ -139,6 +141,8 @@ public:
     {
       code[i]=codePort_.read(i);
     }
+    
+    codeMem_.setInvalidRegion(validCodeWords,codeMem_.getSize()-validCodeWords);
     
     getVdhlTestGenerator().addCode(code,validCodeWords);
   }
