@@ -60,7 +60,7 @@ package body sl_state_p is
     end if;
 
     -- update load state
-    if proc.state.enable(S_EXEC) = '1' then
+    if proc.state.enable(S_EXEC) = '1' and proc.dec.valid = '1' then --- check
       if proc.decex.load = '1' then
         state.load_state := state.load_state(1 downto 0) & '0';
       else
