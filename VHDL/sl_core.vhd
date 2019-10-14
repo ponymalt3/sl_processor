@@ -140,10 +140,10 @@ begin  -- architecture rtl
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       executed_addr_o <= to_unsigned(0,16);
-      proc.fetch <= ((others => '0'),to_unsigned(0,16));
-      proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0');
+      proc.fetch <= ((others => '0'),to_unsigned(0,16),'0');
+      proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0');
       proc.decex <= ("0000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0','0',(others => '0'),'0');
-      proc.state <= (to_unsigned(CodeStartAddr,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","100",'0',(others => '0'),(others => '0'),'0','0','0');
+      proc.state <= (to_unsigned(CodeStartAddr,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","111",'0',(others => '0'),(others => '0'),'0','0','0','1');
       reset_1d <= '1';
       disable_alu <= '0';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
@@ -192,15 +192,16 @@ begin  -- architecture rtl
       mem2_next.wr_addr <= X"0000" & dec_next.irs_addr;
     end if;
     
-    fetch_next <= (X"FFFF",proc.state.pc);
+    fetch_next <= (X"FFFF",proc.state.pc,'0');
     if cp_stall_i = '0' then
       fetch_next.data <= cp_din_i;
+      fetch_next.valid <= '1';
     end if;
     
     dec_next <= sl_dec(proc,ExtAddrThreshold);
     decex_next <= sl_dec_ex(proc,dec_next,mem1_next,mem2_next,ext_mem_stall_i);
     exec_next <= sl_execute(proc,dec_next,alu_i,ext_mem_stall_i);
-    ctrl_next <= sl_control(proc,decex_next.stall,exec_next.stall,exec_next.exec_next,exec_next.flush);
+    ctrl_next <= sl_control(proc,decex_next.stall,exec_next.stall,exec_next.exec_next,exec_next.flush,not cp_stall_i);
     state_next <= sl_state_update(proc,dec_next,exec_next,ctrl_next,cp_stall_i);
 
     if proc.state.enable(S_DECEX) = '1' and exec_next.exec_next = '1' and

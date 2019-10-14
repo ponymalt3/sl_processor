@@ -53,6 +53,8 @@ package body sl_dec_p is
 
     decode.cmd := CMD_MOV;
 
+    decode.valid := proc.fetch.valid;
+
     decode.goto := '0';
     decode.goto_const := '0';
     decode.load := '0';

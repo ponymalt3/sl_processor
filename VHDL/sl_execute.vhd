@@ -65,7 +65,7 @@ package body sl_execute_p is
 
     exec.int_result := alu.int_result;
 
-    exec.exec_next := '1';
+    exec.exec_next := proc.state.exec_next;
     if proc.state.enable(S_EXEC) = '1' and proc.decex.cmp = '1' then
       case proc.decex.cmp_mode is
         when CMP_EQ => exec.exec_next := alu.cmp_eq;

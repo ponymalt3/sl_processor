@@ -54,6 +54,7 @@ package sl_structs_p is
   type sl_code_fetch_t is record
     data : std_ulogic_vector(15 downto 0);
     pc : reg_pc_t;
+    valid : std_ulogic;
   end record sl_code_fetch_t;
 
   type sl_decode_t is record
@@ -70,6 +71,7 @@ package sl_structs_p is
     c_data_ext : std_ulogic_vector(1 downto 0);
     en_ad0 : std_ulogic;
     en_ad1 : std_ulogic;
+    valid : std_ulogic;
 
     goto : std_ulogic;
     goto_const : std_ulogic;
@@ -141,6 +143,8 @@ package sl_structs_p is
 
     inc_ad0 : std_ulogic;
     inc_ad1 : std_ulogic;
+
+    exec_next : std_ulogic;
     
   end record sl_state_t;
 

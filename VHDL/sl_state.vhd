@@ -68,6 +68,14 @@ package body sl_state_p is
       end if;
     end if;
 
+    --state.exec_next := not ctrl.disable_exec;
+    state.exec_next := proc.state.exec_next;
+    if proc.fetch.valid = '0' and exec.exec_next = '0' then
+      state.exec_next := '0';
+    elsif proc.fetch.valid = '1' then-- dec.valid
+      state.exec_next := '1';
+    end if;
+
     return state;
   end function;
   

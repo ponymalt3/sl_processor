@@ -12,7 +12,8 @@ package sl_control_p is
     stall_decex : std_ulogic;
     stall_exec : std_ulogic;
     exec_en : std_ulogic;
-    flush_pipeline : std_ulogic)
+    flush_pipeline : std_ulogic;
+    fetch_valid : std_ulogic)
     return sl_stall_ctrl_t;
 
 end package sl_control_p;
@@ -24,7 +25,8 @@ package body sl_control_p is
     stall_decex : std_ulogic;
     stall_exec : std_ulogic;
     exec_en : std_ulogic;
-    flush_pipeline : std_ulogic)
+    flush_pipeline : std_ulogic;
+    fetch_valid : std_ulogic)
     return sl_stall_ctrl_t is
     variable ctrl : sl_stall_ctrl_t;
     variable enable : std_ulogic_vector(2 downto 1);
@@ -40,11 +42,15 @@ package body sl_control_p is
 
     ctrl.enable := proc.state.enable;
 
+    disable_exec := not proc.state.exec_next;
+
     if ctrl.stall_decex = '0' then
-      ctrl.enable := '1' & ctrl.enable(2 downto 1); -- shift in 1
+      ctrl.enable := '1' & fetch_valid & ctrl.enable(1); -- shift in 1
 
       if exec_en = '0' and proc.state.enable(S_EXEC) = '1' then
         ctrl.enable(S_EXEC) := '0'; -- disable exec
+      elsif disable_exec = '1' then
+        ctrl.enable(S_EXEC) := '0';
       end if;
     elsif ctrl.stall_exec = '0' then
       ctrl.enable(S_EXEC) := '0'; -- disable exec
