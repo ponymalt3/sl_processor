@@ -25,7 +25,7 @@ function allocateMem(size,pool)
   while(head != 0)
     s=[a1++];
     
-    if(s > size and s < nodeSize) ## found possible block
+    if(s >= (size+3) and s < nodeSize) ## found possible block
       nodeSize=s;
       node=head;
     end
