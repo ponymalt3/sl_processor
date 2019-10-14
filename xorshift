@@ -1,0 +1,21 @@
+include(peripherals)
+
+function xorshift_rand_0_to_1()
+  a1=xorshift_base;
+  return [a1];
+end
+
+function xorshift_rand_minus_1_to_1()
+  a1=xorshift_base+1;
+  return [a1];
+end
+
+function xorshift_rand_full()
+  a1=xorshift_base+2;
+  return [a1];
+end
+
+function xorshift_seed(seed)
+  a1=xorshift_base+3;
+  [a1]=seed;
+end

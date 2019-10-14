@@ -1,0 +1,51 @@
+function createMem(addr,size)
+  if(size <= 2)
+    return 0;
+  end
+
+  a1=addr;
+  [a1++]=size;
+  [a1]=0; ## next ptr
+
+  return addr;
+end
+  
+function allocateMem(size,pool)
+
+  if(size < 2)
+    size=2;
+  end
+  
+  head=pool;
+
+  node=0;
+  nodeSize=99999999;
+
+  a1=head;
+  while(head != 0)
+    s=[a1++];
+    
+    if(s > size and s < nodeSize) ## found possible block
+      nodeSize=s;
+      node=head;
+    end
+
+    head=[a1];
+    a1=head;
+  end
+
+  if(node == 0)
+    return 0;
+  end
+
+  a1=node;
+  [a1]=[a1]-size-1;
+  mem=node+[a1];
+  a1=mem;
+  [a1]=size;
+  return mem+1;
+end
+
+function freeMem(mem)
+  a1=mem-1;
+end

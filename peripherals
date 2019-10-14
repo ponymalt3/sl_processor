@@ -1,0 +1,2 @@
+def wm8731_base 0xF00000;
+def xorshift_base 0xF00100;
