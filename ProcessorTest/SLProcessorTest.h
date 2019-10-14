@@ -230,10 +230,10 @@ public:
     getVdhlTestGenerator().runCycles(cycles,true);
   }
   
-  void executeWithSetPc(uint32_t pcValue,uint32_t cycles=1)
+  void executeWithCodeStall(uint32_t cycles)
   {
     for(uint32_t i=0;i<cycles;++i)
-      processor_.update(0,1,pcValue);
+      processor_.update(0,0,0);
   }
   
   uint32_t executeUntilAddr(uint32_t addr)
