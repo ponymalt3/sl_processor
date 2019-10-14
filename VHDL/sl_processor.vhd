@@ -189,14 +189,14 @@ begin  -- architecture rtl
 
   alu_en2 <= '1' when alu_en = '1' and alu_cmd /= CMD_CMP else '0'; 
 
-  process (alu_cmd, multi_cycle_op, qfp_cmp_gt, qfp_cmp_z, qfp_complete,
-           qfp_idle, qfp_int_result, qfp_ready, qfp_result) is
+  process (alu_cmd, alu_en, multi_cycle_op, qfp_cmp_gt, qfp_cmp_z,
+           qfp_complete, qfp_idle, qfp_int_result, qfp_ready, qfp_result) is
   begin  -- process
    alu_data.result <= qfp_result;
    alu_data.int_result <= qfp_int_result;
    alu_data.complete <= qfp_complete;
    alu_data.same_unit_ready <= qfp_ready;
-   alu_data.idle <= qfp_idle and not multi_cycle_op;
+   alu_data.idle <= qfp_idle and (not multi_cycle_op or not alu_en);
    alu_data.cmp_lt <= not qfp_cmp_gt and not qfp_cmp_z;
    alu_data.cmp_eq <= qfp_cmp_z;
 

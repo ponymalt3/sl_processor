@@ -173,7 +173,7 @@ begin  -- architecture rtl
         end if;
 
         disable_alu <= '1';
-        if alu_i.complete = '1' or proc.decex.cmd = CMD_MOV or proc.decex.cmd = CMD_INVALID then
+        if proc.state.enable(S_EXEC) = '0' or alu_i.complete = '1' or proc.decex.cmd = CMD_MOV or proc.decex.cmd = CMD_INVALID then
           disable_alu <= '0';
         end if;
       end if;
