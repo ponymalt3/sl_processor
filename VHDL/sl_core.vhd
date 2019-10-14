@@ -134,7 +134,8 @@ begin  -- architecture rtl
   alu_op_a_o <= mem0_reg when proc.decex.mux0 = MUX1_MEM else proc.state.result;
   alu_op_b_o <= proc.decex.memX when proc.decex.wr_ext = '1' else mem1_reg;
 
-  state_enable_reg <= en_i;
+  -- temporarily fix for problem with cache when addr changes while fetch is in progress
+  state_enable_reg <= en_i when state_next.pc = proc.state.pc or cp_stall_i = '0' else '0';
 
   process (clk_i, reset_n_i) is
   begin  -- process
