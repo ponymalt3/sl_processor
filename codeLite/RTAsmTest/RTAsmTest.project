@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="RTAsmTest" InternalType="UnitTest++">
+<CodeLite_Project Name="RTAsmTest" InternalType="UnitTest++" Version="10.0.0">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00010001N0005Debug000000000000]]>
@@ -29,6 +29,12 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="../../RTAsmTest/testWhileLoop.cpp"/>
+    <File Name="../../RTAsmTest/testWaitLock.cpp"/>
+    <File Name="../../RTAsmTest/testIfLogicOperators.cpp"/>
+    <File Name="../../RTAsmTest/testEntryFunctionVector.cpp"/>
+    <File Name="../../RTAsmTest/testArrayDecl.cpp"/>
+    <File Name="../../RTAsmTest/testNeuralNetLib.cpp"/>
     <File Name="../../RTAsmTest/main.cpp"/>
     <File Name="../../RTAsmTest/RTAsmTest.h"/>
     <File Name="../../RTAsmTest/testSyntax.cpp"/>

@@ -152,13 +152,6 @@ public:
     ss<<symbol<<"["<<(offset)<<"]";
     proc_.expectThatMemIs(getIRSAddrOfSymbol(symbol.c_str())+offset,data,ss.str());
   }
-  
-  void expectSymbolWithOffset(const std::string &symbol,int32_t offset,qfp32_t minValue,qfp32_t maxValue)
-  {
-    std::stringstream ss;
-    ss<<symbol<<"["<<(offset)<<"]";
-    proc_.expectThatMemIs(qfp32_t::fromDouble(getIRSAddrOfSymbol(symbol.c_str())+offset),minValue,maxValue,ss.str());
-  }
 
 protected:
   RTProg prog_;
