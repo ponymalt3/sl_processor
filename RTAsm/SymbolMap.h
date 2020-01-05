@@ -25,8 +25,8 @@ public:
     {
       lastAccess_=codeAddr;
     }
-    void changeArraySize(uint32_t size);
     
+    void changeArraySize(uint32_t size);
     void setLoopScope(uint32_t loopIndex);
 
     const char *customStr_;
@@ -66,6 +66,8 @@ public:
   uint32_t createFunction(const Stream::String &str,uint32_t addr);
 
   _Symbol& operator[](uint32_t i);
+  
+  uint32_t append(const SymbolMap &map,uint32_t skip);
 
 protected:
   uint32_t insertSymbol(const _Symbol &sym,uint32_t hashIndex=0,uint32_t size=0);

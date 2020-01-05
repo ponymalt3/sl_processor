@@ -757,7 +757,7 @@ void RTParser::parseStatements(Stream &stream)
 
 _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
 {
-  CodeGen::_FunctionInfo &fi=codeGen_.findFunction(name);
+  CodeGen::_FunctionInfo fi=codeGen_.findFunction(name);
   Error::expect(fi.symbols_ != nullptr) << stream << "function '" << name << "' not found";  
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' for function call";
 
@@ -770,6 +770,33 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   _Operand retAddr=callFrame.allocate();
   //current irs addr to be restored after function returns
   _Operand irsOrig=callFrame.allocate();
+  
+  
+  //prepare inline instr
+  if(fi.isInlineFunction_)
+  {
+    uint32_t offset=codeGen_.symbolMaps_.top().append(*(fi.symbols_),3+fi.parameters);
+    
+    uint32_t j=0;
+    for(auto &i : fi.inline_.instrs_)
+    {
+      if(i.isIrsInstr() && i.symRef_ != CodeGen::NoRef)
+      {
+        if(i.symRef_ >= 3+fi.parameters)
+        {
+          i.symRef_+=offset-(3+fi.parameters);
+        }
+        else if(i.symRef_ == 0)
+        {
+          Error::expect(irsAddr.type_ == _Operand::TY_RESOLVED_SYM) << stream;
+          i.symRef_=irsAddr.mapIndex_;
+          i.patchIrsOffset(irsAddr.arrayOffset_);
+          fi.inline_.alreadyPatched_[j]=true;
+        }
+      } 
+      ++j;
+    }
+  }
   
   uint32_t numParameter=0;
   while(stream.skipWhiteSpaces().peek() != ')')
@@ -784,17 +811,42 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
     }
     else
     {
-      if((param.type_ != _Operand::TY_RESOLVED_SYM) || (fi.inline_.parameterWrittenMap_&(1<<numParameter)) != 0)
+      //force loop frame to be complex => normal function call uses goto2 which implicits this
+      CodeGen::Label dummy(codeGen_);
+      codeGen_.createLoopFrame(dummy,dummy);
+      codeGen_.removeLoopFrame();
+            
+      if((param.type_ != _Operand::TY_RESOLVED_SYM) ||
+         (fi.inline_.parameterWrittenMap_&(1<<numParameter)) != 0)
       {
         _Operand op=callFrame.allocate();
         codeGen_.instrMov(op,param);
         param=op;
       }
       
-      for(auto i : fi.inline_.parameterAccessLists_[numParameter])
+      //patch parameter
+      uint32_t j=0;
+      for(auto &i : fi.inline_.instrs_)
       {
-        fi.inline_.instrs_[i].symRef_=param.mapIndex_;
-        fi.inline_.instrs_[i].patchIrsOffset(param.arrayOffset_);
+        if(i.symRef_ == (3+numParameter) && fi.inline_.alreadyPatched_[j] == false)
+        {
+          if(param.type_ == _Operand::TY_RESOLVED_SYM)
+          {
+            i.symRef_=param.mapIndex_;
+            i.patchIrsOffset(param.arrayOffset_);
+          }
+          else
+          {
+            uint32_t mapIndex=codeGen_.symbolMaps_.top().findSymbol(stream.createStringFromToken(param.offset_,param.length_));
+            Error::expect(mapIndex != SymbolMap::InvalidLink) << stream;
+            i.symRef_=mapIndex;
+            i.patchIrsOffset(param.index_);
+          }
+          
+          fi.inline_.alreadyPatched_[j]=true;
+        }
+        
+        ++j;
       }
     }
     
@@ -813,13 +865,6 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   
   if(fi.isInlineFunction_)
   {    
-    //patch return value
-    for(auto i : fi.inline_.parameterAccessLists_[numParameter])
-    {
-      fi.inline_.instrs_[i].symRef_=irsAddr.mapIndex_;
-      fi.inline_.instrs_[i].patchIrsOffset(irsAddr.arrayOffset_);
-    }
-    
     codeGen_.appendInstrs(fi.inline_.instrs_);
     return irsAddr;
   }
@@ -921,8 +966,19 @@ void RTParser::parseFunctionDecl(Stream &stream)
   
   fi.size_=codeGen_.getCurCodeAddr()-codeAddrBeg;
   
-  //inline function
-  if(fi.size_ < inlineFunctionThreshold_)
+  bool isMainFunction=false;
+  std::string nameAsStr(name.getName(stream).getBase()+name.getOffset(),name.getLength());
+  
+  if(nameAsStr.substr(0,4) == "main")
+  {
+    isMainFunction=nameAsStr.length() == 4 ||
+                  (std::isdigit(nameAsStr[4]) && (nameAsStr.length() == 5 ||
+                  (std::isdigit(nameAsStr[5]) && (nameAsStr.length() == 6 ||
+                  (std::isdigit(nameAsStr[6]) && (nameAsStr.length() == 7))))));
+  }
+  
+  //check if function uses static arrays and matches inline function requirement
+  if(!isMainFunction && fi.size_ < inlineFunctionThreshold_ && !codeGen_.isArrayDeclInCurrentSymbolMap())
   {
     //remove code mapping
     codeTolineMapping_.erase(codeTolineMapping_.lower_bound(codeAddrBeg),codeTolineMapping_.end());
@@ -939,9 +995,6 @@ void RTParser::parseFunctionDecl(Stream &stream)
     
     uint32_t returnAddrSymRef=codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7));
     uint32_t returnDataSymRef=codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15));
-    
-    std::vector<std::list<uint32_t>> parameterAccess;    
-    parameterAccess.resize(fi.parameters+1);//parameters and return value
     
     std::cout<<"xxx: "<<(instrs.size())<<"\n";
     
@@ -960,20 +1013,21 @@ void RTParser::parseFunctionDecl(Stream &stream)
         
         if(i.symRef_ == returnDataSymRef)
         {
-          parameterAccess[fi.parameters].push_back(j);
           ++j;
           continue;
         }
         
-        SymbolMap::_Symbol &sym=(*fi.symbols_)[i.symRef_];
-        if(sym.flagAllocated_ && sym.allocatedAddr_ >= 3)
+        if(i.symRef_ != CodeGen::NoRef)
         {
-          uint32_t paramId=sym.allocatedAddr_-3;
-          parameterAccess[paramId].push_back(j);
-          if(i.isMovToIrsInstr())
+          SymbolMap::_Symbol &sym=(*fi.symbols_)[i.symRef_];
+          if(sym.flagAllocated_ && sym.allocatedAddr_ >= 3)
           {
-            fi.inline_.parameterWrittenMap_|=1<<paramId;
-          }         
+            uint32_t paramId=sym.allocatedAddr_-3;
+            if(i.isMovToIrsInstr() && paramId < fi.parameters)
+            {
+              fi.inline_.parameterWrittenMap_|=1<<paramId;
+            }         
+          }
         }
       }
       
@@ -981,7 +1035,7 @@ void RTParser::parseFunctionDecl(Stream &stream)
     }
     
     fi.inline_.instrs_=std::move(instrs);
-    fi.inline_.parameterAccessLists_=std::move(parameterAccess); 
+    fi.inline_.alreadyPatched_.resize(fi.inline_.instrs_.size(),false);
   }
   else
   {

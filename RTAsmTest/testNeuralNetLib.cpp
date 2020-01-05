@@ -308,10 +308,12 @@ MTEST(testNeuralNetLib,test_that_neural_net_eval_function_works_correct)
   )");
   
   RTProgTester tester(testCode);
-  EXPECT(tester.parse().getNumErrors() == 0);
+  EXPECT(tester.parse(0,false,20).getNumErrors() == 0);
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   
   tester.loadCode();
-  tester.getProcessor().executeUntilAddr(1445);
+  tester.getProcessor().executeUntilAddr(1163);
   
   //init weights
   

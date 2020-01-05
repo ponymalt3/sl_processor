@@ -235,7 +235,7 @@ public:
     {
       uint32_t parameterWrittenMap_;
       std::vector<_Instr> instrs_;
-      std::vector<std::list<uint32_t>> parameterAccessLists_;      
+      std::vector<bool> alreadyPatched_;
     } inline_;
   };
   
@@ -273,6 +273,7 @@ public:
   void instrNop();
 
   void addArrayDeclaration(const Stream::String &str,uint32_t size);
+  bool isArrayDeclInCurrentSymbolMap();
   void resizeArray(const Stream::String &str,uint32_t newSize);
   void addDefinition(const Stream::String &str,qfp32 value);
   void addReference(const Stream::String &str,uint32_t irsOffset);

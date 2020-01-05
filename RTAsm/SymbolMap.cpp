@@ -147,6 +147,19 @@ SymbolMap::_Symbol& SymbolMap::operator[](uint32_t i)
   return symbols_[i];
 }
 
+uint32_t SymbolMap::append(const SymbolMap &map,uint32_t skip)
+{
+  uint32_t offset=this->symCount_;
+  for(uint32_t i=skip;i<map.symCount_;++i)
+  {    
+    Error::expect(symCount_ < (sizeof(symbols_)/sizeof(symbols_[0]))) << stream_ << "no more symbol storage available" << ErrorHandler::FATAL;
+    symbols_[symCount_++]=map.symbols_[i];
+  }
+  
+  return offset;
+}
+
+
 uint32_t SymbolMap::insertSymbol(const _Symbol &sym,uint32_t hashIndex,uint32_t size)
 {
   Error::expect(symCount_ < (sizeof(symbols_)/sizeof(symbols_[0]))) << stream_ << "no more symbol storage available" << ErrorHandler::FATAL;

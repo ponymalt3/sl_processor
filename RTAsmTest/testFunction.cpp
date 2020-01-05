@@ -137,12 +137,12 @@ MTEST(testFunction,test_function_return_correct_value)
 
 MTEST(testFunction,test_function_with_parameter_return_correct_value)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test(p1,p2)
       return p1+p2;
     end
     x=test(19,23);
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -150,13 +150,12 @@ MTEST(testFunction,test_function_with_parameter_return_correct_value)
   tester.loadCode();
   tester.execute();
    
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(42).toRaw());
   tester.expectSymbol("x",42);  
 }
 
 MTEST(testFunction,test_function_with_function_call_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function yyy(x,z)
       return x*z;
     end
@@ -166,7 +165,7 @@ MTEST(testFunction,test_function_with_function_call_works)
     end
     
     x=test(19,23);
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -321,7 +320,7 @@ MTEST(testFunction,test_that_function_inlining_works)
     x(0)=20;
     x(1)=f(a,x(0),7); #77
     x(2)=f(a,[a0++],7); #200
-    x(3)=f(1,1,9); #7   
+    x(3)=f(1,1,9); #7
   )";
   
   RTProgTester tester(testCode);
@@ -359,4 +358,130 @@ MTEST(testFunction,test_that_function_inlining_in_expr_works)
   tester.execute();
    
   tester.expectSymbol("e",251.0);
+}
+
+MTEST(testFunction,test_that_inlined_function_call_in_functions_works)
+{
+  RTProg testCode=R"(
+    function ln(x)
+      return log2(x)*2;
+    end
+      
+    function f(a,b,c)
+      a1=c*c;
+      x=ln(a);
+      return b;
+    end
+    
+    x=f(0.5,2,3);
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,10).getNumErrors() == 0);//force to inline only ln
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("x",2.0);
+}
+
+MTEST(testFunction,test_that_function_inlining_with_local_var_with_same_name_works)
+{
+  RTProg testCode=R"(
+    function f(a)
+      b=3;
+      return a*b;
+    end
+    
+    a=9;
+    b=-2;
+    e=f(a);
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("e",27.0);
+}
+
+MTEST(testFunction,test_that_function_inlining_with_write_to_parameter_works)
+{
+  RTProg testCode=R"(
+    function f(a,b)
+      b=3;
+      return a*b;
+    end
+    
+    a=9;
+    b=-2;
+    e=f(a,b);
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+  
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("b",-2.0);
+  tester.expectSymbol("e",27.0);
+}
+
+MTEST(testFunction,test_that_function_inlining_with_two_parameters_works)
+{
+  RTProg testCode=R"(
+    function test(p1,p2)
+      return p1+p2;
+    end
+    x=test(19,23);
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("x",42);  
+}
+
+MTEST(testFunction,test_that_function_inlining_in_loop_with_mem_access_works)
+{
+  RTProg testCode=R"(
+  function leakyReLu(sum)
+    if(sum > 0)
+      return sum;
+    end
+
+    return 0.01*sum;
+  end
+  
+  data1 {-1,1};
+  data2 {0,0};
+  
+  a0=data2;
+  a1=data1;
+  numNodes=2;
+  loop(numNodes)
+    [a0++]=leakyReLu([a1++]);
+  end
+  a=data2(0);
+  b=data2(1);
+  c=a;
+  )";
+  
+  
+  //XXX optimize that simple functions to make loop complex
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+
+  tester.loadCode();
+  tester.execute();
+   
+  tester.expectSymbol("a",-0.01); 
+  tester.expectSymbol("b",1.0);  
 }

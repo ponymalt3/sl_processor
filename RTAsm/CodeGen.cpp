@@ -552,6 +552,11 @@ void CodeGen::addArrayDeclaration(const Stream::String &str,uint32_t size)
   arrayAllocInfo_.insert({getCurCodeAddr(),symbolMaps_.top().findSymbol(str)});
 }
 
+bool CodeGen::isArrayDeclInCurrentSymbolMap()
+{
+  return arrayAllocInfo_.lower_bound(symbolMaps_.top().getStartAddr()) != arrayAllocInfo_.end();
+}
+
 void CodeGen::resizeArray(const Stream::String &str,uint32_t newSize)
 {
   Error::expect(newSize > 0) <<"array size "<<str<<" must be greater than 0";
@@ -697,7 +702,7 @@ CodeGen::_FunctionInfo& CodeGen::addFunctionAtCurrentAddr(const Stream::String &
                          {
                            0,
                            std::vector<_Instr>(),
-                           std::vector<std::list<uint32_t>>()                          
+                           std::vector<bool>()                          
                          }
                          };
   
