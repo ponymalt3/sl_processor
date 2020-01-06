@@ -485,3 +485,34 @@ MTEST(testFunction,test_that_function_inlining_in_loop_with_mem_access_works)
   tester.expectSymbol("a",-0.01); 
   tester.expectSymbol("b",1.0);  
 }
+
+MTEST(testFunction,test_that_function_inlining_with_loop_inside_works)
+{
+  RTProg testCode=R"(
+  function difOutput(y_local,output,size)
+    a0=y_local;
+    a1=output;
+    loop(size)
+      [a0++]=([a0]-[a1++])*-2;
+    end
+  end
+  
+  data1 {-1,1};
+  data2 {13,14};
+  
+  s=2;
+  difOutput(data1,data2,s);
+  a=data2(0);
+  b=data2(1);
+  c=a;
+  )";
+  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+
+  tester.loadCode();
+  tester.execute();
+  
+  tester.expectSymbolWithOffset("data1",0,28); 
+  tester.expectSymbolWithOffset("data1",1,26);  
+}

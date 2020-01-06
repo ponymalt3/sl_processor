@@ -815,8 +815,14 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
       CodeGen::Label dummy(codeGen_);
       codeGen_.createLoopFrame(dummy,dummy);
       codeGen_.removeLoopFrame();
+      
+      if(param.type_ == _Operand::TY_SYMBOL)
+      {
+        param=codeGen_.resolveOperand(param,false);
+      }
             
       if((param.type_ != _Operand::TY_RESOLVED_SYM) ||
+         param.isArrayBaseAddr() ||
          (fi.inline_.parameterWrittenMap_&(1<<numParameter)) != 0)
       {
         _Operand op=callFrame.allocate();
