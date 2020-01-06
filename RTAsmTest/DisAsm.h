@@ -192,7 +192,18 @@ public:
     
     if((code&0xF000) == 0xC000)
     {
-      return std::string("result = ") + muxAToString(code&2,(code>>8)&1,code&0x10) + " " + opToString(((code>>5)&0xF)) + " " + muxBToString(code&8,(code>>2)&1,code&0x200);
+      bool incA=(code&0x10)>0;
+      bool incB=(code&0x200)>0;
+      
+      if((code&2) != 0)//both operands are mem
+      {
+        //bug => switch inc
+        bool t=incA;
+        incA=incB;
+        incB=t;
+      }
+      
+      return std::string("result = ") + muxAToString(code&2,(code>>8)&1,incA) + " " + opToString(((code>>5)&0xF)) + " " + muxBToString(code&8,(code>>2)&1,incB);
     }
     
     return "invalid";

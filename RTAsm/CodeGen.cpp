@@ -728,7 +728,7 @@ void CodeGen::appendInstrs(const std::vector<_Instr> &instrs)
 {
   for(uint32_t i=0;i<instrs.size();++i)
   {
-    instrs_[codeAddr_++]=instrs[i];
+    writeCode(instrs[i].code_,instrs[i].symRef_);
   }
 }
 
