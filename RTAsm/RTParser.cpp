@@ -739,6 +739,13 @@ bool RTParser::parseStatement(Stream &stream)
     codeGen_.instrMov(_Operand::createResult(),_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7))));
     codeGen_.instrGoto2();
     break;
+  case Token::TOK_BUSLOCK:
+    Error::expect(stream.skipWhiteSpaces().read() == '{') << stream << "expect '{'";
+    codeGen_.instrLock(false);
+    parseStatements(stream);
+    Error::expect(stream.skipWhiteSpaces().read() == '}') << stream << "expect '}'";
+    codeGen_.instrLock(true);
+    break;
   default:
     Error::expect(token.getType() != Token::TOK_INDEX) << stream << "cant write/use " << token.getName(stream) << " loop index";
     stream.restorePos();//unexpected token dont remove from stream

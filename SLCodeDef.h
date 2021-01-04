@@ -236,16 +236,16 @@ namespace SLCode
   {
     enum {Code=0xF0C0,Bits=10};
 
-    enum {SIG_ONLY,WAIT_SIG=4,WAIT_SIG2,WAIT_SIG_AND_LOCK};
+    enum Mode {WAIT_ALL,WAIT_SIG,BUS_LOCK,BUS_UNLOCK};
 
-    static uint32_t create()
+    static uint32_t create(uint32_t mode)
     {
       //WAIT/SIGNAL         => code/10 MODE/3 (A/1)
 
       uint32_t muxA=MUX1_RESULT;
-      uint32_t mode=SIG_ONLY;
+      uint32_t modeMask=1<<mode;
 
-      return Code + (mode<<2) + (muxA<<1);
+      return Code + ((modeMask&0xF)<<2) + (muxA<<1);
     }
   };
   

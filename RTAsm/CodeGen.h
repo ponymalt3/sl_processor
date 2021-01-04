@@ -92,6 +92,11 @@ struct _Instr
     return (code_^SLCode::Load::Code)>>(16-SLCode::Load::Bits) == 0;
   }
   
+  bool isLoopInstr() const
+  {
+    return (code_^SLCode::Loop::Code)>>(16-SLCode::Loop::Bits) == 0;
+  }
+  
   static qfp32_t restoreValueFromLoad(_Instr a,_Instr b={0,0},_Instr c={0,0})
   {
     if((a.code_&0xF000) == 0xB000)
@@ -182,8 +187,8 @@ public:
   virtual void instrGoto(const Label &label) =0;
   virtual void instrGoto2() =0;
   virtual void instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage) =0;
-  virtual void instrSignal(uint32_t target) =0;
-  virtual void instrWait() =0;
+  virtual void instrLock(bool unlock) =0;
+  virtual void instrWait(const _Operand &opa=_Operand()) =0;
   virtual void instrNop() =0;
 };
 
@@ -268,8 +273,8 @@ public:
   void instrGoto(const Label &label);
   void instrGoto2();
   void instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpMode,uint32_t execMode,bool negate,TmpStorage &tmpStorage);
-  void instrSignal(uint32_t target);
-  void instrWait();
+  void instrLock(bool unlock);
+  void instrWait(const _Operand &opa=_Operand());
   void instrNop();
 
   void addArrayDeclaration(const Stream::String &str,uint32_t size);

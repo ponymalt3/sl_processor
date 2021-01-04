@@ -17,6 +17,7 @@ DISPLAY Top -Bottom Vias Pads tPlace -bPlace tOrigins -bOrigins tKeepout -bKeepo
 1111000011 SIG(10)
 1111000100 NEG(9)
 1111000101 LOOP(11)
+1111000110 LOCKBUS(12)
 
 
 
@@ -59,6 +60,8 @@ DISPLAY Top -Bottom Vias Pads tPlace -bPlace tOrigins -bOrigins tKeepout -bKeepo
 10: WAIT/SIGNAL         			=> code/10 MODE/3 (A/1)
 
 11: LOOP					=> code/10 0000
+
+11: LOCKBUS					=> code/10 0000
 
 ADDR0: DATAx		A=*ADDR0 | RESULT
 ADDR1: DATAx (+ IRS)	B=*ADDR1 | LOOP (for MEM only)

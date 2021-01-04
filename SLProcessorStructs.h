@@ -63,6 +63,8 @@ struct _Decode
   uint32_t trunc_ : 1;
   uint32_t wait_ : 1;
   uint32_t signal_ : 1;
+  uint32_t bus_lock_ : 1;
+  uint32_t bus_unlock_ : 1;
   uint32_t loop_ : 1;
 
   uint32_t cmpMode_ : 2;
@@ -144,6 +146,8 @@ struct _State
   //update info for some states
   uint32_t incAd0_ : 1;
   uint32_t incAd1_ : 1;
+  
+  uint32_t busLock_ : 1;
 };
 
 struct _MUnit

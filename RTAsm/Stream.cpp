@@ -267,7 +267,7 @@ Token Stream::readToken()
 {
   skipWhiteSpaces();
 
-  if(empty())
+  if(empty() || peek() == '}')
     return Token();
 
   char ch=peek();
@@ -353,6 +353,12 @@ Token Stream::readToken()
     if(sym == "sizeof")
       return Token(sym,Token::TOK_ARRAY_SIZE);
   }
+  
+  if(sym.getLength() == 7)
+  {
+    if(sym == "buslock")
+      return Token(sym,Token::TOK_BUSLOCK);
+  }  
 
   if(sym.getLength() == 8)
   {

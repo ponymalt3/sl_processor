@@ -194,6 +194,8 @@ _Decode SLProcessor::decodeInstr() const
   decode.trunc_=0;
   decode.wait_=0;
   decode.signal_=0;
+  decode.bus_lock_=0;
+  decode.bus_unlock_=0;
   decode.loop_=0;
 
   decode.cmpMode_=bdata(1 downto 0);
@@ -276,6 +278,8 @@ _Decode SLProcessor::decodeInstr() const
       case 3://SIG
         decode.wait_=bdata(10);
         decode.signal_=(~bdata(10))&1;
+        decode.bus_lock_=bdata(2+SLCode::SignalWait::BUS_LOCK);
+        decode.bus_unlock_=bdata(2+SLCode::SignalWait::BUS_UNLOCK);
         break;
 
       case 4://UNARY

@@ -137,6 +137,7 @@ public:
   }
   
   bool isDecodeActive() const { return enable_(_State::S_DECEX); }
+  bool isBusLocked() const { return state_.busLock_; }
 
 protected:
   _CodeFetch codeFetch();

@@ -529,14 +529,57 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
   writeCode(SLCode::Cmp::create(b.arrayOffset_,(SLCode::CmpMode)cmpMode),b.mapIndex_);
 }
 
-void CodeGen::instrSignal(uint32_t target)
+void CodeGen::instrWait(const _Operand &opa)
 {
-  writeCode(0);
+  _Operand a=resolveOperand(opa);
+  
+  if(a.type_ == _Operand::TY_INVALID)
+  {
+    writeCode(SLCode::SignalWait::create(SLCode::SignalWait::WAIT_ALL));
+    return;
+  }
+  
+  if(!a.isResult())
+  {
+    instrMov(_Operand::createResult(),a);
+    a=_Operand::createResult();
+  }
+  
+  writeCode(SLCode::SignalWait::create(SLCode::SignalWait::WAIT_SIG));
 }
 
-void CodeGen::instrWait()
+void CodeGen::instrLock(bool unlock)
 {
-  writeCode(0);
+  if(unlock)
+  {
+    int32_t i=getCurCodeAddr()-1;
+    while(i > 0)
+    {
+      //function calls,loops and jumps to outside are not allowed
+      Error::expect(instrs_[i].isGoto2() == false) << "function calls inside bus lock are not allowed";
+      Error::expect(instrs_[i].isGoto() == false || instrs_[i].symRef_ == NoRef)
+            << "jumps to outside bus lock block not are allowed";
+      Error::expect(instrs_[i].isGoto() == false || instrs_[i].getGotoTarget() > 0)
+            << "loops inside bus lock block not are allowed";
+      Error::expect(instrs_[i].isLoopInstr() == false)
+            << "loops inside bus lock are not allowed";
+            
+      if(instrs_[i].code_ == SLCode::SignalWait::create(SLCode::SignalWait::BUS_LOCK))
+      {
+        break;
+      }
+      
+      --i;
+    }
+    
+    Error::expect((getCurCodeAddr()-1-i) < 32) << "no more than 32 instr inside bus lock block are allowed";      
+      
+    writeCode(SLCode::SignalWait::create(SLCode::SignalWait::BUS_UNLOCK));
+  }
+  else
+  {
+    writeCode(SLCode::SignalWait::create(SLCode::SignalWait::BUS_LOCK));
+  }
 }
 
 void CodeGen::instrNop()
