@@ -7,7 +7,7 @@ class testFunction : public mtest::test
 
 MTEST(testFunction,test_that_parameter_symbols_are_function_local_only)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test(param1,param2)
       x=param1+param2;
     end
@@ -17,7 +17,7 @@ MTEST(testFunction,test_that_parameter_symbols_are_function_local_only)
     function test2(paramx,paramy)
       x=var+param2;
     end
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 1);
@@ -25,14 +25,14 @@ MTEST(testFunction,test_that_parameter_symbols_are_function_local_only)
 
 MTEST(testFunction,test_that_simple_function_without_return_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test()
     end
     
     x=1;
     test();
     x=3;
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -46,7 +46,7 @@ MTEST(testFunction,test_that_simple_function_without_return_works)
 
 MTEST(testFunction,test_that_simple_function_with_return_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test()
       return;
     end
@@ -54,7 +54,7 @@ MTEST(testFunction,test_that_simple_function_with_return_works)
     x=1;
     test();
     x=3;
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -70,7 +70,7 @@ MTEST(testFunction,test_that_simple_function_with_return_works)
 
 MTEST(testFunction,test_load_array_addr_in_function_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test()
       decl arr 6;
       a0=arr+1;
@@ -79,7 +79,7 @@ MTEST(testFunction,test_load_array_addr_in_function_works)
       return arr(1);
     end
     x=test();
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -95,7 +95,7 @@ MTEST(testFunction,test_load_array_addr_in_function_works)
 
 MTEST(testFunction,test_function_return_ends_the_function_correctly)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test(p)
       if(p == 1)
         return 99;
@@ -104,7 +104,7 @@ MTEST(testFunction,test_function_return_ends_the_function_correctly)
       return 11;
     end
     x=test(1);
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -118,12 +118,12 @@ MTEST(testFunction,test_function_return_ends_the_function_correctly)
 
 MTEST(testFunction,test_function_return_correct_value)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test()
       return 17;
     end
     x=test();
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
@@ -142,6 +142,7 @@ MTEST(testFunction,test_function_with_parameter_return_correct_value)
       return p1+p2;
     end
     x=test(19,23);
+    x=x;
   )";
   
   RTProgTester tester(testCode);
@@ -179,7 +180,7 @@ MTEST(testFunction,test_function_with_function_call_works)
 
 MTEST(testFunction,test_function_with_local_storage_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode=R"(
     function test(p1,p2)
       decl arr 2;
       t=99;
@@ -190,7 +191,7 @@ MTEST(testFunction,test_function_with_local_storage_works)
     end
     
     x=test(19,23);
-  );
+  )";
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);

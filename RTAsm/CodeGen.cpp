@@ -1112,7 +1112,8 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   memmove(instrs_+blockTarget,instrs_+blockStart,sizeof(_Instr)*size2);
   memcpy(instrs_+targetAddr,instrs_+getCurCodeAddr(),sizeof(_Instr)*size);
 
-  //cause update last access the higher code addresses must be executed after first lower ones
+  //last access must be updated in lower code region
+  //always before higher code area
   if(startAddr < targetAddr)
   {
     rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
@@ -1122,26 +1123,6 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   {
     rebaseCode(targetAddr,targetAddr+size-1,targetAddr-startAddr);
     rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);    
-  }
-  
-  //rebase labels
-  for(uint32_t i=0;i<sizeof(activeLabels_)/sizeof(activeLabels_[0]);++i)
-  {
-    if(activeLabels_[i] == 0)
-    {
-      continue;
-    }
-    
-    uint32_t a=activeLabels_[i]->labelAddr_;
-    
-    if(a >= startAddr && a < (startAddr+size))
-    {
-      //activeLabels_[i]->rebase(targetAddr,targetAddr+size-1,targetAddr-startAddr);
-    }
-    else
-    {
-      //activeLabels_[i]->rebase(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
-    }
   }
   
   if(callback_ != nullptr)

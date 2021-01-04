@@ -253,8 +253,6 @@ namespace SLCode
   {
     enum {Code=0xF140,Bits=10};
 
-    enum {};
-
     static uint32_t create()
     {
       //LOOP         => code/10

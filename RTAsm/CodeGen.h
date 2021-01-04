@@ -287,11 +287,6 @@ public:
   {
     return codeAddr_;
   }
-  
-  void removeInstr()
-  {
-    --codeAddr_;
-  }
 
   void createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand *counter=0);
   void removeLoopFrame();

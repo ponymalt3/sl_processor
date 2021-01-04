@@ -73,7 +73,7 @@ protected:
   uint32_t insertSymbol(const _Symbol &sym,uint32_t hashIndex=0,uint32_t size=0);
   uint32_t findSymbol(const Stream::String &str,uint32_t hashIndex);
 
-  _Symbol symbols_[200];
+  _Symbol symbols_[512];
   uint16_t hashTable_[256];
   uint16_t symCount_;
   Stream &stream_;

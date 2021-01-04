@@ -884,7 +884,6 @@ _Operand RTParser::parseFunctionCall(Stream &stream,const Stream::String &name)
   
   _Operand currentIRS=_Operand::createSymAccess(codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15)));
   
-  //codeGen_.instrMov(_Operand::createResult(),callFrame.getArrayBaseOffset());
   codeGen_.instrMov(_Operand::createResult(),_Operand::createConstWithRef(callFrame.getArrayBaseOffset().mapIndex_,1));
   
   CodeGen::TmpStorage tmp(codeGen_);
@@ -941,6 +940,7 @@ void RTParser::parseFunctionDecl(Stream &stream)
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' after function name";
   
   uint32_t numParameter=0;
+  Stream::String params[16];
   while(stream.skipWhiteSpaces().peek() != ')')
   {
     Error::expect(numParameter < 16) << stream << "too many function parameter";
@@ -1008,8 +1008,6 @@ void RTParser::parseFunctionDecl(Stream &stream)
     
     uint32_t returnAddrSymRef=codeGen_.findSymbolAsLink(Stream::String("__RET__",0,7));
     uint32_t returnDataSymRef=codeGen_.findSymbolAsLink(Stream::String("__IRS_AND_RES__",0,15));
-    
-    std::cout<<"xxx: "<<(instrs.size())<<"\n";
     
     uint32_t j=0;
     for(auto &i : instrs)
