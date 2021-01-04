@@ -259,7 +259,7 @@ function nnetUpdate(nnet,inputs_local,outputs_local,y)
       prevWeights=[a0++];
     end
 
-    difLayer(curDif,outputs+size,size,prevOutputs,prevSize,weights,nextDif,0.1);
+    difLayer(curDif,outputs+size,size,prevOutputs,prevSize,weights,nextDif,0.001);
 
     t=nextDif;
     nextDif=curDif;
