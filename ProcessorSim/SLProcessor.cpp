@@ -54,14 +54,9 @@ uint32_t Memory::Port::read(uint32_t addr) const
 {
   if(addr >= memory_.size_)
   {
-    return memory_.faultHandler_(addr,0,false);    
+    return memory_.faultHandler_(addr,0,false);
   }
-  
-  if(memory_.size_ == 512 && addr == 491)
-  {
-    int a=0;
-  }
-  
+
   return memory_.data_[addr];
 }
 
@@ -72,13 +67,7 @@ void Memory::Port::write(uint32_t addr,uint32_t data)
     memory_.faultHandler_(addr,0,true);
     return;
   }
-  
-  if(memory_.size_ == 512 && addr == 491)
-  {
-    std::cout<<"x: "<<(qfp32_t::initFromRaw(data))<<std::endl;
-    int a=0;
-  }
-  
+
   wAddr_=addr;
   wData_=data;
   pendingWrite_=true;
@@ -97,12 +86,12 @@ bool Memory::Port::checkAccess(uint32_t addr)
 {
   auto it=memory_.invalidRegions_.upper_bound(addr);
   --it;
-  
+
   if(it != memory_.invalidRegions_.end() && it->first >= addr && addr < (it->first+it->second))
   {
     return false;
   }
-  
+
   return true;
 }
 
@@ -135,30 +124,24 @@ uint32_t SLProcessor::getExecutedAddr()
 void SLProcessor::reset()
 {
   executedAddr_=0xFFFFFFFF;
-  
+
   arithUnint_.reset();
 
   std::memset(&state_,0,sizeof(state_));
   std::memset(&code_,0,sizeof(code_));
   std::memset(&decode_,0,sizeof(decode_));
-  //std::memset(&mem1_,0,sizeof(mem1_));
-  //std::memset(&mem2_,0,sizeof(mem2_));
   std::memset(&decEx_,0,sizeof(decEx_));
 
   enable_=(1<<_State::S_FETCH);
   state_.loadState_=1;
-  
+
   state_.loopCount_=0x00000000;
-  
+
   cycleCount_=0;
 }
 
 _CodeFetch SLProcessor::codeFetch()
 {
-  if(state_.pc_ == 16)
-  {
-    int a=0;
-  }
   _CodeFetch fetch;
   fetch.data_=portCode_.read(state_.pc_);
   fetch.pc_=state_.pc_;
@@ -179,8 +162,7 @@ _Decode SLProcessor::decodeInstr() const
   decode.enIRS_=0;
   decode.enMEM_=0;
   decode.enREG_=0;
-  //enCMD
-  
+
   //need addr for memory read port X
   decode.enADr0_=0;
   decode.enADr1_=0;
@@ -189,13 +171,13 @@ _Decode SLProcessor::decodeInstr() const
 
   uint32_t incAD=0;
   uint32_t incAD2=0;
-  
+
   uint32_t waitMemPort0_=0;
 
   decode.cData_=bdata(11 downto 2);
   decode.cDataExt_=bdata(1 downto 0);
 
-  decode.CMD_=SLCode::CMD_MOV;//;bdata(7 downto 5)
+  decode.CMD_=SLCode::CMD_MOV;
 
   decode.goto_=0;
   decode.goto_const_=0;
@@ -232,9 +214,6 @@ _Decode SLProcessor::decodeInstr() const
       decode.wbREG_=bdata(1 downto 0);
       decode.enREG_=1;
       decode.muxA_=SLCode::MUX1_MEM;//no wait for result
-
-      //if(decode.wbREG_ == SLCode::WBREG_UNUSED)//load loop register
-      //  decode.loop_=1;
 
       break;
     case 1: //MOVIRS2
@@ -298,7 +277,7 @@ _Decode SLProcessor::decodeInstr() const
         decode.trunc_=bdata(2);
         decode.CMD_=8+bdata(5 downto 3);//cmd msb always set
         break;
-        
+
       case 5://LOOP
         decode.loop_=1;
         break;
@@ -320,10 +299,10 @@ _Decode SLProcessor::decodeInstr() const
   //pre calculate jmp target
   decode.jmpBack_=(decode.cData_>>9)&1;
   decode.jmpTargetPc_=code_.pc_+(decode.cData_&0x1FF)+(((decode.cData_>>9)&1)*0xFE00);
-  
+
   //addr inc
   decode.incAD0_=(incAD && (decode.muxAD1_ == 0)) || (incAD2 && (decode.muxAD0_ == 0));
-  decode.incAD1_=(incAD && (decode.muxAD1_ == 1)) || (incAD2 && (decode.muxAD0_ == 1)); 
+  decode.incAD1_=(incAD && (decode.muxAD1_ == 1)) || (incAD2 && (decode.muxAD0_ == 1));
 
   return decode;
 }
@@ -336,16 +315,10 @@ _MemFetch1 SLProcessor::memFetch1(const _Decode &decodeComb) const
   {
     //if(enable_(_State::S_EXEC) == 0 || decodeComb.enREG_ == 0 || decodeComb.muxAD1_ != decEx_.wbReg_)
     {
-      if(state_.addr_[1] == 1007)
-      {
-        int a=0;
-      }
-      
       if(state_.addr_[1] >= SharedAddrBase_)
       {
         memFetch.externalData_=portExt_.read(state_.addr_[1]);//decComb.muxAD1_]);
-        std::cout<<"ext["<<(state_.addr_[1])<<"]: "<<(qfp32_t::initFromRaw(memFetch.externalData_))<<"\n";
-}
+      }
     }
   }
 
@@ -369,47 +342,38 @@ _MemFetch2 SLProcessor::memFetch2(const _Decode &decComb) const
   {
     memFetch.readData_[0]=portR0_.read(decEx_.writeAddr_%SharedAddrBase_);
   }
-  
+
   memFetch.readData_[1]=portR1_.read(addr1%SharedAddrBase_);
-  
+
   return memFetch;
 }
 
 _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1,const _MemFetch2 &mem2,uint32_t extMemStall)
 {
   _DecodeEx decodeEx;
-  
+
   decodeEx.mux0_=decodeComb.muxA_;
 
-  //if(decode_.muxA_ == SLCode::MUX1_MEM)//must be zero by default => otherwise result prefetch will NOT work
-    decodeEx.mem0_=mem2.readData_[0];
-
+  decodeEx.mem0_=mem2.readData_[0];
   decodeEx.mem1_=mem2.readData_[1];
-
-  //if(decode_.memEx_)
-    decodeEx.memX_=mem1.externalData_;
-
-  //if(decode_.muxB_ == SLCode::MUX2_MEM)
-    //decodeEx.b_=state_.loopCount_;
+  decodeEx.memX_=mem1.externalData_;
 
   decodeEx.writeAddr_=mem2.writeAD_;
 
   decodeEx.writeEn_=decodeComb.enMEM_;
   decodeEx.writeExt_=decodeComb.memEx_;
-  //decodeEx.writeDataSel_=!decode_.muxA_ && !decode_.muxB_;//if select result and not select loop reg
-  //decodeEx.writeDataSel_|=decode_.enMEM_ && decode_.muxA_;//if write mem and muxA selects also mem
   decodeEx.wbEn_=decodeComb.enREG_;
   decodeEx.wbReg_=decodeComb.wbREG_;
-  
+
   decodeEx.load_=decodeComb.load_;
   decodeEx.loadData_=(decodeComb.cData_<<2) + decodeComb.cDataExt_;
-  
+
   decodeEx.cmd_=decodeComb.CMD_;
   decodeEx.cmp_=decodeComb.cmp_;
   decodeEx.cmpMode_=decodeComb.cmpMode_;
-  
+
   decodeEx.goto_=decodeComb.goto_;
-  
+
   if((state_.loopCount_&0x1FFFFFFE) == 0 && (state_.loopCount_&0x80000000 || (state_.loopCount_&1) == 1))
   {
     decodeEx.goto_=0;
@@ -417,7 +381,7 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1
 
   decodeEx.neg_=decodeComb.neg_;
   decodeEx.trunc_=decodeComb.trunc_;
-  
+
   decodeEx.stall_=0;
 
   //stall because of pending write to address reg
@@ -427,37 +391,37 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1
     {
       decodeEx.stall_=1;
     }
-    
+
     //FIX EXTENDED STALLING: correct addr must always specified if external memory is addressed
     if(decodeComb.enADr1_ && (decodeComb.muxAD1_ == decEx_.wbReg_))
     {
       decodeEx.stall_=1;
     }
-    
+
     if(decodeComb.enMEM_ && (decodeComb.muxAD1_ == decEx_.wbReg_))
     {
       decodeEx.stall_=1;
     }
-    
+
     //stall if irs reg will be written
     if(decodeComb.enIRS_ && decEx_.wbReg_ == SLCode::WBREG_IRS)
     {
       decodeEx.stall_=1;
     }
   }
-  
+
   //stall if shared read/write port is used
   if(decodeComb.muxA_ == SLCode::MUX1_MEM && decEx_.writeEn_ && enable_(_State::S_EXEC))
   {
     decodeEx.stall_=1;
   }
-  
+
   //ext write in progress
   if(decodeComb.enADr1_ && decodeComb.memEx_ && ((decEx_.writeEn_ && decEx_.writeExt_ && enable_(_State::S_EXEC)) || extMemStall))
   {
     decodeEx.stall_=1;
   }
-  
+
   return decodeEx;
 }
 
@@ -471,11 +435,11 @@ _StallCtrl SLProcessor::control(uint32_t stallDecEx,uint32_t stallExec,uint32_t 
   stallDecEx|=stallExec;
 
   uint32_t enNext=enable_;
-  
+
   if(!stallDecEx)
   {
     enNext=(enNext>>1)+(1<<_State::S_FETCH);//shift in 1
-    
+
     if(!condExec && enable_(_State::S_EXEC))
     {
       enNext&=~(1<<_State::S_EXEC);//disable exec
@@ -485,31 +449,31 @@ _StallCtrl SLProcessor::control(uint32_t stallDecEx,uint32_t stallExec,uint32_t 
   {
     enNext&=~(1<<_State::S_EXEC);//disable exec
   }
-  
+
   flushPipeline&=enable_(_State::S_EXEC);
-  
+
   if(flushPipeline)
   {
     enNext=1<<_State::S_FETCH;
   }
-  
+
   return {stallDecEx,stallExec,flushPipeline,enNext};
 }
 
 _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uint32_t setPcEnable,uint32_t pcValue) const
 {
   _State stateNext;
-  
+
   stateNext.stallExec1d_=0;
 
   stateNext.irs_=state_.irs_;
-  
+
   stateNext.addr_[0]=state_.addr_[0];
   stateNext.addr_[1]=state_.addr_[1];
-  
+
   stateNext.incAd0_=0;
   stateNext.incAd1_=0;
-  
+
   if(decComb.incAD0_ && enable_(_State::S_DEC))
     stateNext.incAd0_=1;
   if(decComb.incAD1_ && enable_(_State::S_DEC))
@@ -517,7 +481,7 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
 
   uint32_t pcNext=state_.pc_+1;
 
-  if(decEx_.goto_ && enable_(_State::S_EXEC))//goto cannot stall!!
+  if(decEx_.goto_ && enable_(_State::S_EXEC))//goto cannot stall!
   {
     if(decode_.goto_const_)
     {
@@ -525,12 +489,12 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
     }
     else
     {
-      pcNext=execNext.intResult_;// (int32_t)(_qfp32_t::initFromRaw(state_.result_).abs());
+      pcNext=execNext.intResult_;
     }
   }
-  
+
   stateNext.loopCount_=state_.loopCount_;
-    
+
   if(decode_.goto_const_ == 1 && enable_(_State::S_EXEC) && decode_.jmpBack_ == 1)
   {
     if(state_.loopCount_ != 0)
@@ -538,7 +502,7 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
       stateNext.loopCount_=(state_.loopCount_&0x1FFFFFFF)-1;
     }
   }
-    
+
   stateNext.result_=state_.result_;
   stateNext.resultPrefetch_=state_.resultPrefetch_;
 
@@ -556,7 +520,7 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
     else
     {
       stateNext.loadState_=1;
-    }      
+    }
   }
 
   return stateNext;
@@ -565,35 +529,30 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
 _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after falling edge
 {
   _Exec exec;
-  
-  std::cout<<"  exec\n    a "<<(qfp32_t::initFromRaw(decEx_.a_))<<"  b "<<(qfp32_t::initFromRaw(decEx_.b_))<<"\n";
 
   exec.munit_=arithUnint_.comb(decEx_);
-  
+
   //fragmented load
   if(enable_(_State::S_EXEC) && decEx_.load_)
   {
-    std::cout<<"    load\n";
     switch(state_.loadState_)
     {
       case 1: exec.munit_.result_=(((decEx_.loadData_>>11)&1)<<31) + ((decEx_.loadData_&0x7FF)<<19); break;
       case 2: exec.munit_.result_=state_.result_ | ((((decEx_.loadData_>>11)&0x1)<<30) + ((decEx_.loadData_&0x7FF)<<8)); break;
       case 4: exec.munit_.result_=state_.result_ | ((decEx_.loadData_)&0xFF); break;
     }
-    
+
     exec.munit_.complete_=1;
   }
-  
+
   if(enable_(_State::S_EXEC) && decEx_.neg_)
   {
-    std::cout<<"    neg\n";
     exec.munit_.result_=state_.result_^0x80000000;
     exec.munit_.complete_=1;
   }
-  
+
   if(enable_(_State::S_EXEC) && decEx_.trunc_)
   {
-    std::cout<<"    trunc\n";
     exec.munit_.result_=state_.result_&(~(0xFFFFFF>>(((state_.result_>>29)&0x3)*8)));
     if((exec.munit_.result_&0x7FFFFFFF) == 0)
     {
@@ -601,32 +560,21 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
     }
     exec.munit_.complete_=1;
   }
-  
-  if(exec.munit_.complete_)
-  {
-    std::cout<<"    result "<<(qfp32_t::initFromRaw(exec.munit_.result_))<<"\n";
-  }
-  
-  uint32_t data=state_.result_;//decEx_.b_;
+  uint32_t data=state_.result_;
 
-  //if(decEx_.writeDataSel_ )
-   // data=decEx_.a_;
-  
   //write mem
   if(enable_(_State::S_EXEC) && decEx_.writeEn_)
   {
     if(decEx_.writeExt_)
     {
-      std::cout<<"    writeX "<<(qfp32_t::initFromRaw(data))<<" at "<<(decEx_.writeAddr_)<<"\n";
       portExt_.write(decEx_.writeAddr_,data);
     }
     else
-    {      
-      std::cout<<"    write "<<(qfp32_t::initFromRaw(data))<<" at "<<(decEx_.writeAddr_)<<"\n";
+    {
       portR0_.write(decEx_.writeAddr_,data);
     }
   }
-  
+
   exec.intResult_=(int32_t)(_qfp32_t::initFromRaw(decEx_.a_).abs());
 
   exec.execNext_=1;
@@ -645,17 +593,15 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
       exec.execNext_=exec.munit_.cmpLt_ | exec.munit_.cmpEq_; break;
     }
   }
-  
-  std::cout<<"    execNext "<<(exec.execNext_?"true":"false")<<"\n";
-  
+
   exec.stall_=0;
-  
-  //stall ctrl  
+
+  //stall ctrl
   if(!exec.munit_.complete_ && !exec.munit_.idle_)
   {
     exec.stall_=1;
   }
-  
+
   if(decEx_.writeEn_ && decEx_.writeExt_)
   {
     exec.stall_=extMemStall;
@@ -669,9 +615,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
 void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue)
 {
   ++cycleCount_;
-  
-  std::cout<<"cycle "<<(cycleCount_)<<"\n";
-  
+
   //comb inputs
   decEx_.a_=(decEx_.mux0_ == SLCode::MUX1_MEM)?decEx_.mem0_:state_.result_;
   decEx_.b_=(decEx_.writeExt_)?decEx_.memX_:decEx_.mem1_;
@@ -679,14 +623,14 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   _CodeFetch codeNext=codeFetch();
   _Decode decodeNext=decodeInstr();
   _Exec execNext=execute(extMemStall,decodeNext);
-  
-    //before falling edge
+
+  //before falling edge
   _MemFetch1 mem1Next=memFetch1(decodeNext);
-  
+
   //************************************ at falling edge **********************************************
-  
+
   //************************************ after falling edge *******************************************
-  
+
   _MemFetch2 mem2=memFetch2(decodeNext);
   _DecodeEx decExNext=decodeEx(decodeNext,mem1Next,mem2,extMemStall);
 
@@ -697,14 +641,10 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   portExt_.update();
   portR0_.update();
   portR1_.update();
-  
+
   //************************************ at rising edge *******************************************
   if(enable_(_State::S_DECEX) && execNext.execNext_ && !stall.stallDecEx_ && !stall.flush_)
   {
-    if(stateNext.incAd0_ || stateNext.incAd1_)
-    {
-      int a=0;
-    }
     stateNext.addr_[0]=state_.addr_[0]+stateNext.incAd0_;
     stateNext.addr_[1]=state_.addr_[1]+stateNext.incAd1_;
   }
@@ -713,35 +653,28 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   if(enable_(_State::S_EXEC) && decEx_.wbEn_)
   {
     _qfp32_t a=_qfp32_t::initFromRaw(state_.result_);
-    //a.asUint=decEx_.writeDataSel_?decEx_.a_:decEx_.b_
+
     switch(decEx_.wbReg_)
     {
-    case SLCode::REG_AD0: stateNext.addr_[0]=execNext.intResult_; std::cout<<"  a[0] = "; break;
-    case SLCode::REG_AD1: stateNext.addr_[1]=execNext.intResult_; std::cout<<"  a[1] = "; break;
-    case SLCode::REG_IRS: stateNext.irs_=execNext.intResult_; std::cout<<"  irs = "; break;
+    case SLCode::REG_AD0: stateNext.addr_[0]=execNext.intResult_; break;
+    case SLCode::REG_AD1: stateNext.addr_[1]=execNext.intResult_; break;
+    case SLCode::REG_IRS: stateNext.irs_=execNext.intResult_; break;
     }
-    
-    std::cout<<(execNext.intResult_)<<"\n";
   }
-  
+
   if(enable_(_State::S_EXEC) && decode_.loop_ == 1)
   {
-    std::cout<<"  loop "<<(execNext.intResult_)<<"\n";
     stateNext.loopCount_=execNext.intResult_;
     stateNext.loopCount_|=0x80000000;
   }
-  
+
   if(enable_(_State::S_EXEC) && (decode_.bus_lock_ == 1 || decode_.bus_unlock_ == 1))
   {
     stateNext.busLock_=decode_.bus_lock_;
   }
 
   //************************************ update register *******************************************
-  if(false)
-  {
-    stateNext.resultPrefetch_=0;
-  }
-  
+
   if(execNext.munit_.complete_ || (enable_(_State::S_EXEC) && decEx_.wbEn_ && decEx_.wbReg_ == SLCode::WBREG_NONE))
   {
     stateNext.result_=execNext.munit_.result_;
@@ -757,9 +690,8 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
     if(enable_(_State::S_EXEC))
     {
       executedAddr_=decode_.curPc_;
-      std::cout<<"  exec addr... "<<(executedAddr_)<<"\n";
     }
-    
+
     code_=codeNext;
     decode_=decodeNext;
     decEx_=decExNext;
@@ -768,14 +700,14 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   {
     stateNext.pc_=state_.pc_;
   }
-  
+
   stateNext.stallExec1d_=stall.stallExec_;
-  
+
   if(stateNext.irs_ > 512)
   {
     throw Memory::FaultException(stateNext.irs_,Memory::FaultException::Write);
   }
-  
+
   state_=stateNext;
   enable_=stall.enNext_;
 }

@@ -1,10 +1,3 @@
-/*
- * CodeGen.cpp
- *
- *  Created on: Mar 7, 2015
- *      Author: malte
- */
-
 #include "CodeGen.h"
 #include "Alloc.h"
 #include "Stream.h"
@@ -18,7 +11,7 @@ void swap(_T &a,_T &b)
   _T t=a;
   a=b;
   b=t;
-} 
+}
 Label::Label(CodeGen &codeGen):Error(codeGen.getErrorHandler()), codeGen_(codeGen)
 {
   labelRef_=codeGen_.getLabelId(this);
@@ -42,7 +35,7 @@ void Label::setLabel()
 void Label::deleteLabel()
 {
   Error::expect(labelRef_ != CodeGen::NoRef) << "invalid label" << ErrorHandler::FATAL;
-  
+
   codeGen_.patchLabelInCode(*this,codeAddr_);
   codeGen_.releaseLabel(*this);
   labelRef_=CodeGen::NoRef;
@@ -54,7 +47,7 @@ void Label::replaceWith(Label &otherLabel)
   {
     otherLabel.codeAddr_=codeAddr_;
   }
-  
+
   codeGen_.replaceLabel(*this,otherLabel);
   codeGen_.releaseLabel(*this);
   labelRef_=CodeGen::NoRef;
@@ -82,14 +75,14 @@ _Operand TmpStorage::preloadConstValue(qfp32 value)
 {
   //loads a constant into irs and move code to begin of block (block starts where TmpStorage is created)
   uint16_t codeBlockStart=codeGen_.getCurCodeAddr();
-  
+
   _Operand op=allocate();
   codeGen_.instrMov(op,_Operand(value));
 
   uint32_t blockSize=codeGen_.getCurCodeAddr()-codeBlockStart;
   codeGen_.moveCodeBlock(codeBlockStart,blockSize,blockBegin_);
   blockBegin_+=blockSize;
-  
+
   return op;
 }
 
@@ -149,9 +142,8 @@ void _Instr::patchIrsOffset(uint32_t irsOffset)
 
 void _Instr::patchConstant(uint32_t value,bool patch2ndWord)
 {
-  //maybe static error singleton again
   //Error::expect(value < 512) << "load addr out of range " << (value);
-  
+
   if(patch2ndWord)
   {
     code_=SLCode::Load::create2(value);
@@ -178,23 +170,23 @@ CodeGen::CodeGen(Stream &stream,uint32_t entryVectorSize,bool safeAllocationInsi
   loopDepth_=0;
   codeAddr_=entryVectorSize;
   labelIdBitMap_=0x7FFFFFFF;
-  
+
   entryVectorSize_=entryVectorSize;
   for(uint32_t i=0;i<entryVectorSize;++i)
   {
     instrs_[i]={SLCode::Nop::create(),NoRef};
   }
-  
+
   symbolMaps_.push(defaultSymbols_);
 
   //allocate first symbol for temp loop storage
   symbolMaps_.top().createSymbolNoToken(MaxLoopDepth);
-  
+
   for(uint32_t i=0;i<sizeof(activeLabels_)/sizeof(activeLabels_[0]);++i)
   {
     activeLabels_[i]=0;
   }
-  
+
   safeAllocationInsideLoop_=safeAllocationInsideLoop;
 }
 
@@ -210,7 +202,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
 {
   _Operand a=resolveOperand(opa);
   _Operand b=resolveOperand(opb);
-  
+
   //handle base addr
   if(a.isArrayBaseAddr())
   {
@@ -220,11 +212,11 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
       instrMov(t,_Operand::createResult());
       b=t;
     }
-    
+
     instrMov(_Operand::createResult(),a);
     a=_Operand::createResult();
   }
-  
+
   if(b.isArrayBaseAddr())
   {
     if(a.isResult())
@@ -233,7 +225,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
       instrMov(t,_Operand::createResult());
       a=t;
     }
-    
+
     instrMov(_Operand::createResult(),b);
     b=_Operand::createResult();
   }
@@ -243,7 +235,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   {
     b=tmpStorage.preloadConstValue(b.value_);
   }
-  
+
   //if operands can swapped preload const
   if(a.type_ == _Operand::TY_VALUE && b.type_ == _Operand::TY_RESULT && op != '/' && op != '-' && op != SLCode::CMD_SHFT)
   {
@@ -276,10 +268,10 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
     instrMov(_Operand::createResult(),a);
     a=_Operand::createResult();
   }
-  
+
   bool aIncAddr=false;
   bool bIncAddr=false;
-  
+
   if(a.type_ == _Operand::TY_MEM && b.type_ == _Operand::TY_MEM)
   {
     aIncAddr=a.addrInc_;
@@ -289,7 +281,7 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   {
     aIncAddr=(a.type_ == _Operand::TY_MEM && a.addrInc_) || (b.type_ == _Operand::TY_MEM && b.addrInc_);
   }
-    
+
   uint32_t symRef=SymbolMap::InvalidLink;
   uint32_t irsOffset=0;
 
@@ -301,11 +293,11 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
       instrMov(_Operand::createResult(),a);
       a=_Operand::createResult();
     }
-    
+
     symRef=b.mapIndex_;
     irsOffset=b.arrayOffset_;
   }
-  
+
   if(a.type_ == _Operand::TY_MEM && a.regaIndex_ == 1)
   {
     //potential external mem acces which is not possible
@@ -322,12 +314,12 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
 {
   //optimize hint
   //try to implement mov AD0,AD1,... [IRS]
-  
+
   if(opa.isResult() && opb.isResult())
   {
     return;
   }
-  
+
   _Operand a=resolveOperand(opa,true);
   _Operand b=resolveOperand(opb);
 
@@ -377,28 +369,28 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
 
     //write first part of
     writeCode(SLCode::Load::create1(constData),symRef);
-    
+
     if(SLCode::Load::constDataValue2(constData) != 0 || SLCode::Load::constDataValue3(constData) != 0)
     {
       writeCode(SLCode::Load::create2(constData),symRef);
     }
-    
+
     if(SLCode::Load::constDataValue3(constData) != 0)
     {
       writeCode(SLCode::Load::create3(constData),symRef);
     }
-    
+
     if(b.isArrayBaseAddr())
     {
       //add [irs+0]
       TmpStorage tmp(*this);
       instrOperation(_Operand::createResult(),_Operand::createSymAccess(0),'+',tmp);
-      
+
       Error::expect(getCurCodeAddr() > 0 && instrs_[getCurCodeAddr()-1].isIrsInstr()) << "internal error" << ErrorHandler::FATAL;
-      
+
       instrs_[getCurCodeAddr()-1].symRef_=NoRef;
     }
-    
+
     if(a.isResult())
       return;
 
@@ -406,7 +398,7 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
   }
 
   bool addrInc=(aIsMem && a.addrInc_) || (bIsMem && b.addrInc_);
-  
+
   uint32_t symRef=SymbolMap::InvalidLink;
   uint32_t irsOffset=0;
 
@@ -423,7 +415,7 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
       irsOffset=b.arrayOffset_;
     }
   }
-  
+
   //mov result to irs
   writeCode(SLCode::Mov::create(translateOperand(a),translateOperand(b),irsOffset,addrInc),symRef);
 }
@@ -431,16 +423,16 @@ void CodeGen::instrMov(const _Operand &opa,const _Operand &opb)
 void CodeGen::instrUnaryOp(const _Operand &opa,uint32_t unaryOp)
 {
   _Operand a=resolveOperand(opa);
-  
+
   if(!a.isResult())
   {
     instrMov(_Operand::createResult(),a);
   }
-  
+
   Error::expect(unaryOp == SLCode::UNARY_LOG2 ||
                 unaryOp == SLCode::UNARY_NEG ||
                 unaryOp == SLCode::UNARY_TRUNC) << "unary op internal error";
-  
+
   writeCode(SLCode::UnaryOp::create(static_cast<SLCode::UnaryCommand>(unaryOp)));
 }
 
@@ -470,10 +462,10 @@ void CodeGen::instrGoto(const Label &label)
 {
   if(loopDepth_ > 0 && label.codeAddr_ != 0)
   {
-    //backward jumping gotos are only generated by RTAsm loops therefore it is not necessary to mark goto instr as loop complex 
+    //backward jumping gotos are only generated by RTAsm loops therefore it is not necessary to mark goto instr as loop complex
     loopFrames_[loopDepth_-1].markComplex();
   }
-  
+
   writeCode(SLCode::Goto::create(0,false),label.getLabelReference());
 }
 
@@ -483,7 +475,7 @@ void CodeGen::instrGoto2()
   {
     loopFrames_[loopDepth_-1].markComplex();
   }
-  
+
   writeCode(SLCode::Goto::create());
 }
 
@@ -491,16 +483,16 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
 {
   _Operand a=resolveOperand(opa);
   _Operand b=resolveOperand(opb);
-  
+
   if((cmpMode&CMP_MODE_SWAP_FLAG) ^ (negate?CMP_MODE_SWAP_FLAG:0))
   {
     _Operand t=a;
     a=b;
     b=t;
   }
-  
+
   //optimize when operands can be swapped!!!!!!!!
-  
+
   cmpMode&=~CMP_MODE_SWAP_FLAG;
 
   if(negate)
@@ -510,7 +502,7 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
       case CMP_MODE_EQ: cmpMode=CMP_MODE_NEQ; break;
       case CMP_MODE_NEQ: cmpMode=CMP_MODE_EQ; break;
       case CMP_MODE_LE: cmpMode=CMP_MODE_LT; break;
-      case CMP_MODE_LT: cmpMode=CMP_MODE_LE; break; 
+      case CMP_MODE_LT: cmpMode=CMP_MODE_LE; break;
     }
   }
 
@@ -524,7 +516,7 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
   if(!a.isResult())
   {
     instrMov(_Operand::createResult(),a);
-  }  
+  }
 
   writeCode(SLCode::Cmp::create(b.arrayOffset_,(SLCode::CmpMode)cmpMode),b.mapIndex_);
 }
@@ -532,19 +524,19 @@ void CodeGen::instrCompare(const _Operand &opa,const _Operand &opb,uint32_t cmpM
 void CodeGen::instrWait(const _Operand &opa)
 {
   _Operand a=resolveOperand(opa);
-  
+
   if(a.type_ == _Operand::TY_INVALID)
   {
     writeCode(SLCode::SignalWait::create(SLCode::SignalWait::WAIT_ALL));
     return;
   }
-  
+
   if(!a.isResult())
   {
     instrMov(_Operand::createResult(),a);
     a=_Operand::createResult();
   }
-  
+
   writeCode(SLCode::SignalWait::create(SLCode::SignalWait::WAIT_SIG));
 }
 
@@ -563,17 +555,17 @@ void CodeGen::instrLock(bool unlock)
             << "loops inside bus lock block not are allowed";
       Error::expect(instrs_[i].isLoopInstr() == false)
             << "loops inside bus lock are not allowed";
-            
+
       if(instrs_[i].code_ == SLCode::SignalWait::create(SLCode::SignalWait::BUS_LOCK))
       {
         break;
       }
-      
+
       --i;
     }
-    
-    Error::expect((getCurCodeAddr()-1-i) < 32) << "no more than 32 instr inside bus lock block are allowed";      
-      
+
+    Error::expect((getCurCodeAddr()-1-i) < 32) << "no more than 32 instr inside bus lock block are allowed";
+
     writeCode(SLCode::SignalWait::create(SLCode::SignalWait::BUS_UNLOCK));
   }
   else
@@ -591,7 +583,7 @@ void CodeGen::addArrayDeclaration(const Stream::String &str,uint32_t size)
 {
   Error::expect(size > 0) <<"array decl "<<str<<" must be greater than 0";
   symbolMaps_.top().createSymbol(str,size);
-  
+
   arrayAllocInfo_.insert({getCurCodeAddr(),symbolMaps_.top().findSymbol(str)});
 }
 
@@ -604,9 +596,9 @@ void CodeGen::resizeArray(const Stream::String &str,uint32_t newSize)
 {
   Error::expect(newSize > 0) <<"array size "<<str<<" must be greater than 0";
   uint32_t arrRef=symbolMaps_.top().findSymbol(str);
-  Error::expect(arrRef != NoRef || symbolMaps_.top()[arrRef].flagIsArray_ == 0) 
+  Error::expect(arrRef != NoRef || symbolMaps_.top()[arrRef].flagIsArray_ == 0)
           << "internal error: array '" << str << "' not declared";
-          
+
   symbolMaps_.top()[arrRef].allocatedSize_=newSize;
 }
 
@@ -624,14 +616,11 @@ void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,con
 {
   Error::expect(loopDepth_ < MaxLoopDepth) << "internal error: no more loop frames available" << ErrorHandler::FATAL;
 
-  //_Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
-  //_Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
-  
   if(loopDepth_ > 0)
   {
     loopFrames_[loopDepth_-1].markComplex();
   }
-  
+
   loopFrames_[loopDepth_]=_LoopFrame(&contLabel,&breakLabel,counter);
 
   ++loopDepth_;
@@ -640,18 +629,13 @@ void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,con
 void CodeGen::removeLoopFrame()
 {
   Error::expect(loopDepth_ > 0) << "loop frame expected" << ErrorHandler::FATAL;
-  
+
   for(auto i : loopFrames_[loopDepth_-1].symbolRefsToRelease_)
   {
     symbolMaps_.top()[i].updateLastAccess(getCurCodeAddr());
   }
 
   --loopDepth_;
-
-  //_Operand irsStorage=_Operand::createSymAccess(LoopStorageIndex,loopDepth_);
-  //_Operand loopReg=_Operand::createInternalReg(_Operand::TY_IR_LOOP);
-
-  //instrMov(loopReg,irsStorage);
 }
 
 bool CodeGen::isLoopFrameComplex()
@@ -663,17 +647,10 @@ bool CodeGen::isLoopFrameComplex()
 void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
 {
   Allocator allocator(size);
-  
+
   uint32_t x=allocator.allocate(4+numParams);//reserve space for parameter
 
   Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << ErrorHandler::FATAL;
-  
-  //std::cout<<"startAddr: "<<(symbolMaps_.top().getStartAddr())<<"\n";
-  //std::cout<<"arrayAllocInfo:\n";
-  for(auto &i : arrayAllocInfo_)
-  {
-    //std::cout<<"  first: "<<(i.first)<<"  second: "<<(i.second)<<"\n";
-  }
 
   for(uint32_t i=symbolMaps_.top().getStartAddr();i<codeAddr_;++i)
   {
@@ -686,13 +663,13 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
       symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_,symInf.flagsAllocateHighest_,symInf.flagIsArray_);
       arrayAllocInfo_.erase(arrayAllocInfo_.begin());
     }
-    
+
     uint32_t symRefOld=instrs_[i].symRef_;
-    
+
     if(instrs_[i].symRef_ != SymbolMap::InvalidLink && instrs_[i].symRef_ < RefLabelOffset)
     {
       SymbolMap::_Symbol &symInf=symbolMaps_.top()[instrs_[i].symRef_];
-      
+
       //mark as patched
       instrs_[i].symRef_=SymbolMap::InvalidLink;
 
@@ -702,18 +679,18 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
         symInf.flagAllocated_=1;
         symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_,symInf.flagsAllocateHighest_,symInf.flagIsArray_);
       }
-      
+
       if(instrs_[i].isIrsInstr())
       {
         //array index already addressed => add irsOffset
         instrs_[i].patchIrsOffset(instrs_[i].getIrsOffset()+symInf.allocatedAddr_);
       }
-      
+
       if(instrs_[i].isLoadAddr())
       {
         //Error::expect((symInf.allocatedAddr_&7) == 0 || symInf.allocatedAddr_ < 32)
         //  << "addr to be loaded must less than 32 or 8 word aligned";
-          
+
         instrs_[i].patchConstant(qfp32_t(symInf.allocatedAddr_).toRaw(),false);
       }
 
@@ -728,24 +705,24 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
 }
 
 CodeGen::_FunctionInfo& CodeGen::findFunction(const Stream::String &symbol)
-{  
+{
   std::string s=std::string(symbol.getBase()+symbol.getOffset(),symbol.getLength());
-  
+
   auto it=functions_.find(s);
-  
+
   if(it == functions_.end())
   {
     static _FunctionInfo fi{nullptr,NoRef,0,0};
     return fi;
   }
-  
+
   return it->second;
 }
 
 CodeGen::_FunctionInfo& CodeGen::addFunctionAtCurrentAddr(const Stream::String &symbol)
 {
   std::string s=std::string(symbol.getBase()+symbol.getOffset(),symbol.getLength());
-  
+
   _FunctionInfo function{new SymbolMap(stream_,getCurCodeAddr()),
                          getCurCodeAddr(),
                          0,
@@ -754,25 +731,25 @@ CodeGen::_FunctionInfo& CodeGen::addFunctionAtCurrentAddr(const Stream::String &
                          {
                            0,
                            std::vector<_Instr>(),
-                           std::vector<bool>()                          
+                           std::vector<bool>()
                          }
                          };
-  
+
   return (functions_.insert(std::make_pair(s,function)).first)->second;
 }
 
 std::vector<_Instr> CodeGen::extractRecentInstrs(uint32_t numInstrs)
 {
   std::vector<_Instr> instrs;
-  
+
   instrs.reserve(numInstrs);
   for(uint32_t i=getCurCodeAddr()-numInstrs;i<getCurCodeAddr();++i)
   {
     instrs.push_back(instrs_[i]);
   }
-  
+
   codeAddr_-=numInstrs;
-  
+
   return instrs;
 }
 
@@ -808,11 +785,11 @@ void CodeGen::generateEntryVector(uint32_t startAddr)
   {
     startAddr=entryVectorSize_;
   }
-  
+
   Error::expect(entryVectorSize_ >= 3) << "Entry vector size too small" << ErrorHandler::FATAL;
-  
+
   uint32_t addr=0;
-  uint32_t startAddrAsRaw=qfp32::fromRealQfp32((double)startAddr).toRealQfp32().getAsRawUint();    
+  uint32_t startAddrAsRaw=qfp32::fromRealQfp32((double)startAddr).toRealQfp32().getAsRawUint();
   instrs_[addr++]={SLCode::Load::create1(startAddrAsRaw),NoRef};
   instrs_[addr++]={SLCode::Load::create2(startAddrAsRaw),NoRef};
   instrs_[addr++]={SLCode::Goto::create(),NoRef};
@@ -821,9 +798,9 @@ void CodeGen::generateEntryVector(uint32_t startAddr)
 void CodeGen::generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInInstrs)
 {
   Error::expect(entryVectorSize_ >= numberOfEntries*entrySizeInInstrs) << "Entry vector size too small" << ErrorHandler::FATAL;
-  
+
   int32_t defFunctionAddr=findFunction(Stream::String("main",0,4)).address_;
-  
+
   uint32_t addr=0;
   for(uint32_t i=0;i<numberOfEntries;++i)
   {
@@ -832,23 +809,23 @@ void CodeGen::generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInI
     if(i > 9)
     {
       buf[j++]='0'+((i+1)/10)%10;
-    }    
+    }
     buf[j++]='0'+(i+1)%10;
-        
+
     int32_t specFunctionAddr=findFunction(Stream::String(buf,0,j)).address_;
-    
+
     if(specFunctionAddr == NoRef)
     {
       specFunctionAddr=defFunctionAddr;
     }
-    
+
     Error::expect(specFunctionAddr != NoRef) << "No entry function for core '" << (i) << "'";
-    
-    uint32_t fctAddrAsRaw=qfp32::fromRealQfp32(qfp32_t(specFunctionAddr)).toRealQfp32().getAsRawUint();    
+
+    uint32_t fctAddrAsRaw=qfp32::fromRealQfp32(qfp32_t(specFunctionAddr)).toRealQfp32().getAsRawUint();
     instrs_[addr++]={SLCode::Load::create1(fctAddrAsRaw),NoRef};
     instrs_[addr++]={SLCode::Load::create2(fctAddrAsRaw),NoRef};
     instrs_[addr++]={SLCode::Goto::create(),NoRef};
-    
+
     Error::expect(entrySizeInInstrs >= 3) << "Entry function size too small for jump" << ErrorHandler::FATAL;
     for(uint32_t j=3;j<entrySizeInInstrs;++j)
     {
@@ -874,7 +851,7 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
       symRef=symbolMaps_.top().createSymbol(name,0);//single element
       symbolMaps_.top()[symRef].setLoopScope(loopDepth_);
     }
-     
+
     //check outer symbol map (if exist) and use if it is a constant
     if(symRef == SymbolMap::InvalidLink && symbolMaps_.size() > 1)
     {
@@ -895,22 +872,22 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
 
     if(symInf.flagAllocated_)//is a reference
       return _Operand::createSymAccess(symRef,0);
-      
+
     if(symInf.flagIsArray_)//is a array
     {
         //make sure that array space is allocated before a certain point in code => allocated now when it is declared
         //arrayAllocInfo_
-        
+
       if(op.index_ == 0xFFFF)
       {
         //is array base access
         symInf.flagStayAllocated_=1;
       }
-      
+
       return _Operand::createSymAccess(symRef,op.index_);
     }
-      
-    //normal variable      
+
+    //normal variable
     return _Operand::createSymAccess(symRef,0);
   }
 
@@ -918,17 +895,12 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
   {
     Error::expect(loopDepth_ != 0 && op.loopIndex_ < loopDepth_) << "using loop index '" << char('i'+op.loopIndex_) << "' outside loop" << ErrorHandler::FATAL;
     Error::expect(loopFrames_[op.loopIndex_].counter_ != 0) << "no index available in while loop";
-    
+
     uint32_t index=op.loopIndex_;
-    
+
     loopFrames_[index].markComplex();//need counter
-    
+
     return *(loopFrames_[index].counter_);
-
-   // if(loop == 0)
-   //   return _Operand::createInternalReg(_Operand::TY_IR_LOOP);
-
-    //return _Operand::createSymAccess(LoopStorageIndex,loopDepth_-loop);
   }
 
   return op;
@@ -956,7 +928,7 @@ SLCode::Operand CodeGen::translateOperand(_Operand op)
     default:
       Error::expect(false) << "internal error: no operand translation found!" << ErrorHandler::FATAL;
   }
-  
+
   return SLCode::Operand::INVALID_OP;
 }
 
@@ -968,7 +940,7 @@ SLCode::Command CodeGen::translateOperation(char op)
     case '-': return SLCode::Command::CMD_SUB;
     case '*': return SLCode::Command::CMD_MUL;
     case '/': return SLCode::Command::CMD_DIV;
-    default: 
+    default:
       if(op < 16)//probably already a command
       {
         return static_cast<SLCode::Command>(op);
@@ -986,16 +958,16 @@ uint32_t CodeGen::allocateTmpStorage()
 uint32_t CodeGen::getLabelId(Label* label)
 {
   Error::expect(labelIdBitMap_ != 0) << "no more label ids available" << ErrorHandler::FATAL;
-  
+
   uint32_t freeBitPos=Stream::log2(labelIdBitMap_);
-  
+
   if((1<<freeBitPos) > labelIdBitMap_)
   {
     --freeBitPos;
   }
-  
+
   labelIdBitMap_&=~(1<<freeBitPos);
-  
+
   activeLabels_[freeBitPos]=label;
 
   return freeBitPos + RefLabelOffset;
@@ -1004,7 +976,7 @@ uint32_t CodeGen::getLabelId(Label* label)
 void CodeGen::releaseLabel(const Label &label)
 {
   uint32_t labelRef=label.getLabelReference();
-  
+
     //release label id
   labelIdBitMap_|=1<<(labelRef&0x1F);
   activeLabels_[(labelRef&0x1F)]=0;
@@ -1021,13 +993,13 @@ void CodeGen::patchLabelInCode(const Label &label,uint32_t patchAddrStart)
     {
       continue;
     }
-    
+
     if(instrs_[i].isGoto())
     {
       instrs_[i].patchGotoTarget(label.labelAddr_-i);
       instrs_[i].symRef_=NoRef;
     }
-    
+
     if(instrs_[i].isLoadAddr())
     {
       //is absolue addr
@@ -1048,7 +1020,7 @@ void CodeGen::replaceLabel(const Label &labelToBeReplaced,const Label &newLabel)
     {
       continue;
     }
-    
+
     instrs_[i].symRef_=newLabel.getLabelReference();
   }
 }
@@ -1071,13 +1043,13 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
     if(loopDepth_ > 0 && (symbolMaps_.top()[ref].loopIndexScope_ < loopDepth_ || safeAllocationInsideLoop_))
     {
       uint32_t loopToRelaseAfter=symbolMaps_.top()[ref].loopIndexScope_;
-      
+
       if(loopToRelaseAfter > (loopDepth_-1))
       {
         //allocated in current loop frame and must be released after it ends
         loopToRelaseAfter=loopDepth_-1;
       }
-      
+
       loopFrames_[loopToRelaseAfter].symbolRefsToRelease_.insert(ref);
     }
     else
@@ -1086,7 +1058,7 @@ void CodeGen::writeCode(uint32_t code,uint32_t ref)
       symbolMaps_.top()[ref].updateLastAccess(getCurCodeAddr());
     }
   }
-    
+
   if(ref < RefLabelOffset && instrs_[codeAddr_].isLoadAddr())
   {
     //load array base addr
@@ -1102,11 +1074,11 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   {
     return;
   }
-  
-  Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not enough instr buffer space" << ErrorHandler::FATAL;  
-  
+
+  Error::expect(size <= sizeof(instrs_)/sizeof(instrs_[0])-getCurCodeAddr()) << "not enough instr buffer space" << ErrorHandler::FATAL;
+
   uint32_t size2=abs(startAddr-targetAddr);
-  
+
   uint32_t blockStart=0;
   uint32_t blockTarget=0;
   if(startAddr < targetAddr)
@@ -1119,7 +1091,7 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
     blockStart=targetAddr;
     blockTarget=targetAddr+size;
   }
-  
+
   memcpy(instrs_+getCurCodeAddr(),instrs_+startAddr,sizeof(_Instr)*size);
   memmove(instrs_+blockTarget,instrs_+blockStart,sizeof(_Instr)*size2);
   memcpy(instrs_+targetAddr,instrs_+getCurCodeAddr(),sizeof(_Instr)*size);
@@ -1134,9 +1106,9 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
   else
   {
     rebaseCode(targetAddr,targetAddr+size-1,targetAddr-startAddr);
-    rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);    
+    rebaseCode(blockTarget,blockTarget+size2-1,blockTarget-blockStart);
   }
-  
+
   if(callback_ != nullptr)
   {
     callback_(startAddr,size,targetAddr);
@@ -1144,54 +1116,54 @@ void CodeGen::moveCodeBlock(uint32_t startAddr,uint32_t size,uint32_t targetAddr
 }
 
 void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
-{ 
+{
   std::multimap<uint32_t,uint32_t> rebasedAllocInfo;
-  
+
   for(int32_t i=startAddr;i<=endAddr;)
   {
     if(instrs_[i].isGoto())
     {
       int32_t gotoAddr=i+instrs_[i].getGotoTarget();
-      
+
       if(gotoAddr < startAddr || gotoAddr > (endAddr+1))
       {
         instrs_[i].patchGotoTarget(instrs_[i].getGotoTarget()-offset);
       }
     }
-    
+
     //update last access position
     if(instrs_[i].symRef_ != NoRef && !instrs_[i].isGoto() && !instrs_[i].isLoadAddr())
     {
       symbolMaps_.top()[instrs_[i].symRef_].updateLastAccess(i);
     }
-    
+
     if(instrs_[i].isLoadAddr() && instrs_[i].symRef_ == RefLoad)
     {
       bool load2=(i+1)<endAddr && instrs_[i+1].isLoadAddr();
       bool load3=(i+2)<endAddr && instrs_[i+2].isLoadAddr();
-      
+
       qfp32_t v=_Instr::restoreValueFromLoad(instrs_[i],
                                              load2?instrs_[i+1]:_Instr({0,0}),
                                              load3?instrs_[i+2]:_Instr({0,0}));
-      
+
       v=v+offset;
-      
+
       instrs_[i].patchConstant(v.toRaw(),false);
-      
+
       if(load2)
       {
         ++i;
         instrs_[i].patchConstant(v.toRaw(),true);
       }
-      
+
       if(load3)
       {
         ++i;
       }
     }
-    
+
     auto search=arrayAllocInfo_.find(i-offset);
-    
+
     if(search != arrayAllocInfo_.end())
     {
       while(search->first == (i-offset))
@@ -1202,9 +1174,9 @@ void CodeGen::rebaseCode(uint32_t startAddr,uint32_t endAddr,int32_t offset)
         arrayAllocInfo_.erase(rm);
       }
     }
-    
+
     ++i;
   }
-  
+
   arrayAllocInfo_.insert(rebasedAllocInfo.begin(),rebasedAllocInfo.end());
 }
