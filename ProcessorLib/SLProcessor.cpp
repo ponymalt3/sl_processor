@@ -57,6 +57,11 @@ uint32_t Memory::Port::read(uint32_t addr) const
     return memory_.faultHandler_(addr,0,false);    
   }
   
+  if(memory_.size_ == 512 && addr == 491)
+  {
+    int a=0;
+  }
+  
   return memory_.data_[addr];
 }
 
@@ -66,6 +71,12 @@ void Memory::Port::write(uint32_t addr,uint32_t data)
   {
     memory_.faultHandler_(addr,0,true);
     return;
+  }
+  
+  if(memory_.size_ == 512 && addr == 491)
+  {
+    std::cout<<"x: "<<(qfp32_t::initFromRaw(data))<<std::endl;
+    int a=0;
   }
   
   wAddr_=addr;
@@ -325,8 +336,16 @@ _MemFetch1 SLProcessor::memFetch1(const _Decode &decodeComb) const
   {
     //if(enable_(_State::S_EXEC) == 0 || decodeComb.enREG_ == 0 || decodeComb.muxAD1_ != decEx_.wbReg_)
     {
+      if(state_.addr_[1] == 1007)
+      {
+        int a=0;
+      }
+      
       if(state_.addr_[1] >= SharedAddrBase_)
+      {
         memFetch.externalData_=portExt_.read(state_.addr_[1]);//decComb.muxAD1_]);
+        std::cout<<"ext["<<(state_.addr_[1])<<"]: "<<(qfp32_t::initFromRaw(memFetch.externalData_))<<"\n";
+}
     }
   }
 
@@ -546,12 +565,15 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
 _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after falling edge
 {
   _Exec exec;
+  
+  std::cout<<"  exec\n    a "<<(qfp32_t::initFromRaw(decEx_.a_))<<"  b "<<(qfp32_t::initFromRaw(decEx_.b_))<<"\n";
 
   exec.munit_=arithUnint_.comb(decEx_);
   
   //fragmented load
   if(enable_(_State::S_EXEC) && decEx_.load_)
   {
+    std::cout<<"    load\n";
     switch(state_.loadState_)
     {
       case 1: exec.munit_.result_=(((decEx_.loadData_>>11)&1)<<31) + ((decEx_.loadData_&0x7FF)<<19); break;
@@ -564,12 +586,14 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
   
   if(enable_(_State::S_EXEC) && decEx_.neg_)
   {
+    std::cout<<"    neg\n";
     exec.munit_.result_=state_.result_^0x80000000;
     exec.munit_.complete_=1;
   }
   
   if(enable_(_State::S_EXEC) && decEx_.trunc_)
   {
+    std::cout<<"    trunc\n";
     exec.munit_.result_=state_.result_&(~(0xFFFFFF>>(((state_.result_>>29)&0x3)*8)));
     if((exec.munit_.result_&0x7FFFFFFF) == 0)
     {
@@ -577,7 +601,12 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
     }
     exec.munit_.complete_=1;
   }
-
+  
+  if(exec.munit_.complete_)
+  {
+    std::cout<<"    result "<<(qfp32_t::initFromRaw(exec.munit_.result_))<<"\n";
+  }
+  
   uint32_t data=state_.result_;//decEx_.b_;
 
   //if(decEx_.writeDataSel_ )
@@ -588,10 +617,12 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
   {
     if(decEx_.writeExt_)
     {
+      std::cout<<"    writeX "<<(qfp32_t::initFromRaw(data))<<" at "<<(decEx_.writeAddr_)<<"\n";
       portExt_.write(decEx_.writeAddr_,data);
     }
     else
-    {
+    {      
+      std::cout<<"    write "<<(qfp32_t::initFromRaw(data))<<" at "<<(decEx_.writeAddr_)<<"\n";
       portR0_.write(decEx_.writeAddr_,data);
     }
   }
@@ -615,6 +646,8 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
     }
   }
   
+  std::cout<<"    execNext "<<(exec.execNext_?"true":"false")<<"\n";
+  
   exec.stall_=0;
   
   //stall ctrl  
@@ -636,6 +669,8 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
 void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue)
 {
   ++cycleCount_;
+  
+  std::cout<<"cycle "<<(cycleCount_)<<"\n";
   
   //comb inputs
   decEx_.a_=(decEx_.mux0_ == SLCode::MUX1_MEM)?decEx_.mem0_:state_.result_;
@@ -666,6 +701,10 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   //************************************ at rising edge *******************************************
   if(enable_(_State::S_DECEX) && execNext.execNext_ && !stall.stallDecEx_ && !stall.flush_)
   {
+    if(stateNext.incAd0_ || stateNext.incAd1_)
+    {
+      int a=0;
+    }
     stateNext.addr_[0]=state_.addr_[0]+stateNext.incAd0_;
     stateNext.addr_[1]=state_.addr_[1]+stateNext.incAd1_;
   }
@@ -674,18 +713,27 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   if(enable_(_State::S_EXEC) && decEx_.wbEn_)
   {
     _qfp32_t a=_qfp32_t::initFromRaw(state_.result_);
+    //a.asUint=decEx_.writeDataSel_?decEx_.a_:decEx_.b_
     switch(decEx_.wbReg_)
     {
-    case SLCode::REG_AD0: stateNext.addr_[0]=execNext.intResult_; break;
-    case SLCode::REG_AD1: stateNext.addr_[1]=execNext.intResult_; break;
-    case SLCode::REG_IRS: stateNext.irs_=execNext.intResult_; break;
+    case SLCode::REG_AD0: stateNext.addr_[0]=execNext.intResult_; std::cout<<"  a[0] = "; break;
+    case SLCode::REG_AD1: stateNext.addr_[1]=execNext.intResult_; std::cout<<"  a[1] = "; break;
+    case SLCode::REG_IRS: stateNext.irs_=execNext.intResult_; std::cout<<"  irs = "; break;
     }
+    
+    std::cout<<(execNext.intResult_)<<"\n";
   }
   
   if(enable_(_State::S_EXEC) && decode_.loop_ == 1)
   {
+    std::cout<<"  loop "<<(execNext.intResult_)<<"\n";
     stateNext.loopCount_=execNext.intResult_;
     stateNext.loopCount_|=0x80000000;
+  }
+  
+  if(enable_(_State::S_EXEC) && (decode_.bus_lock_ == 1 || decode_.bus_unlock_ == 1))
+  {
+    stateNext.busLock_=decode_.bus_lock_;
   }
 
   //************************************ update register *******************************************
@@ -709,6 +757,7 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
     if(enable_(_State::S_EXEC))
     {
       executedAddr_=decode_.curPc_;
+      std::cout<<"  exec addr... "<<(executedAddr_)<<"\n";
     }
     
     code_=codeNext;
@@ -721,6 +770,11 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   }
   
   stateNext.stallExec1d_=stall.stallExec_;
+  
+  if(stateNext.irs_ > 512)
+  {
+    throw Memory::FaultException(stateNext.irs_,Memory::FaultException::Write);
+  }
   
   state_=stateNext;
   enable_=stall.enNext_;

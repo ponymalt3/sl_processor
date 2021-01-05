@@ -122,7 +122,7 @@ class SLProcessor
 {
 public:
   SLProcessor(Memory &localMem,const Memory::Port &portExt,const Memory::Port &portCode);
-
+  
   void signal();
   bool isRunning();
   void reset();
