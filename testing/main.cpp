@@ -1,5 +1,5 @@
 #include <mtest.h>
-#include "ProcessorTest/SLProcessorTest.h"
+#include "Instr/SLProcessorTest.h"
 
 // run all tests
 int main(int argc, char **argv)

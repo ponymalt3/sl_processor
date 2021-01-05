@@ -1,13 +1,13 @@
 #pragma once
 
 #include <stdint.h>
-#include "RTAsm/RTParser.h"
-#include "RTAsm/Error.h"
-#include "RTAsm/RTProg.h"
-#include "ProcessorTest/SLProcessorTest.h"
+#include "Assembler/RTParser.h"
+#include "Assembler/Error.h"
+#include "Assembler/RTProg.h"
+#include "../Instr/SLProcessorTest.h"
 #include "Peripherals.h"
 
-#include "RTAsm/DisAsm.h"
+#include "Assembler/DisAsm.h"
 
 class RTProgTester
 {

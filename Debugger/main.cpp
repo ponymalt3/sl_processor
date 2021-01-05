@@ -7,10 +7,10 @@
 
 #include "qfp32.h"
 
-#include "RTAsm/RTParser.h"
-#include "RTAsm/CodeGen.h"
-#include "RTAsm/RTProg.h"
-#include "RTAsm/DisAsm.h"
+#include "Assembler/RTParser.h"
+#include "Assembler/CodeGen.h"
+#include "Assembler/RTProg.h"
+#include "Assembler/DisAsm.h"
 
 #include "UartInterface.h"
 #include "SystemControl.h"

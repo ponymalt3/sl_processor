@@ -4,8 +4,8 @@
 
 #include "SLProcessor.h"
 #include "SLCodeDef.h"
-#include "RTAsm/DisAsm.h"
-#include "ProcessorAsmTest/Peripherals.h"
+#include "Assembler/DisAsm.h"
+#include "testing/Asm/Peripherals.h"
 
 class Simulator : public DebuggerInterface
 {
