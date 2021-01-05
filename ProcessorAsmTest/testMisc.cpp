@@ -68,6 +68,8 @@ MTEST(testMisc,test_that_loop_with_inc_write_to_ext_mem_works_correct)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();
@@ -102,6 +104,8 @@ MTEST(testMisc,test_that_array_alloc_with_array_address_access_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();  
   tester.execute();
@@ -147,6 +151,10 @@ MTEST(testMisc,test_that_math_lib_works_correct)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+  std::cout<<"res: "<<(qfp32_t::initFromRaw(0x00008000U))<<"\n";
+  std::cout<<"res: "<<(qfp32_t::initFromRaw(0x007b73a2U))<<"\n";
+
   tester.loadCode();
   tester.execute();
   
@@ -188,6 +196,8 @@ MTEST(testMisc,test_that_mem_lib_works_correct)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
   tester.loadCode();
   tester.execute();
   

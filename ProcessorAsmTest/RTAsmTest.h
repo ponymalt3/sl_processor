@@ -4,10 +4,10 @@
 #include "RTAsm/RTParser.h"
 #include "RTAsm/Error.h"
 #include "RTAsm/RTProg.h"
-#include "../ProcessorTest/SLProcessorTest.h"
+#include "ProcessorTest/SLProcessorTest.h"
 #include "Peripherals.h"
 
-#include "DisAsm.h"
+#include "RTAsm/DisAsm.h"
 
 class RTProgTester
 {
@@ -43,6 +43,24 @@ public:
     {
       codeGen_.storageAllocationPass(512,reserveParameter);
     }
+    
+    std::cout<<"functions:\n";
+    for(auto &i : codeGen_.functions_)
+    {
+      if(!i.second.isInlineFunction_)
+      {
+        std::cout<<"  "<<(i.first)<<"  at "<<(i.second.address_)<<" size: "<<(i.second.size_)<<"\n";
+      }
+    }
+    std::cout<<"inlined functions:\n";
+    for(auto &i : codeGen_.functions_)
+    {
+      if(i.second.isInlineFunction_)
+      {
+        std::cout<<"  "<<(i.first)<<"\n";
+      }
+    }
+    
     return prog_.getErrorHandler();
   }
   
@@ -63,7 +81,10 @@ public:
     for(uint32_t i=0;i<getCodeSize();++i)
     {
       code[i]=getCodeAt(i);
+      std::cout<<std::dec<<(i)<<". "<<std::hex<<(code[i])<<"\n";
     }
+    
+    std::cout<<std::dec;
     
     std::string result;
     auto lines=DisAsm::getLinesFromCode(code,getCodeSize());
@@ -119,6 +140,7 @@ public:
   {
     uint32_t cycles=0;
     
+    //proc_.reset();
     cycles=proc_.executeUntilAddr(codeGen_.getCurCodeAddr()-1);
     
     std::cout<<"cycles: "<<(cycles)<<"\n";
@@ -126,6 +148,7 @@ public:
   
   void execute(uint32_t cycles)
   {    
+    //proc_.reset();
     proc_.execute(cycles);
     
     std::cout<<"cycles executed: "<<(cycles)<<"\n";

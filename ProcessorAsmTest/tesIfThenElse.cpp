@@ -20,6 +20,9 @@ MTEST(testIfThenElse,test_that_then_branch_only_works_and_execute)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
+  
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();

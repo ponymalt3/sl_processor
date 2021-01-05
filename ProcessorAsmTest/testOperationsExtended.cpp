@@ -142,6 +142,9 @@ MTEST(testOperationsExtended,test_that_negate_with_var_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
+  
+    std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
 
   tester.loadCode();
   tester.execute();
@@ -187,6 +190,8 @@ MTEST(testOperationsSpecialBehaviour,test_that_add_var_const_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
+  
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();
@@ -210,6 +215,7 @@ MTEST(testOperationsSpecialBehaviour,test_that_mul_var_const_works)
   tester.expectSymbol("b",40);
 }
 
+
 MTEST(testOperationsExtended,test_that_expr_with_both_mem_inc_works)
 {
   RTProg testCode=R"(
@@ -231,6 +237,8 @@ MTEST(testOperationsExtended,test_that_expr_with_both_mem_inc_works)
     tester.getProcessor().writeMemory(10+i,qfp32_t::fromDouble(i+1));
   }
   
+    std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
 
   tester.loadCode();
   tester.execute();
@@ -255,6 +263,8 @@ MTEST(testOperationsExtended,test_that_a_not_allowed_potential_external_mem_acce
   EXPECT(tester.parse().getNumErrors() == 0);
   
   tester.getProcessor().writeMemory(512,qfp32_t(512.0));
+  
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
   
   tester.loadCode();
   tester.execute();

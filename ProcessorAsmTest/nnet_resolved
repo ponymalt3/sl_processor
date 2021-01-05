@@ -361,7 +361,10 @@ function nnetCreate(layerConfigArray_local,layerConfigSize,LOCAL_MEM,GLOBAL_MEM)
 
     ## init weights
     loop(int((numWeights+1)/2))
-      boxMuellerTransform(rand(),rand(),weights+j*2);
+      a1=weights+j*2;
+      [a1++]=1;
+      [a1++]=1;
+      #boxMuellerTransform(rand(),rand(),weights+j*2);
     end
   end
 
@@ -436,7 +439,7 @@ function nnetUpdate(nnet,inputs_local,outputs_local,y)
       prevWeights=[a0++];
     end
 
-    difLayer(curDif,outputs+size,size,prevOutputs,prevSize,weights,nextDif,0.1);
+    difLayer(curDif,outputs+size,size,prevOutputs,prevSize,weights,nextDif,0.001);
 
     t=nextDif;
     nextDif=curDif;

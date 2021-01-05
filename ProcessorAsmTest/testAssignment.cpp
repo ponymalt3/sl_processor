@@ -38,6 +38,8 @@ MTEST(testAssignment,test_that_ref_assigned_to_var_works)
   
   tester.getProcessor().writeMemory(4,expect.toRaw());
   
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+  
   tester.loadCode();
   tester.execute();  
     
@@ -75,6 +77,8 @@ MTEST(testAssignment,test_that_const_assigned_to_var_works)
   EXPECT(tester.parse().getNumErrors() == 0);
   
   EXPECT(tester.getIRSAddrOfSymbol("a") == 4);
+  
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
   
   tester.loadCode();
   tester.execute();
@@ -207,6 +211,8 @@ MTEST(testAssignment,test_that_array_base_addr_load_works)
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
   EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
+  
+  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();

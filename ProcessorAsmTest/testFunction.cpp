@@ -219,6 +219,8 @@ MTEST(testFunction,test_recursive_function_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
   
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
   tester.loadCode();
   tester.execute();
    
@@ -267,9 +269,9 @@ MTEST(testFunction,test_that_function_with_function_calls_as_parameters_works)
     function init()
       array data 100;
       a0=data;
-      loop(sizeof(data))
-        [a0++]=338749809;
-      end
+      #loop(sizeof(data))
+       # [a0++]=338749809;
+      #end
     end
     
     a0=0;
@@ -278,7 +280,7 @@ MTEST(testFunction,test_that_function_with_function_calls_as_parameters_works)
     weights=100;
     numWeights=1;
     
-    init();
+    #init();
 
     ## init weights
     loop((numWeights+1)/2)
@@ -327,6 +329,8 @@ MTEST(testFunction,test_that_function_inlining_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
   
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
   tester.getProcessor().writeMemory(100,200.0);
   
   tester.loadCode();
@@ -352,6 +356,8 @@ MTEST(testFunction,test_that_function_inlining_in_expr_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   
   tester.getProcessor().writeMemory(100,200.0);
   
@@ -380,6 +386,8 @@ MTEST(testFunction,test_that_inlined_function_call_in_functions_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse(0,false,10).getNumErrors() == 0);//force to inline only ln
   
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
   tester.loadCode();
   tester.execute();
    
@@ -402,6 +410,8 @@ MTEST(testFunction,test_that_function_inlining_with_local_var_with_same_name_wor
   RTProgTester tester(testCode);
   EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
   
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
   tester.loadCode();
   tester.execute();
    
@@ -423,6 +433,8 @@ MTEST(testFunction,test_that_function_inlining_with_write_to_parameter_works)
   
   RTProgTester tester(testCode);
   EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
   
   tester.loadCode();
   tester.execute();
@@ -480,6 +492,8 @@ MTEST(testFunction,test_that_function_inlining_in_loop_with_mem_access_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
 
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
   tester.loadCode();
   tester.execute();
    
@@ -498,10 +512,12 @@ MTEST(testFunction,test_that_function_inlining_with_loop_inside_works)
     end
   end
   
+  dataX {1,2,3};#dummy
   data1 {-1,1};
-  data2 {13,14};
-  
+  dataX(0)=3;
+  data2 {13,14};  
   s=2;
+  
   difOutput(data1,data2,s);
   a=data2(0);
   b=data2(1);
@@ -511,6 +527,8 @@ MTEST(testFunction,test_that_function_inlining_with_loop_inside_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
 
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  
   tester.loadCode();
   tester.execute();
   

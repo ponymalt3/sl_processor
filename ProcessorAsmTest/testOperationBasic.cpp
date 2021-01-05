@@ -73,6 +73,8 @@ MTEST(testOperationsBasic,test_that_ref_const_sym_operation_works)
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.getProcessor().writeMemory(5,qfp32_t(4).toRaw());
+  
+  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
 
   tester.loadCode();
   tester.execute();
@@ -501,6 +503,9 @@ MTEST(testOperationsBasic,test_that_operator_group2_both_mem_operand_fix_is_hand
   _qfp32_t a=99;
   tester.getProcessor().writeMemory(9,a.toRaw());
   
+   std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+
+  
   tester.loadCode();
   tester.execute();
    
@@ -601,6 +606,7 @@ MTEST(testOperationsBasic,test_that_shft_with_both_var_operands_works)
 
   tester.expectSymbol("a",qfp32_t(9.0/8));
 }
+
 MTEST(testOperationsBasic,test_that_array_base_addr_load_in_expr_works)
 {
   RTProg testCode=R"(
