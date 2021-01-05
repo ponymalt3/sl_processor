@@ -89,8 +89,6 @@ protected:
       beg=pos+1;
       pos=data.find('\n',beg);
       
-      std::cout<<"line: "<<(line)<<"\n";
-      
       std::smatch m;
       if(std::regex_search(line,m,regex))
       {
@@ -108,6 +106,7 @@ protected:
         }
         
         resolveIncludes(path + "/" + m[1].str());
+        std::cout<<"try insert:\n filename: "<<(filename)<<"\n  at "<<(curLine_-1)<<"\n";
         lineToFileMap_.insert(std::make_pair(curLine_,std::make_pair(filename,lines.size())));
       }
       else

@@ -2,10 +2,10 @@
 
 #include "DebuggerInterface.h"
 
-#include "../SLProcessor.h"
-#include "../SLCodeDef.h"
-#include "../RTAsmTest/DisAsm.h"
-#include "../RTAsmTest/Peripherals.h"
+#include "SLProcessor.h"
+#include "SLCodeDef.h"
+#include "RTAsm/DisAsm.h"
+#include "ProcessorAsmTest/Peripherals.h"
 
 class Simulator : public DebuggerInterface
 {

@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 
-#include "../SLProcessor.h"
+#include "SLProcessor.h"
 
 #include "DebuggerInterface.h"
 

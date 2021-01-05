@@ -10,7 +10,7 @@
 #include "RTAsm/RTParser.h"
 #include "RTAsm/CodeGen.h"
 #include "RTAsm/RTProg.h"
-#include "RTAsmTest/DisAsm.h"
+#include "RTAsm/DisAsm.h"
 
 #include "UartInterface.h"
 #include "SystemControl.h"
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
   std::string arg1="";
   std::string arg2="";
   std::string debugTarget="";
-  
+
   for(uint32_t i=1;i<argc;++i)
   {
     if(argv[i][0] == '-')
@@ -100,37 +100,44 @@ int main(int argc, char **argv)
       }
     }
   }
-  
+
   UartInterface uart("/dev/ttyUSB0");
   SystemControl control(&uart);
-  
+
   if(!control.checkConnection() && (program || read || write || enableCores))
   {
     std::cout<<"System not connected/connection problem\n";
     return -1;
-  }  
-  
+  }
+
   if(program || compile)
-  {    
+  {
     IncludeResolver ir(arg0);
     ir.storeResolvedCode("resolved");
-    
+
     if(ir.getResolvedCode().size() == 0)
     {
       return -1;
     }
-    
+
     auto filesAsLineVectors=ir.getFilesAsLineVectors();
     auto lineToFileMap=ir.getLineToFileMap();
+    std::cout<<"line to file map\n";
+    for(auto &i : lineToFileMap)
+    {
+      std::cout<<"asm "<<(i.first)<<"  =>  "<<(i.second.first)<<"  with offset: "<<(i.second.second)<<"\n";
+    }
+
     RTProg prog(ir.getResolvedCode().c_str());
     Stream s(prog);
     CodeGen gen(s,6);
-    
+
     RTParser parser(gen);
     parser.parse(s);
     gen.generateEntryVector(1,4);
-    
-    
+
+    std::cout<<"Num Instrs: "<<(gen.getCurCodeAddr())<<"\n";
+
     if(Error(prog.getErrorHandler()).getNumErrors() == 0)
     {
       gen.storageAllocationPass(512,0);
@@ -139,32 +146,32 @@ int main(int argc, char **argv)
     {
       return -1;
     }
-    
+
     uint16_t *code=new uint16_t[gen.getCurCodeAddr()];
     for(uint32_t i=0;i<gen.getCurCodeAddr();++i)
     {
       code[i]=gen.getCodeAt(i);
     }
-    
-   
+
+
     if(debug)
     {
       DebuggerInterface *debIfc=0;
-      
+
       if(debugTarget == "sim")
       {
         debIfc=new Simulator(4096,512,512);
       }
       else if(debugTarget == "target")
       {
-        
+
       }
       else
       {
         std::cout<<"invalid debug target\n";
         return -1;
       }
-      
+
       Debugger deb(debIfc,
                    gen.getDefaultSymbols(),
                    gen.getFunctions(),
@@ -174,14 +181,22 @@ int main(int argc, char **argv)
                    code,
                    gen.getCurCodeAddr(),
                    0x80000000);
-                   
+
       deb.loadCode();
-      
+
       termios t;
       tcgetattr(0,&t);
       t.c_lflag&=(~ICANON) & (~ECHO);
       tcsetattr(0,TCSANOW,&t);
-      
+
+      auto x=DisAsm::getLinesFromCode(code,gen.getCurCodeAddr());
+      std::cout<<"DisAsm:\n";
+      for(uint32_t i=0;i<x.size();++i)
+      {
+        std::cout<<(i)<<". "<<(x[i])<<"\n";
+      }
+      std::cout<<"\n";
+
       CommonPrefixTree cpt;
       cpt.insert("show ");
       cpt.insert("run ");
@@ -189,12 +204,12 @@ int main(int argc, char **argv)
       cpt.insert("show callstack");
       cpt.insert("show mem[");
       cpt.insert("step");
-      
+
       for(auto &i : ir.getFilesAsLineVectors())
       {
         cpt.insert(std::string("run ") + i.first + ":");
       }
-                   
+
       std::string result;
       std::vector<std::string> prevCmds;
       do
@@ -212,7 +227,7 @@ int main(int argc, char **argv)
             ch=getchar();
             ch=getchar()+100;
           }
-          
+
           switch(ch)
           {
           case KEY_BACKSPACE:
@@ -222,7 +237,7 @@ int main(int argc, char **argv)
               std::cout<<"\b \b";
             }
             break;
-            
+
           case KEY_UP:
             if(prevCmds.size() == 0)
             {
@@ -235,8 +250,8 @@ int main(int argc, char **argv)
             }
             cmd=prevCmds[index];
             std::cout<<cmd;
-            break; 
-            
+            break;
+
           case KEY_DOWN:
             for(uint32_t i=0;i<cmd.length();++i) std::cout<<"\b \b";
             if(index < (prevCmds.size()-1))
@@ -249,18 +264,18 @@ int main(int argc, char **argv)
               index=prevCmds.size();
               cmd=cmdTmp;
             }
-            std::cout<<cmd;            
-            break;  
-          
+            std::cout<<cmd;
+            break;
+
           case '\t':
           {
             std::string extend=cpt.getCommonPrefix(cmd);
             std::cout<<extend;
             cmd+=extend;
             cmdTmp=cmd;
-            break;            
+            break;
           }
-              
+
           default:
             if(ch != '\n')
             {
@@ -269,55 +284,55 @@ int main(int argc, char **argv)
             }
             cmdTmp=cmd;
           }
-          
+
           ch=getchar();
         }
-        
+
         prevCmds.push_back(cmd);
         result=deb.command(cmd);
-        std::cout<<"\n"<<(result)<<"\n";        
+        std::cout<<"\n"<<(result)<<"\n";
       }
       while(result.length() > 0);
     }
-    
+
     delete [] code;
-    
+
     if(!program && !debug)
     {
       return 0;
     }
-    
+
     if(!control.resetCores(0xFFFFFFFF))
     {
       std::cout<<"cannot reset cores\n";
       return -1;
     }
-    
+
     uint32_t numWords=gen.getCurCodeAddr()+3;
     uint32_t *buffer=new uint32_t[numWords];
-    
+
     memset(buffer,0xFF,numWords*4);
-    
+
     for(uint32_t i=0;i<gen.getCurCodeAddr();++i)
     {
       buffer[i]=swap16(gen.getCodeAt(i))<<16;
     }
-    
+
     std::cout<<"first code word: "<<std::hex<<(buffer[0])<<std::dec<<"\n";
-    
+
     if(!control.write(80*1024/4,buffer,numWords))
     {
       std::cout<<"write code memory failed\n";
       delete [] buffer;
       return -1;
     }
-    
+
     std::cout<<"program complete! "<<(numWords*4)<<" bytes written\n";
     delete [] buffer;
-    
-    return 0;    
+
+    return 0;
   }
-  
+
   if(read)
   {
     uint32_t addr=0;
@@ -325,33 +340,33 @@ int main(int argc, char **argv)
       std::istringstream iss(arg0);
       iss>>addr;
     }
-    
+
     uint32_t length=0;
     {
       std::istringstream iss(arg1);
       iss>>length;
     }
-    
+
     std::cout<<"read request\n  addr: "<<(addr)<<"\n  length: "<<(length)<<"\n";
-    
+
     uint32_t numWords=((length+3)&(~3))/4;
     uint32_t *buffer=new uint32_t[numWords];
-    
+
     if(!control.read(addr,buffer,numWords))
     {
       delete [] buffer;
       std::cout<<"  failed\n";
       return -1;
     }
-    
+
     std::cout<<"  complete! "<<(numWords*4)<<" bytes read\n";
-    
+
     std::ostream *stream=&(std::cout);
-    
+
     if(arg2.length() > 0)
     {
       std::fstream *f=new std::fstream(arg2,std::ios::out|std::ios::binary);
-      
+
       if(!f->is_open())
       {
         std::cout<<"cannot open file "<<(arg2)<<"\n";
@@ -359,25 +374,25 @@ int main(int argc, char **argv)
         delete [] buffer;
         return -1;
       }
-      
+
       stream=f;
     }
-    
+
     for(uint32_t i=0;i<numWords;++i)
     {
       (*stream)<<(qfp32_t::initFromRaw(swap32(buffer[i])))<<"\n";
     }
-    
+
     if(stream != &(std::cout))
     {
       delete stream;
     }
-    
+
     delete [] buffer;
-    
+
     return 0;
   }
-  
+
   if(write)
   {
     uint32_t addr=0;
@@ -385,28 +400,28 @@ int main(int argc, char **argv)
       std::istringstream iss(arg0);
       iss>>addr;
     }
-    
+
     uint32_t length=0;
     {
       std::istringstream iss(arg1);
       iss>>length;
     }
-    
+
     std::cout<<"write request\n  addr: "<<(addr)<<"\n  length: "<<(length)<<"\n";
-    
+
     if(arg2.find_first_not_of("0123456789.") != std::string::npos)
     {
       //is a filename
       std::fstream f(arg2,std::ios::in|std::ios::binary);
-      
+
       if(!f.is_open())
       {
         std::cout<<"cannot open file "<<(arg2)<<"\n";
         return -1;
       }
-      
+
       uint32_t *buffer=new uint32_t[length];
-      
+
       uint32_t i=0;
       for(i=0;i<length && !f.eof();++i)
       {
@@ -415,51 +430,51 @@ int main(int argc, char **argv)
         buffer[i]=swap32(qfp32_t(data).getAsRawUint());
         std::cout<<"  write "<<(qfp32_t(data))<<"\n";
       }
-      
+
       if(!control.write(addr,buffer,i))
       {
         delete [] buffer;
         std::cout<<"  failed\n";
         return -1;
       }
-      
+
       std::cout<<"  complete! "<<(i*4)<<" bytes written\n";
-      
-      delete [] buffer;        
+
+      delete [] buffer;
     }
     else
     {
       double data=0;
       std::istringstream iss(arg2);
       iss>>data;
-      
+
       uint32_t buffer=swap32(qfp32_t(data).getAsRawUint());
       if(!control.write(addr,&buffer,1))
       {
         std::cout<<"  failed\n";
         return -1;
       }
-      
+
       std::cout<<"  complete! "<<(4)<<" bytes written\n";
     }
-    
+
     return 0;
   }
-  
+
   if(enableCores)
   {
     uint32_t mask=0;
     std::istringstream iss(arg0);
     iss>>std::hex>>mask;
-    
+
     std::cout<<"mask: "<<(mask)<<"\n";
-    
+
     if(!control.enableCoreMask(mask))
     {
       std::cout<<"enable cores failed\n";
       return -1;
     }
-    
+
     uint32_t numCores=0;
     for(uint32_t i=0;i<16;++i)
     {
@@ -468,11 +483,11 @@ int main(int argc, char **argv)
         ++numCores;
       }
     }
-    
+
     std::cout<<(numCores)<<" cores enabled\n";
-    
+
     return 0;
-  }   
-  
+  }
+
 	return 0;
 }
