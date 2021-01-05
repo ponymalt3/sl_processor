@@ -1,16 +1,8 @@
-/*
- * SLProcessorTest.h
- *
- *  Created on: Apr 13, 2015
- *      Author: malte
- */
-
-#ifndef SLPROCESSORTEST_H_
-#define SLPROCESSORTEST_H_
+#pragma once
 
 #include <assert.h>
-#include "../SLProcessor.h"
-#include "../SLCodeDef.h"
+#include <SLProcessor.h>
+#include "SLCodeDef.h"
 #include "qfp32.h"
 #include <mtest.h>
 
@@ -87,6 +79,24 @@ public:
     }
   }
   
+  void expectBusLock(bool expectBusLocked)
+  {
+    if(file_.is_open())
+    {
+      file_<<"0011"<<" "<<std::setw(8)<<(expectBusLocked?1:0)<<"\n";
+    }
+  }
+  
+  void expect(uint32_t addr,uint32_t mustBeLessEqual,uint32_t mustBeGreaterEqual)
+  {
+    if(file_.is_open())
+    {
+      file_<<"0010"<<" "<<std::setw(8)<<(addr)
+      <<" "<<std::setw(8)<<(mustBeLessEqual)
+      <<" "<<std::setw(8)<<(mustBeGreaterEqual)<<"\n";
+    }
+  }
+  
 protected:
   std::fstream file_;
 };
@@ -120,6 +130,7 @@ public:
     {
       codePort_.write(i,code[i]);
       codePort_.update();
+      std::cout<<std::hex<<(code[i])<<"\n";
     }
     
     getVdhlTestGenerator().createNewTestCase(mtest::manager::instance().getCurrentTestName());
@@ -188,7 +199,8 @@ public:
   
   uint32_t readMemory(qfp32_t addr)
   {
-    return readMemory((int32_t)addr);
+    uint32_t t=readMemory((int32_t)addr);
+    return t;
   }
   
   uint32_t readMemory(uint32_t addr)
@@ -234,6 +246,8 @@ public:
   {
     for(uint32_t i=0;i<cycles;++i)
       processor_.update(0,0,0);
+    
+    //getVdhlTestGenerator().runCycles(cycles,false,true);
   }
   
   uint32_t executeUntilAddr(uint32_t addr)
@@ -243,7 +257,7 @@ public:
     while(processor_.getExecutedAddr() == 0xFFFFFFFF || processor_.getExecutedAddr() < addr)
     {
       processor_.update(0,0,0);
-      ++cycles;    
+      ++cycles;
     }
     
     getVdhlTestGenerator().runUntilAddr(addr);
@@ -255,7 +269,12 @@ public:
   {
     expect(expectedValue,(int32_t)addr,expectExpr);
     getVdhlTestGenerator().expect((int32_t)addr,expectedValue.toRaw());
-  }  
+  }
+  void expectThatMemIs(qfp32_t addr,qfp32_t minValue,qfp32_t maxValue,const std::string &expectExpr="")
+  {
+    expect(minValue,maxValue,(int32_t)addr,expectExpr);
+    getVdhlTestGenerator().expect((int32_t)addr,minValue.toRaw(),maxValue.toRaw());
+  }
   void expectThatMemIs(qfp32_t addr,uint32_t expectedValue,const std::string &expectExpr="")
   {
     expect(qfp32_t::initFromRaw(expectedValue),(int32_t)addr,expectExpr);
@@ -291,6 +310,27 @@ public:
     mtest::manager::instance()=
       mtest::condition(expectedValue == value,ss.str(),mtest::condition::expect);
   }
+  
+  void expect(qfp32_t minValue,qfp32_t maxValue,uint32_t addr,const std::string &expectString="")
+  {
+    std::stringstream ss;
+    if(expectString == "")
+    {
+      ss << "expect: " << (minValue) << " <= mem[" << (addr) << "] <= " << (maxValue);
+    }
+    else
+    {
+      ss << "expect: " << (minValue) << " <= " << (expectString) << " <= " << (maxValue);
+    }
+     
+    qfp32_t value=qfp32_t::initFromRaw(readMemory(addr));
+    
+    ss << "  but is " << (value);
+    
+    mtest::manager::instance()=
+      mtest::condition(minValue <= value && value <= maxValue,ss.str(),mtest::condition::expect);
+  }
+  
   static VHDLTestDataGenerator& getVdhlTestGenerator()
   {
     static VHDLTestDataGenerator instance_;
@@ -306,5 +346,3 @@ protected:
   Memory::Port extPort_;
   SLProcessor processor_;
 };
-
-#endif /* SLPROCESSORTEST_H_ */
