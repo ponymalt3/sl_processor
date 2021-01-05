@@ -1,8 +1,7 @@
 #Ignore everything
-**/*Debug*/**
-**/*Release*/**
+**/*Debug/**
+**/*Release/**
 
-*.txt
 *.mk
 *.list
 *.db
@@ -42,6 +41,11 @@
 *.cnx
 *.qip
 **/greybox_tmp/*
-
+**/CMakeFiles/*
+*.txt.user
+**/CMakeCache.txt
+**/*.cmake
+*.a
+*.vector
 
 
