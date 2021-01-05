@@ -1,10 +1,6 @@
-[submodule "qfp"]
-	path = qfp
-	url = /home/malte/Documents/OpenCoresQFP32
-	branch = master
-[submodule "VHDL/qfp32"]
-	path = VHDL/qfp32
-	url = pi@raspberrypi:/home/pi/Repos/qfp32
 [submodule "mtest"]
 	path = mtest
 	url = https://github.com/ponymalt3/mtest
+[submodule "qfp32"]
+	path = qfp32
+	url = https://github.com/ponymalt3/qfp32
