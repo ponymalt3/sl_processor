@@ -17,7 +17,7 @@ entity wb_mem is
     
     slave0_i : in wb_slave_ifc_in_t;
     slave0_o : out wb_slave_ifc_out_t;    
-    slave1_i : in wb_slave_ifc_in_t;
+    slave1_i : in wb_slave_ifc_in_t := (to_unsigned(0,32),(others => 'Z'),'0',(others => '0'),'0','0');
     slave1_o : out wb_slave_ifc_out_t);
 
 end entity wb_mem;

@@ -84,8 +84,8 @@ begin  -- architecture rtl
   pll_1: entity work.pll
     port map (
       inclk0 => clock_50,
-		c0 => mem_clk,
-		c1 => clk);
+      c0 => mem_clk,
+      c1 => clk);
 
   sl_cluster_1: entity work.sl_cluster
     generic map (
@@ -104,7 +104,7 @@ begin  -- architecture rtl
       code_master_o  => code_master_out,
       debug_o => debug);
 
-wb_ixs_1: entity work.wb_ixs
+  wb_ixs_1: entity work.wb_ixs
     generic map (
       MasterConfig => (
         wb_master("mem"),

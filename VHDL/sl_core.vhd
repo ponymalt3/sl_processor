@@ -96,7 +96,7 @@ begin  -- architecture rtl
   begin  -- process
     ext_mem_addr_o <= proc.state.addr(1)-to_unsigned(ExtAddrThreshold,32); -- read addr
     ext_mem_dout_o <= proc.state.result;
-    ext_mem_en_o <= dec_next.mem_ex and dec_next.en_ad1 and not dec_next.en_mem;-- and proc.state.enable(S_DEC);
+    ext_mem_en_o <= dec_next.mem_ex and dec_next.en_ad1 and not dec_next.en_mem;-- and proc.state.enable(S_DEC) and not stall_1d
     ext_mem_rw_o <= '0';
 
     if proc.decex.wr_en = '1' and proc.decex.wr_ext = '1' and proc.state.enable(S_EXEC) = '1' then
