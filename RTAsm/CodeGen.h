@@ -1,12 +1,4 @@
-/*
- * CodeGen.h
- *
- *  Created on: Mar 7, 2015
- *      Author: malte
- */
-
-#ifndef CODEGEN_H_
-#define CODEGEN_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -23,7 +15,7 @@
 #include "SymbolMap.h"
 #include "Stream.h"
 
-#include "../SLCodeDef.h"
+#include "SLCodeDef.h"
 
 template<uint32_t _Size>
 class SymStack
@@ -329,14 +321,13 @@ public:
   
   void generateEntryVector(uint32_t startAddr);
   void generateEntryVector(uint32_t numberOfEntries,uint32_t entrySizeInInstrs);
-
-protected:
   
   void setCodeMovedCallback(const std::function<void(uint32_t,uint32_t,uint32_t)> &callback);
   
   const SymbolMap& getDefaultSymbols() const { return defaultSymbols_; }
   const std::map<std::string,_FunctionInfo>& getFunctions() const { return functions_; }
   
+//protected:
   _Operand resolveOperand(const _Operand &op,bool createSymIfNotExists=false);
   
   SLCode::Operand translateOperand(_Operand op);
@@ -377,5 +368,3 @@ protected:
   //settings
   bool safeAllocationInsideLoop_;
 };
-
-#endif /* CODEGEN_H_ */

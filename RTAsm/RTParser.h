@@ -88,7 +88,7 @@ class RTParser : Error
 {
 public:
   enum {UnaryMinus=1};
-
+  
   RTParser(CodeGen &codeGen);
   
   const std::map<uint32_t,uint32_t>& getLineMapping() const;

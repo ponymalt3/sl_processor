@@ -36,7 +36,7 @@ ErrorHandler& ErrorHandler::operator<<(char c)
 
   printHeader();
 
-  std::cout<<"'"<<(c)<<"'";
+  std::cout<<"'"<<(c)<<"' (0x"<<std::hex<<(uint32_t(c)&0xFF)<<std::dec<<")";
   
   return *this;
 }

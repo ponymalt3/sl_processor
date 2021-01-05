@@ -75,7 +75,7 @@ public:
 
   bool empty() const { return pos_ >= length_; }
   uint32_t getCurrentLine() const { return line_; }
-
+  
   Stream& skipWhiteSpaces();
   
   struct value_t

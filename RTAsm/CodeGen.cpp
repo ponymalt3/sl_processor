@@ -151,7 +151,7 @@ void _Instr::patchConstant(uint32_t value,bool patch2ndWord)
 {
   //maybe static error singleton again
   //Error::expect(value < 512) << "load addr out of range " << (value);
-
+  
   if(patch2ndWord)
   {
     code_=SLCode::Load::create2(value);
@@ -667,6 +667,13 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
   uint32_t x=allocator.allocate(4+numParams);//reserve space for parameter
 
   Error::expect(codeAddr_ < 0xFFFF) << "too many instructions" << ErrorHandler::FATAL;
+  
+  //std::cout<<"startAddr: "<<(symbolMaps_.top().getStartAddr())<<"\n";
+  //std::cout<<"arrayAllocInfo:\n";
+  for(auto &i : arrayAllocInfo_)
+  {
+    //std::cout<<"  first: "<<(i.first)<<"  second: "<<(i.second)<<"\n";
+  }
 
   for(uint32_t i=symbolMaps_.top().getStartAddr();i<codeAddr_;++i)
   {
@@ -679,6 +686,8 @@ void CodeGen::storageAllocationPass(uint32_t size,uint32_t numParams)
       symInf.allocatedAddr_=allocator.allocate(symInf.allocatedSize_,symInf.flagsAllocateHighest_,symInf.flagIsArray_);
       arrayAllocInfo_.erase(arrayAllocInfo_.begin());
     }
+    
+    uint32_t symRefOld=instrs_[i].symRef_;
     
     if(instrs_[i].symRef_ != SymbolMap::InvalidLink && instrs_[i].symRef_ < RefLabelOffset)
     {
@@ -889,6 +898,9 @@ _Operand CodeGen::resolveOperand(const _Operand &op,bool createSymIfNotExists)
       
     if(symInf.flagIsArray_)//is a array
     {
+        //make sure that array space is allocated before a certain point in code => allocated now when it is declared
+        //arrayAllocInfo_
+        
       if(op.index_ == 0xFFFF)
       {
         //is array base access
