@@ -9,10 +9,10 @@ use std.textio.all;
 use work.sl_misc_p.all;
 use work.wishbone_p.all;
 
-entity sl_test_tb is
-end entity sl_test_tb;
+entity testing_tb is
+end entity testing_tb;
 
-architecture behav of sl_test_tb is
+architecture behav of testing_tb is
 
   type code_mem_t is array (natural range <>) of std_ulogic_vector(15 downto 0);
   type mem_t is array (natural range <>) of std_ulogic_vector(31 downto 0);
@@ -171,10 +171,12 @@ begin  -- architecture Behav
     elsif sl_clk'event and sl_clk = '1' then  -- rising clock edge
       ext_slave.ack <= not ext_mem_stall;
       if slave_in(1).cyc = '1' and (slave_in(1).stb = '1' or ext_mem_pending = '1') then
+        --ext_slave.ack <= ;
          
         if slave_in(1).we = '1' and ext_mem_pending = '0' then
           ext_mem(to_integer(slave_in(1).adr)) <= slave_in(1).dat;
         else
+          --ext_slave.dat <= ext_mem(to_integer(slave_in(1).adr));
         end if;
       end if;
 
@@ -417,6 +419,7 @@ begin  -- architecture Behav
               j := j-1;
             end if;
           end loop;
+          --ext_mem_stall <= '0';
         when X"0003" =>
           ext_mem_stall <= '0';
           hread(l,data32);
