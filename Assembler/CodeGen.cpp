@@ -301,8 +301,8 @@ void CodeGen::instrOperation(const _Operand &opa,const _Operand &opb,uint32_t op
   if(a.type_ == _Operand::TY_MEM && a.regaIndex_ == 1)
   {
     //potential external mem acces which is not possible
-      instrMov(_Operand::createResult(),a);
-      a=_Operand::createResult();
+    instrMov(_Operand::createResult(),a);
+    a=_Operand::createResult();
     instrOperation(a,b,op,tmpStorage);
     return;
   }
