@@ -1,24 +1,19 @@
-cmake_minimum_required(VERSION 3.10)
-
-project(Test)
-
-include_directories(../qfp32/trunk ../mtest ../ProcessorSim ..)
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-add_subdirectory(../ProcessorSim ${CMAKE_CURRENT_BINARY_DIR}/x)
-add_subdirectory(../Assembler ${CMAKE_CURRENT_BINARY_DIR}/xx)
-
 file(GLOB_RECURSE SRC *.cpp *.h)
-list(APPEND SRC "main.cpp")
 list(FILTER SRC EXCLUDE REGEX ".*CMake.*")
 
-message(${SRC})
-
 add_executable(Test ${SRC})
-target_link_libraries(Test PUBLIC ProcessorSim Assembler)
+target_include_directories(Test PRIVATE
+    ${CMAKE_SOURCE_DIR}/qfp32/trunk
+    ${CMAKE_SOURCE_DIR}/mtest
+    ${CMAKE_SOURCE_DIR}
+)
+target_link_libraries(Test PRIVATE ProcessorSim Assembler)
 
-add_custom_command(TARGET Test
-                   COMMENT "Run tests"
-                   POST_BUILD COMMAND ./Test && cp test.vector ../VHDL/testing/sim)
+add_custom_command(TARGET Test POST_BUILD
+    COMMENT "Run tests"
+    COMMAND $<TARGET_FILE:Test>
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_BINARY_DIR}/test.vector
+        ${CMAKE_SOURCE_DIR}/VHDL/testing/sim/test.vector
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)

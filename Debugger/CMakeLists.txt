@@ -1,19 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
-
-project(Debugger)
-
-include_directories(../qfp32/trunk ../ProcessorSim ..)
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-file(GLOB_RECURSE SRC ${PROJECT_SOURCE_DIR} *.cpp)
-file(GLOB_RECURSE HEADER ${PROJECT_SOURCE_DIR} *.h)
-list (APPEND SRC ${HEADER})
+file(GLOB_RECURSE SRC *.cpp *.h)
 list(FILTER SRC EXCLUDE REGEX ".*CMake.*")
 
-add_subdirectory(../ProcessorSim ${CMAKE_CURRENT_BINARY_DIR}/x)
-add_subdirectory(../Assembler ${CMAKE_CURRENT_BINARY_DIR}/xx)
-
-add_executable(Debugger "${SRC}")
-target_link_libraries(Debugger PUBLIC ProcessorSim Assembler)
+add_executable(Debugger ${SRC})
+target_include_directories(Debugger PRIVATE
+    ${CMAKE_SOURCE_DIR}/qfp32/trunk
+    ${CMAKE_SOURCE_DIR}
+)
+target_link_libraries(Debugger PRIVATE ProcessorSim Assembler)

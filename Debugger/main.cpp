@@ -3,6 +3,7 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <cstring>
 #include <unistd.h>
 
 #include "qfp32.h"
