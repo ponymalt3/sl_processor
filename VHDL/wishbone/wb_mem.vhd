@@ -31,6 +31,9 @@ architecture rtl of wb_mem is
   signal mem_dout0 : std_ulogic_vector(31 downto 0);
   signal mem_dout1 : std_ulogic_vector(31 downto 0);
 
+  signal slv0_we : std_ulogic;
+  signal slv1_we : std_ulogic;
+
 begin  -- architecture rtl
 
   sl_dpram_1: entity work.sl_dpram
@@ -43,11 +46,14 @@ begin  -- architecture rtl
       p0_addr_i => slave0_in.adr(AddrWidth-1 downto 0),
       p0_din_i  => slave0_in.dat,
       p0_dout_o => mem_dout0,
-      p0_we_i   => slave0_in.we,
+      p0_we_i   => slv0_we,
       p1_addr_i => slave1_in.adr(AddrWidth-1 downto 0),
       p1_din_i  => slave1_in.dat,
       p1_dout_o => mem_dout1,
-      p1_we_i   => slave1_in.we);
+      p1_we_i   => slv1_we);
+
+  slv0_we <= slave0_in.cyc and slave0_in.stb and slave0_in.we;
+  slv1_we <= slave1_in.cyc and slave1_in.stb and slave1_in.we;
 
   process (clk_i, reset_n_i) is
   begin  -- process

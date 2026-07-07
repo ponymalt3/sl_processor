@@ -2,9 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library std;
-use std.textio.all;
-
 package wishbone_p is
 
   type wb_master_ifc_out_t is record 
@@ -89,12 +86,14 @@ package body wishbone_p is
   function wb_hash (
     name : string)
     return integer is
-    variable hash : integer := 46929344;
+    variable hash : unsigned(31 downto 0) := to_unsigned(46929344, 32);
+    variable tmp  : unsigned(63 downto 0);
   begin
     for i in name'range loop
-      hash := hash*89428428+character'pos(name(i));
-    end loop;  -- i
-    return hash;
+      tmp  := hash * to_unsigned(89428428, 32);
+      hash := tmp(31 downto 0) + to_unsigned(character'pos(name(i)), 32);
+    end loop;
+    return to_integer(signed(hash));
   end function;
 
   function wb_master (
@@ -103,26 +102,22 @@ package body wishbone_p is
     variable cur_slave : natural;
     variable pos : natural;
     variable slave_hashes : integer_array_t(31 downto 0) := (others => 0);
-    file output : text open write_mode is "STD_OUTPUT";
-  begin    
-    cur_slave := 0;     
+  begin
+    cur_slave := 0;
     pos := 1;
-    write(output,"master:" & LF);
     for i in 1 to connected_slaves'length loop
 
       if connected_slaves(i) = ' '  then
         slave_hashes(cur_slave) := wb_hash(connected_slaves(pos to i-1));
-        write(output,"  " & connected_slaves(pos to i-1) & " [" & integer'image(slave_hashes(cur_slave)) & "]" & LF);
         pos := i+1;
         cur_slave := cur_slave+1;
       elsif i = connected_slaves'length then
         slave_hashes(cur_slave) := wb_hash(connected_slaves(pos to i));
-        write(output,"  " & connected_slaves(pos to i) & " [" & integer'image(slave_hashes(cur_slave)) & "]" & LF);
         cur_slave := cur_slave+1;
       end if;
 
     end loop;  -- i
- 
+
     return (255,slave_hashes,255);
   end function;
 
@@ -131,9 +126,7 @@ package body wishbone_p is
     addr : natural;
     size : natural)
     return wb_slave_config_t is
-    file output : text open write_mode is "STD_OUTPUT";
   begin
-    write(output,"slave:" & LF & "  " & name & " [" & integer'image(wb_hash(name)) & "]" & LF);
     assert size /= 0 report "slave addr range size cant be zero" severity error;
     return (wb_hash(name),to_unsigned(addr,32),to_unsigned(size,32),255);
   end function;
@@ -143,21 +136,17 @@ package body wishbone_p is
     slave_list : wb_slave_config_array_t)
     return wb_slave_config_t is
     variable result : wb_slave_config_t;
-    file output : text open write_mode is "STD_OUTPUT";
   begin
-    --write(output,"find slave hash:" & integer'image(slave_hash) & LF);
     
     result.id := 255;
     for i in 0 to slave_list'length-1 loop
-      --write(output,"  compare " & integer'image(slave_list(i).hash) & LF);
       if slave_list(i).hash = slave_hash then
         result := slave_list(i);
         result.id := i;
-        --write(output,"     => found" & LF);
         return result;
       end if;
     end loop;  -- i
-    return result;    
+    return result;
   end function;
 
   function wb_config_get_masters_for_slave (
@@ -168,9 +157,7 @@ package body wishbone_p is
     variable slave_id : natural;
     variable result : wb_master_config_array_t(31 downto 0);
     variable num_master : natural;
-    file output : text open write_mode is "STD_OUTPUT";
   begin
-    write(output,"enumerating master for slave " & integer'image(slave_hash) & LF); 
     num_master := 0;
     for i in 0 to master_list'length-1 loop
       slave_id := wb_config_find_slave(slave_hash,wb_config_get_connected_slaves(master_list(i),slave_list)).id;
@@ -178,8 +165,7 @@ package body wishbone_p is
         result(num_master) := master_list(i);
         result(num_master).id := i;
         result(num_master).rel_slave_pos := slave_id;
-        write(output,"  id: " & integer'image(result(num_master).id) & "  slave pos: " & integer'image(result(num_master).rel_slave_pos) & LF); 
-        num_master := num_master+1;        
+        num_master := num_master+1;
       end if;
     end loop;  -- i
 
@@ -195,8 +181,6 @@ package body wishbone_p is
     
     variable slaves : wb_slave_config_array_t(31 downto 0);
     variable i : natural;
-    --file output : text open write_mode is "STD_OUTPUT";
-    
   begin
     i := 0;
     while i < slaves'length-1 and master.connected_slaves(i) /= 0 loop

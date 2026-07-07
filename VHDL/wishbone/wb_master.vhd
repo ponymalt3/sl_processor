@@ -36,6 +36,7 @@ architecture rtl of wb_master is
   signal mask : unsigned(2 downto 0);
 
 begin  -- architecture rtl
+  
 
   process (clk_i, reset_n_i) is
   begin  -- process
@@ -91,6 +92,7 @@ begin  -- architecture rtl
           state <= ST_IDLE;
           master_out.stb <= '0';
           master_out.cyc <= '0';
+          master_out.we <= '0';
           complete_o <= '1';
           dready_o <= not master_out.we;
         end if;

@@ -10,10 +10,8 @@ target_include_directories(Test PRIVATE
 target_link_libraries(Test PRIVATE ProcessorSim Assembler)
 
 add_custom_command(TARGET Test POST_BUILD
-    COMMENT "Run tests"
+    COMMENT "Run C++ tests"
     COMMAND $<TARGET_FILE:Test>
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_BINARY_DIR}/test.vector
-        ${CMAKE_SOURCE_DIR}/VHDL/testing/sim/test.vector
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    USES_TERMINAL
 )

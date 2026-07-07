@@ -28,8 +28,9 @@ package body sl_control_p is
     flush_pipeline : std_ulogic;
     fetch_valid : std_ulogic)
     return sl_stall_ctrl_t is
-    variable ctrl : sl_stall_ctrl_t;
-    variable enable : std_ulogic_vector(2 downto 1);
+    variable ctrl         : sl_stall_ctrl_t;
+    variable enable       : std_ulogic_vector(2 downto 1);
+    variable disable_exec : std_ulogic;
   begin
     
     --ctrl.exec_en := exec_en;

@@ -28,7 +28,7 @@ end entity sl_dpram;
 
 architecture rtl of sl_dpram is
 
-  type mem_t is array (natural range <>) of std_ulogic_vector(SizeOfElementInBits-1 downto 0);
+  type mem_t is array (natural range <>) of std_logic_vector(SizeOfElementInBits-1 downto 0);
   shared variable mem : mem_t((SizeInBytes)/((SizeOfElementInBits+7)/8)-1 downto 0);
 
   constant AddrWidth : natural := log2(mem'length);
@@ -44,10 +44,10 @@ begin  -- architecture rtl
   begin  -- process
     if clk0'event and clk0 = '1' then  -- rising clock edge
      
-     p0_dout_o <= mem(to_integer(p0_addr_i));
+     p0_dout_o <= to_StdULogicVector(mem(to_integer(p0_addr_i)));
      
       if p0_we_i = '1' then
-        mem(to_integer(p0_addr_i)) := p0_din_i;
+        mem(to_integer(p0_addr_i)) := std_logic_vector(p0_din_i);
       end if;
 
     end if;
@@ -59,10 +59,10 @@ begin  -- architecture rtl
   begin  -- process
     if clk1'event and clk1 = '1' then  -- rising clock edge
      
-      p1_dout_o <= mem(to_integer(p1_addr_i));
+      p1_dout_o <= to_StdULogicVector(mem(to_integer(p1_addr_i)));
 
       if p1_we_i = '1' then
-        mem(to_integer(p1_addr_i)) := p1_din_i;
+        mem(to_integer(p1_addr_i)) := std_logic_vector(p1_din_i);
       end if;
       
     end if;
