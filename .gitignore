@@ -46,9 +46,16 @@
 **/CMakeCache.txt
 **/*.cmake
 *.a
+*.o
 *.vector
+**/__pycache__/*
+**/sim_build/
 
-# Out-of-source build directory
+# Out-of-source build directories (host and Docker)
 /build/
+/build-docker/
+
+# VUnit simulation output
+VHDL/vunit_out/
 
 

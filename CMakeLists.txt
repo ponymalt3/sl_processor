@@ -12,3 +12,20 @@ add_subdirectory(ProcessorSim)
 add_subdirectory(Assembler)
 add_subdirectory(Debugger)
 add_subdirectory(testing)
+
+# ---------------------------------------------------------------------------
+# Cocotb simulation targets
+# ---------------------------------------------------------------------------
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+# FST waveforms written to build/sim/<target>/*.fst — open with GTKWave.
+# Disable: cmake -DSIM_WAVES=OFF
+option(SIM_WAVES "Generate FST waveform files (open with GTKWave)" ON)
+
+add_subdirectory(VHDL/sl_processor/testing)
+add_subdirectory(VHDL/wishbone/testing/wb_cache)
+add_subdirectory(VHDL/wishbone/testing/wb_interconnect)
+
+# cmake --build . --target sim_all  runs all three in parallel
+add_custom_target(sim_all)
+add_dependencies(sim_all sim_processor sim_wb_cache sim_wb_interconnect)

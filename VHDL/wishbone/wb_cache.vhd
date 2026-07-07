@@ -9,7 +9,7 @@ entity wb_cache is
   generic (
     WordsPerLine  : natural := 8;
     NumberOfLines : natural := 48;
-    WriteTrough   : boolean := false);
+    WriteThrough   : boolean := false);
   
   port (
     clk_i      : in    std_ulogic;
@@ -91,8 +91,10 @@ architecture rtl of wb_cache is
   signal pending_write_1d : std_ulogic;
   signal addr_ov_bit : std_ulogic;
 
-  signal xxx : std_ulogic;
+  signal line_addr_conflict : std_ulogic;
 
+  signal en : std_ulogic;
+  signal snooping_en : std_ulogic;
 
 begin
 
@@ -165,7 +167,7 @@ begin
         mem1_addr_ov_bit <= '0';
         active_line_addr <= addr_i;
         fetch_ignore_counter <= to_unsigned(0,WordIndexBits);
-        if WriteTrough and en_i = '1' and we_i = '1' then
+        if WriteThrough and en = '1' and we_i = '1' then
           state <= ST_WRITE_TROUGH;
         end if;
         if wb_writeback = '1' then
@@ -214,7 +216,7 @@ begin
       end if;
 
       if state = ST_WRITEBACK or state = ST_WRITEBACK_WAIT then
-        if en_i = '1' and we_i = '1' then
+        if en = '1' and we_i = '1' then
           --fetch_ignore_counter <= fetch_ignore_counter+1;
           fetch_ignore_addr <= fetch_ignore_addr+1;
         end if;
@@ -251,7 +253,7 @@ begin
         if tag1_index = to_unsigned(NumberOfLines-1,LineIndexBits) then
           tag_init_complete <= '1';
         end if;
-      elsif WriteTrough then
+      elsif WriteThrough then
         -- bus snooping
         tag1_we <= '0';
         if tag1_re_and_invalidate = '1' then
@@ -259,7 +261,7 @@ begin
             tag1_we <= '1';
           end if;
           tag1_re_and_invalidate <= '0';
-        elsif snooping_en_i = '1' then
+        elsif snooping_en = '1' then
           inv_addr <= snooping_addr_i(31 downto LineIndexBits);
           tag1_index <= snooping_addr_i(LineIndexBits+WordIndexBits-1 downto WordIndexBits);
           tag1_out <= (others => '0');
@@ -283,18 +285,22 @@ begin
       en_and_line_inactive <= '0';
       we_1d <= '0';
     elsif clk_i'event and clk_i = '0' then  -- falling clock edge
-      en_and_line_inactive <= en_i and not line_active;
+      en_and_line_inactive <= en and not line_active;
       we_1d <= we_i;
     end if;
   end process;
 
-  process (active_line_addr, addr_i, addr_ov_bit, cache_hit, count, din_i,
+  process (active_line_addr, addr_i, addr_ov_bit, cache_hit, count, din_i, en,
            en_and_line_inactive, en_i, mem1_addr(WordIndexBits-1 downto 0),
            mem1_addr_ov_bit, mem1_dout, mem1_write_en, mem_write_en,
-           pending_write, pending_write_1d, state, tag_in(0), tag_in(1),
-           tag_in(31 downto WordIndexBits), tag_index, wb_complete, wb_fetch,
-           wb_writeback, we_1d, we_i, xxx) is
+           pending_write, pending_write_1d, snooping_en_i, state, tag_in(0),
+           tag_in(1), tag_in(31 downto WordIndexBits), tag_index,
+           tag_init_complete, wb_complete, wb_fetch, wb_writeback, we_1d, we_i,
+           line_addr_conflict) is
   begin  -- process
+
+    en <= en_i and '1';--tag_init_complete;
+    snooping_en <= snooping_en_i and '1';--tag_init_complete;
 
     mem_addr <= tag_index & addr_i(WordIndexBits-1 downto 0);
     tag_index <= addr_i(LineIndexBits+WordIndexBits-1 downto WordIndexBits);
@@ -304,11 +310,11 @@ begin
       cache_hit <= '1'; -- match
     end if;
 
-    wb_fetch <= en_i and not pending_write and not cache_hit and not tag_in(1); -- clean
-    wb_writeback <= en_i and not pending_write and not cache_hit and tag_in(1); -- dirty
+    wb_fetch <= en and not pending_write and not cache_hit and not tag_in(1); -- clean
+    wb_writeback <= en and not pending_write and not cache_hit and tag_in(1); -- dirty
 
-    if WriteTrough then
-      wb_fetch <= en_i and not we_i and not cache_hit;
+    if WriteThrough then
+      wb_fetch <= en and not we_i and not cache_hit;
       wb_writeback <= '0';
     end if;
 
@@ -317,13 +323,13 @@ begin
     wb_addr <= to_unsigned(0,32);
     wb_din <= mem1_dout;
 
-    if WriteTrough and en_i = '1' and we_i = '1' then
+    if WriteThrough and en = '1' and we_i = '1' then
       -- pass through
       wb_en <= '1';
       wb_we <= '1';
       wb_addr <= addr_i;
       wb_din <= din_i;
-    elsif not WriteTrough and wb_writeback = '1' and state = ST_WRITEBACK_PRE then
+    elsif not WriteThrough and wb_writeback = '1' and state = ST_WRITEBACK_PRE then
       -- trigger writeback
       wb_en <= '1';
       wb_we <= '1';
@@ -340,14 +346,14 @@ begin
       wb_addr <= active_line_addr;
     end if;
 
-    xxx <= '0';
+    line_addr_conflict <= '0';
     if active_line_addr(LineIndexBits-1 downto WordIndexBits) = addr_i(LineIndexBits-1 downto WordIndexBits) then
-      xxx <= '1';
+      line_addr_conflict <= '1';
     end if;
 
     -- check if pending write conflicts with read
     pending_write <= '0';
-    if state = ST_IDLE and pending_write_1d = '0' and mem1_write_en = '1' and xxx = '1' then
+    if state = ST_IDLE and pending_write_1d = '0' and mem1_write_en = '1' and line_addr_conflict = '1' then
       pending_write <= '1';
     end if;
 
@@ -362,14 +368,14 @@ begin
 -- maybe entry better name    
       line_active <= '1';
 
-      if WriteTrough and state = ST_WRITE_TROUGH then
+      if WriteThrough and state = ST_WRITE_TROUGH then
         line_active <= '0';
       end if;
 
       if (addr_ov_bit & addr_i(WordIndexBits-1 downto 0)) < (mem1_addr_ov_bit & mem1_addr(WordIndexBits-1 downto 0)) then
         if state = ST_FETCH or state = ST_FETCH_AFTER_WB then
           line_active <= '0';
-        elsif not WriteTrough and state = ST_WRITEBACK and count = MaxCount-1 and we_1d = '1' then
+        elsif not WriteThrough and state = ST_WRITEBACK and count = MaxCount-1 and we_1d = '1' then
           line_active <= '0';
         end if;
       end if;
@@ -381,12 +387,12 @@ begin
     --  complete_o <= '1';
     --end if;
     
-    if not WriteTrough and en_and_line_inactive = '1' and cache_hit = '1' and
+    if not WriteThrough and en_and_line_inactive = '1' and cache_hit = '1' and
       (we_1d = '0' or state = ST_IDLE or mem_write_en = '1') and pending_write = '0' then
       complete_o <= '1';
     end if;
 
-    if WriteTrough and en_and_line_inactive = '1'
+    if WriteThrough and en_and_line_inactive = '1'
       and ((we_1d = '0' and cache_hit = '1' and pending_write = '0') or (we_1d = '1' and state = ST_IDLE)) then
       complete_o <= '1';
     end if;
@@ -409,6 +415,8 @@ begin
       master_out_i => master_out_i,
       master_out_o => master_out_o);
 
-  wb_burst <= BurstSize when not WriteTrough or we_1d = '0' else to_unsigned(0,6);
+  wb_burst <= BurstSize when not WriteThrough or we_i = '0' else to_unsigned(0,6);
+
+  err_o <= wb_err;
 
 end architecture rtl;
