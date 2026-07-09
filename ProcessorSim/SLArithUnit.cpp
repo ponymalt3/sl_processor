@@ -22,23 +22,26 @@ void SLArithUnit::reset()
     pipeline_[i].cmd_=0xFF;
 
   curCycle_=0;
-
   activeOp_=0;
-  
   newOpAdded_=false;
+  mac_acc_raw_=_qfp32_t(0).toRaw();
 }
 
 void SLArithUnit::addOperation(const _DecodeEx &decEx)
 {
   _qfp32_t a=_qfp32_t::initFromRaw(decEx.a_);
   _qfp32_t b=_qfp32_t::initFromRaw(decEx.b_);
-  
+
   newOpAdded_=false;
-  
+
   if(activeOp_ == 0)
   {
-    activeOp_=decEx.cmd_;
-    newOpAdded_=true;
+    // CMD_MAC is fire-and-forget: never set activeOp_ so idle_ stays 1
+    if(decEx.cmd_ != SLCode::CMD_MAC)
+    {
+      activeOp_=decEx.cmd_;
+      newOpAdded_=true;
+    }
   }
 
   _qfp32_t extA=a,extB=b;
@@ -135,7 +138,17 @@ void SLArithUnit::update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en)
       pipeline_[(curCycle_+1)%32].result_=extA.logicShift(extB).toRaw();
       pipeline_[(curCycle_+1)%32].cmd_=SLCode::CMD_SHFT;
       break;
-  
+    case SLCode::CMD_MAC:
+      // fire-and-forget: accumulate A*B into running sum immediately
+      mac_acc_raw_=(_qfp32_t::initFromRaw(mac_acc_raw_) + a*b).toRaw();
+      break;
+    case SLCode::CMD_MAC_RES:
+      // drain modeled as 3-cycle latency; return accumulated sum and reset
+      pipeline_[(curCycle_+3)%32].result_=mac_acc_raw_;
+      pipeline_[(curCycle_+3)%32].cmd_=SLCode::CMD_MAC_RES;
+      mac_acc_raw_=_qfp32_t(0).toRaw();
+      break;
+
     default:
       ;
     }

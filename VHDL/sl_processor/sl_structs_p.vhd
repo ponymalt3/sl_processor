@@ -23,6 +23,8 @@ package sl_structs_p is
   constant CMD_SUB : std_ulogic_vector(3 downto 0) := "0011";
   constant CMD_MUL : std_ulogic_vector(3 downto 0) := "0100";
   constant CMD_DIV : std_ulogic_vector(3 downto 0) := "0101";
+  constant CMD_MAC : std_ulogic_vector(3 downto 0) := "0110";
+  constant CMD_MAC_RES : std_ulogic_vector(3 downto 0) := "0111";
   constant CMD_LOG2 : std_ulogic_vector(3 downto 0) := "1000";
   constant CMD_SHFT : std_ulogic_vector(3 downto 0) := "1001";
   constant CMD_INVALID : std_ulogic_vector(3 downto 0) := "1111";

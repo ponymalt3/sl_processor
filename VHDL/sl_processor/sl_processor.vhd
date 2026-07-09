@@ -170,7 +170,7 @@ begin  -- architecture rtl
 
   qfp_unit_1: entity work.qfp_unit
     generic map (
-      config => qfp_config_add+qfp_config_mul+qfp_config_div+qfp_config_math)
+      config => qfp_config_add+qfp_config_mul+qfp_config_div+qfp_config_math+qfp_config_mac)
     port map (
       clk_i      => clk_i,
       reset_n_i  => core_reset_n_i,
@@ -202,14 +202,16 @@ begin  -- architecture rtl
 
    multi_cycle_op <= '0';
    case alu_cmd is
-     when CMD_MOV => qfp_cmd <= (QFP_UNIT_NONE,"00");
-     when CMD_SUB => qfp_cmd <= (QFP_UNIT_ADD,QFP_SCMD_SUB); multi_cycle_op <= '1';
-     when CMD_ADD => qfp_cmd <= (QFP_UNIT_ADD,QFP_SCMD_ADD); multi_cycle_op <= '1';
-     when CMD_MUL => qfp_cmd <= (QFP_UNIT_MUL,"00"); multi_cycle_op <= '1';
-     when CMD_DIV => qfp_cmd <= (QFP_UNIT_DIV,"00"); multi_cycle_op <= '1';
-     when CMD_LOG2 => qfp_cmd <= (QFP_UNIT_MATH,"00"); multi_cycle_op <= '1';
-     when CMD_SHFT => qfp_cmd <= (QFP_UNIT_MATH,"01"); multi_cycle_op <= '1';
-     when others => qfp_cmd <= (QFP_UNIT_NONE,"00");
+     when CMD_MOV     => qfp_cmd <= (QFP_UNIT_NONE,"00");
+     when CMD_SUB     => qfp_cmd <= (QFP_UNIT_ADD,QFP_SCMD_SUB); multi_cycle_op <= '1';
+     when CMD_ADD     => qfp_cmd <= (QFP_UNIT_ADD,QFP_SCMD_ADD); multi_cycle_op <= '1';
+     when CMD_MUL     => qfp_cmd <= (QFP_UNIT_MUL,"00"); multi_cycle_op <= '1';
+     when CMD_DIV     => qfp_cmd <= (QFP_UNIT_DIV,"00"); multi_cycle_op <= '1';
+     when CMD_LOG2    => qfp_cmd <= (QFP_UNIT_MATH,"00"); multi_cycle_op <= '1';
+     when CMD_SHFT    => qfp_cmd <= (QFP_UNIT_MATH,"01"); multi_cycle_op <= '1';
+     when CMD_MAC     => qfp_cmd <= (QFP_UNIT_MAC,"00"); -- fire-and-forget: no stall
+     when CMD_MAC_RES => qfp_cmd <= (QFP_UNIT_MAC,"01"); multi_cycle_op <= '1';
+     when others      => qfp_cmd <= (QFP_UNIT_NONE,"00");
    end case;
 
   end process;

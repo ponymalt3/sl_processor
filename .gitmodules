@@ -1,6 +1,6 @@
 [submodule "mtest"]
 	path = mtest
 	url = https://github.com/ponymalt3/mtest
-[submodule "qfp32"]
-	path = qfp32
+[submodule "VHDL/qfp32"]
+	path = VHDL/qfp32
 	url = https://github.com/ponymalt3/qfp32
