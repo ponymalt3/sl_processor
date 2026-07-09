@@ -3,7 +3,7 @@ list(FILTER SRC EXCLUDE REGEX ".*CMake.*")
 
 add_executable(Test ${SRC})
 target_include_directories(Test PRIVATE
-    ${CMAKE_SOURCE_DIR}/qfp32/trunk
+    ${CMAKE_SOURCE_DIR}/VHDL/qfp32/trunk
     ${CMAKE_SOURCE_DIR}/mtest
     ${CMAKE_SOURCE_DIR}
 )

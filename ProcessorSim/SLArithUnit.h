@@ -32,6 +32,7 @@ protected:
   uint32_t curCycle_;
   uint32_t activeOp_;
   bool newOpAdded_;
+  uint32_t mac_acc_raw_; // MAC running sum (raw qfp32 bits)
 };
 
 #endif /* SLARITHUNIT_H_ */
