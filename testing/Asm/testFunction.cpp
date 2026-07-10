@@ -1,13 +1,14 @@
-#include "RTAsmTest.h"
 #include <mtest.h>
+
+#include "RTAsmTest.h"
 
 class testFunction : public mtest::test
 {
 };
 
-MTEST(testFunction,test_that_parameter_symbols_are_function_local_only)
+MTEST(testFunction, test_that_parameter_symbols_are_function_local_only)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test(param1,param2)
       x=param1+param2;
     end
@@ -18,14 +19,14 @@ MTEST(testFunction,test_that_parameter_symbols_are_function_local_only)
       x=var+param2;
     end
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 1);
 }
 
-MTEST(testFunction,test_that_simple_function_without_return_works)
+MTEST(testFunction, test_that_simple_function_without_return_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test()
     end
     
@@ -33,20 +34,20 @@ MTEST(testFunction,test_that_simple_function_without_return_works)
     test();
     x=3;
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
+
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(3).toRaw());
-  tester.expectSymbol("x",3);
+  tester.expectSymbol("x", 3);
 }
 
-MTEST(testFunction,test_that_simple_function_with_return_works)
+MTEST(testFunction, test_that_simple_function_with_return_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test()
       return;
     end
@@ -55,22 +56,22 @@ MTEST(testFunction,test_that_simple_function_with_return_works)
     test();
     x=3;
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-  
+
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(3).toRaw());
-  tester.expectSymbol("x",3);
+  tester.expectSymbol("x", 3);
 }
 
-MTEST(testFunction,test_load_array_addr_in_function_works)
+MTEST(testFunction, test_load_array_addr_in_function_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test()
       decl arr 6;
       a0=arr+1;
@@ -80,22 +81,22 @@ MTEST(testFunction,test_load_array_addr_in_function_works)
     end
     x=test();
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
-   
+
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(1).toRaw());
-  tester.expectSymbol("x",1);  
+  tester.expectSymbol("x", 1);
 }
 
-MTEST(testFunction,test_function_return_ends_the_function_correctly)
+MTEST(testFunction, test_function_return_ends_the_function_correctly)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test(p)
       if(p == 1)
         return 99;
@@ -105,58 +106,58 @@ MTEST(testFunction,test_function_return_ends_the_function_correctly)
     end
     x=test(1);
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.loadCode();
   tester.execute();
-   
+
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(99).toRaw());
-  tester.expectSymbol("x",99);  
+  tester.expectSymbol("x", 99);
 }
 
-MTEST(testFunction,test_function_return_correct_value)
+MTEST(testFunction, test_function_return_correct_value)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test()
       return 17;
     end
     x=test();
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.loadCode();
   tester.execute();
-   
+
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(17).toRaw());
-  tester.expectSymbol("x",17);
+  tester.expectSymbol("x", 17);
 }
 
-MTEST(testFunction,test_function_with_parameter_return_correct_value)
+MTEST(testFunction, test_function_with_parameter_return_correct_value)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test(p1,p2)
       return p1+p2;
     end
     x=test(19,23);
     x=x;
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("x",42);  
+
+  tester.expectSymbol("x", 42);
 }
 
-MTEST(testFunction,test_function_with_function_call_works)
+MTEST(testFunction, test_function_with_function_call_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function yyy(x,z)
       return x*z;
     end
@@ -167,20 +168,20 @@ MTEST(testFunction,test_function_with_function_call_works)
     
     x=test(19,23);
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.loadCode();
   tester.execute();
-   
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(19*23+23).toRaw());
-  tester.expectSymbol("x",19*23+23);  
+
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(19 * 23 + 23).toRaw());
+  tester.expectSymbol("x", 19 * 23 + 23);
 }
 
-MTEST(testFunction,test_function_with_local_storage_works)
+MTEST(testFunction, test_function_with_local_storage_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test(p1,p2)
       decl arr 2;
       t=99;
@@ -192,20 +193,21 @@ MTEST(testFunction,test_function_with_local_storage_works)
     
     x=test(19,23);
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.loadCode();
   tester.execute();
-   
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(99-20-1+99+23).toRaw());
-  tester.expectSymbol("x",99-20-1+99+23); 
+
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) ==
+         qfp32_t(99 - 20 - 1 + 99 + 23).toRaw());
+  tester.expectSymbol("x", 99 - 20 - 1 + 99 + 23);
 }
 
-MTEST(testFunction,test_recursive_function_works)
+MTEST(testFunction, test_recursive_function_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function fib(n)
       if(n == 1)
         return 1;
@@ -215,22 +217,22 @@ MTEST(testFunction,test_recursive_function_works)
     
     x=fib(5);
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-   
+
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("x")) == qfp32_t(15).toRaw());
-  tester.expectSymbol("x",15);
+  tester.expectSymbol("x", 15);
 }
 
-MTEST(testFunction,test_that_function_in_complex_expression_works)
+MTEST(testFunction, test_that_function_in_complex_expression_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function fib(n)
       if(n == 1)
         return 1;
@@ -243,19 +245,19 @@ MTEST(testFunction,test_that_function_in_complex_expression_works)
     x=(fib(5)*74.5+a)-1.5*b;
     x=x;
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("x",(15*74.5+99)-1.5*(-4.3));
+
+  tester.expectSymbol("x", (15 * 74.5 + 99) - 1.5 * (-4.3));
 }
 
-MTEST(testFunction,test_that_function_with_function_calls_as_parameters_works)
+MTEST(testFunction, test_that_function_with_function_calls_as_parameters_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
    
     function f()
       return 9;
@@ -289,21 +291,21 @@ MTEST(testFunction,test_that_function_with_function_calls_as_parameters_works)
     
     x=x;
   )";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("x",181.0);
+
+  tester.expectSymbol("x", 181.0);
 }
 
-MTEST(testFunction,test_that_function_inlining_works)
+MTEST(testFunction, test_that_function_inlining_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function f(a,b,c)
       if(a > b)
         return a;
@@ -325,26 +327,26 @@ MTEST(testFunction,test_that_function_inlining_works)
     x(2)=f(a,[a0++],7); #200
     x(3)=f(1,1,9); #7
   )";
-  
+
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
-  tester.getProcessor().writeMemory(100,200.0);
-  
+  EXPECT(tester.parse(0, false, 1000).getNumErrors() == 0);  // force to inline every function
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
+  tester.getProcessor().writeMemory(100, 200.0);
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbolWithOffset("x",0,20.0);
-  tester.expectSymbolWithOffset("x",1,77.0);
-  tester.expectSymbolWithOffset("x",2,200.0);
-  tester.expectSymbolWithOffset("x",3,7.0);
+
+  tester.expectSymbolWithOffset("x", 0, 20.0);
+  tester.expectSymbolWithOffset("x", 1, 77.0);
+  tester.expectSymbolWithOffset("x", 2, 200.0);
+  tester.expectSymbolWithOffset("x", 3, 7.0);
 }
 
-MTEST(testFunction,test_that_function_inlining_in_expr_works)
+MTEST(testFunction, test_that_function_inlining_in_expr_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function f(a)
       return a*2;
     end
@@ -353,23 +355,23 @@ MTEST(testFunction,test_that_function_inlining_in_expr_works)
     b=-2;
     e=(5*a+f(99))-b*f(2);
   )";
-  
+
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
-  tester.getProcessor().writeMemory(100,200.0);
-  
+  EXPECT(tester.parse(0, false, 1000).getNumErrors() == 0);  // force to inline every function
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
+  tester.getProcessor().writeMemory(100, 200.0);
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("e",251.0);
+
+  tester.expectSymbol("e", 251.0);
 }
 
-MTEST(testFunction,test_that_inlined_function_call_in_functions_works)
+MTEST(testFunction, test_that_inlined_function_call_in_functions_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function ln(x)
       return log2(x)*2;
     end
@@ -382,21 +384,21 @@ MTEST(testFunction,test_that_inlined_function_call_in_functions_works)
     
     x=f(0.5,2,3);
   )";
-  
+
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,10).getNumErrors() == 0);//force to inline only ln
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+  EXPECT(tester.parse(0, false, 10).getNumErrors() == 0);  // force to inline only ln
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("x",2.0);
+
+  tester.expectSymbol("x", 2.0);
 }
 
-MTEST(testFunction,test_that_function_inlining_with_local_var_with_same_name_works)
+MTEST(testFunction, test_that_function_inlining_with_local_var_with_same_name_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function f(a)
       b=3;
       return a*b;
@@ -406,21 +408,21 @@ MTEST(testFunction,test_that_function_inlining_with_local_var_with_same_name_wor
     b=-2;
     e=f(a);
   )";
-  
+
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+  EXPECT(tester.parse(0, false, 1000).getNumErrors() == 0);  // force to inline every function
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("e",27.0);
+
+  tester.expectSymbol("e", 27.0);
 }
 
-MTEST(testFunction,test_that_function_inlining_with_write_to_parameter_works)
+MTEST(testFunction, test_that_function_inlining_with_write_to_parameter_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function f(a,b)
       b=3;
       return a*b;
@@ -430,40 +432,40 @@ MTEST(testFunction,test_that_function_inlining_with_write_to_parameter_works)
     b=-2;
     e=f(a,b);
   )";
-  
+
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
-  
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+  EXPECT(tester.parse(0, false, 1000).getNumErrors() == 0);  // force to inline every function
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("b",-2.0);
-  tester.expectSymbol("e",27.0);
+
+  tester.expectSymbol("b", -2.0);
+  tester.expectSymbol("e", 27.0);
 }
 
-MTEST(testFunction,test_that_function_inlining_with_two_parameters_works)
+MTEST(testFunction, test_that_function_inlining_with_two_parameters_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
     function test(p1,p2)
       return p1+p2;
     end
     x=test(19,23);
   )";
-  
+
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
+  EXPECT(tester.parse(0, false, 1000).getNumErrors() == 0);  // force to inline every function
 
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("x",42);  
+
+  tester.expectSymbol("x", 42);
 }
 
-MTEST(testFunction,test_that_function_inlining_in_loop_with_mem_access_works)
+MTEST(testFunction, test_that_function_inlining_in_loop_with_mem_access_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
   function leakyReLu(sum)
     if(sum > 0)
       return sum;
@@ -485,25 +487,24 @@ MTEST(testFunction,test_that_function_inlining_in_loop_with_mem_access_works)
   b=data2(1);
   c=a;
   )";
-  
-  
-  //XXX optimize that simple functions to make loop complex
-  
-  RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+  // XXX optimize that simple functions to make loop complex
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0, false, 1000).getNumErrors() == 0);  // force to inline every function
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-   
-  tester.expectSymbol("a",-0.01); 
-  tester.expectSymbol("b",1.0);  
+
+  tester.expectSymbol("a", -0.01);
+  tester.expectSymbol("b", 1.0);
 }
 
-MTEST(testFunction,test_that_function_inlining_with_loop_inside_works)
+MTEST(testFunction, test_that_function_inlining_with_loop_inside_works)
 {
-  RTProg testCode=R"(
+  RTProg testCode = R"(
   function difOutput(y_local,output,size)
     a0=y_local;
     a1=output;
@@ -523,15 +524,15 @@ MTEST(testFunction,test_that_function_inlining_with_loop_inside_works)
   b=data2(1);
   c=a;
   )";
-  
-  RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,1000).getNumErrors() == 0);//force to inline every function
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse(0, false, 1000).getNumErrors() == 0);  // force to inline every function
+
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbolWithOffset("data1",0,28); 
-  tester.expectSymbolWithOffset("data1",1,26);  
+
+  tester.expectSymbolWithOffset("data1", 0, 28);
+  tester.expectSymbolWithOffset("data1", 1, 26);
 }

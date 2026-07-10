@@ -1,13 +1,14 @@
-#include "RTAsmTest.h"
 #include <mtest.h>
+
+#include "RTAsmTest.h"
 
 class testIfLogicOperators : public mtest::test
 {
 };
 
-MTEST(testIfLogicOperators,test_that_and_operator_evaluate_to_true)
+MTEST(testIfLogicOperators, test_that_and_operator_evaluate_to_true)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -19,19 +20,19 @@ MTEST(testIfLogicOperators,test_that_and_operator_evaluate_to_true)
       ok=0;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_and_operator_evaluate_to_false)
+MTEST(testIfLogicOperators, test_that_and_operator_evaluate_to_false)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -42,20 +43,20 @@ MTEST(testIfLogicOperators,test_that_and_operator_evaluate_to_false)
     else
       ok=1;
     end
-  );
-  
+  )asm";
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_or_operator_evaluate_to_true)
+MTEST(testIfLogicOperators, test_that_or_operator_evaluate_to_true)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -66,20 +67,20 @@ MTEST(testIfLogicOperators,test_that_or_operator_evaluate_to_true)
     else
       ok=0;
     end
-  );
-  
+  )asm";
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_or_operator_evaluate_to_false)
+MTEST(testIfLogicOperators, test_that_or_operator_evaluate_to_false)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -90,20 +91,20 @@ MTEST(testIfLogicOperators,test_that_or_operator_evaluate_to_false)
     else
       ok=1;
     end
-  );
-  
+  )asm";
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_simple_and_or_mix_works)
+MTEST(testIfLogicOperators, test_that_simple_and_or_mix_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -117,19 +118,19 @@ MTEST(testIfLogicOperators,test_that_simple_and_or_mix_works)
       ok=0;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_complex_and_or_mix_works)
+MTEST(testIfLogicOperators, test_that_complex_and_or_mix_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -148,21 +149,21 @@ MTEST(testIfLogicOperators,test_that_complex_and_or_mix_works)
     end
     
     [a0]=e;
-  );
-  
+  )asm";
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
-  tester.expectMemoryAt(31,7);
+
+  tester.expectSymbol("ok", 1);
+  tester.expectMemoryAt(31, 7);
 }
 
-MTEST(testIfLogicOperators,test_that_short_circuit_evaluation_in_and_expr_works)
+MTEST(testIfLogicOperators, test_that_short_circuit_evaluation_in_and_expr_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -182,20 +183,20 @@ MTEST(testIfLogicOperators,test_that_short_circuit_evaluation_in_and_expr_works)
     
     [a0]=e;
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
-  tester.expectMemoryAt(31,7);
+
+  tester.expectSymbol("ok", 1);
+  tester.expectMemoryAt(31, 7);
 }
 
-MTEST(testIfLogicOperators,test_that_short_circuit_evaluation_in_or_expr_works)
+MTEST(testIfLogicOperators, test_that_short_circuit_evaluation_in_or_expr_works)
 {
-  RTProg testCode=RTASM(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -214,21 +215,21 @@ MTEST(testIfLogicOperators,test_that_short_circuit_evaluation_in_or_expr_works)
     end
     
     [a0]=e;
-  );
-  
+  )asm";
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
-  tester.expectMemoryAt(31,7);
+
+  tester.expectSymbol("ok", 1);
+  tester.expectMemoryAt(31, 7);
 }
 
-MTEST(testIfLogicOperators,test_that_sub_group_or_as_last_expr_works)
+MTEST(testIfLogicOperators, test_that_sub_group_or_as_last_expr_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -242,19 +243,19 @@ MTEST(testIfLogicOperators,test_that_sub_group_or_as_last_expr_works)
       ok=1;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_sub_group_and_as_last_expr_works)
+MTEST(testIfLogicOperators, test_that_sub_group_and_as_last_expr_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -268,19 +269,19 @@ MTEST(testIfLogicOperators,test_that_sub_group_and_as_last_expr_works)
       ok=1;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_and_with_and_group_works)
+MTEST(testIfLogicOperators, test_that_and_with_and_group_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -294,19 +295,19 @@ MTEST(testIfLogicOperators,test_that_and_with_and_group_works)
       ok=1;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_and_with_and_group_as_last_expr_works)
+MTEST(testIfLogicOperators, test_that_and_with_and_group_as_last_expr_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -320,20 +321,19 @@ MTEST(testIfLogicOperators,test_that_and_with_and_group_as_last_expr_works)
       ok=1;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-
-MTEST(testIfLogicOperators,test_that_or_with_or_group_works)
+MTEST(testIfLogicOperators, test_that_or_with_or_group_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -347,19 +347,19 @@ MTEST(testIfLogicOperators,test_that_or_with_or_group_works)
       ok=0;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }
 
-MTEST(testIfLogicOperators,test_that_or_with_or_group_as_last_expr_works)
+MTEST(testIfLogicOperators, test_that_or_with_or_group_as_last_expr_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     def a 4;
     def b 4;
     def c 5;
@@ -373,12 +373,12 @@ MTEST(testIfLogicOperators,test_that_or_with_or_group_as_last_expr_works)
       ok=0;
     end
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("ok",1);
+
+  tester.expectSymbol("ok", 1);
 }

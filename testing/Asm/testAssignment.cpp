@@ -1,229 +1,230 @@
-#include "RTAsmTest.h"
 #include <mtest.h>
+
+#include "RTAsmTest.h"
 
 class testAssignment : public mtest::test
 {
 };
 
-MTEST(testAssignment,test_that_def_const_assigned_to_var_works)
+MTEST(testAssignment, test_that_def_const_assigned_to_var_works)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
     def x 13;
     a=x;
-  );
-  
-  RTProgTester tester(testAssign);
-  EXPECT(tester.parse().getNumErrors() == 0);  
-  EXPECT(tester.getIRSAddrOfSymbol("a") == 4);
-  
-  tester.loadCode();
-  tester.execute();
-  
-  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(13).toRaw()); 
-  tester.expectMemoryAt(4,13);
-}
+  )asm";
 
-MTEST(testAssignment,test_that_ref_assigned_to_var_works)
-{
-  RTProg testAssign=RTASM(
-    ref x 4;%param 0%
-    a=x;
-  );
-  
-  RTProgTester tester(testAssign);
-  EXPECT(tester.parse(1).getNumErrors() == 0);//use one parameter
-  EXPECT(tester.getIRSAddrOfSymbol("a") == 5);
-  
-  qfp32_t expect=13;
-  
-  tester.getProcessor().writeMemory(4,expect.toRaw());
-  
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
-  
-  tester.loadCode();
-  tester.execute();  
-    
-  EXPECT(tester.getProcessor().readMemory(5) == expect.toRaw());
-  tester.expectMemoryAt(5,expect);
-}
-
-MTEST(testAssignment,test_that_const_assigned_to_ref_works)
-{
-  RTProg testAssign=RTASM(
-    ref x 9;%param 0%
-    x=7;
-  );
-  
-  RTProgTester tester(testAssign);
-  EXPECT(tester.parse(1).getNumErrors() == 0);//use one parameter
-  
-  tester.getProcessor().writeMemory(9,qfp32_t(13).toRaw());
-  
-  tester.loadCode();
-  tester.execute();  
-  
-  qfp32_t expect=7;
-  EXPECT(tester.getProcessor().readMemory(9) == expect.toRaw());
-  tester.expectMemoryAt(9,7);
-}
-
-MTEST(testAssignment,test_that_const_assigned_to_var_works)
-{
-  RTProg testAssign=RTASM(
-    a=1;
-  );
-  
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
   EXPECT(tester.getIRSAddrOfSymbol("a") == 4);
-  
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
-  
+
   tester.loadCode();
   tester.execute();
-  
-  qfp32_t expect=1;
-  EXPECT(tester.getProcessor().readMemory(4) == expect.toRaw());
-  tester.expectMemoryAt(4,1); 
+
+  EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(13).toRaw());
+  tester.expectMemoryAt(4, 13);
 }
 
-MTEST(testAssignment,test_that_var_assigned_to_var_works)
+MTEST(testAssignment, test_that_ref_assigned_to_var_works)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
+    ref x 4;%param 0%
+    a=x;
+  )asm";
+
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse(1).getNumErrors() == 0);  // use one parameter
+  EXPECT(tester.getIRSAddrOfSymbol("a") == 5);
+
+  qfp32_t expect = 13;
+
+  tester.getProcessor().writeMemory(4, expect.toRaw());
+
+  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
+
+  tester.loadCode();
+  tester.execute();
+
+  EXPECT(tester.getProcessor().readMemory(5) == expect.toRaw());
+  tester.expectMemoryAt(5, expect);
+}
+
+MTEST(testAssignment, test_that_const_assigned_to_ref_works)
+{
+  RTProg testAssign = R"asm(
+    ref x 9;%param 0%
+    x=7;
+  )asm";
+
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse(1).getNumErrors() == 0);  // use one parameter
+
+  tester.getProcessor().writeMemory(9, qfp32_t(13).toRaw());
+
+  tester.loadCode();
+  tester.execute();
+
+  qfp32_t expect = 7;
+  EXPECT(tester.getProcessor().readMemory(9) == expect.toRaw());
+  tester.expectMemoryAt(9, 7);
+}
+
+MTEST(testAssignment, test_that_const_assigned_to_var_works)
+{
+  RTProg testAssign = R"asm(
+    a=1;
+  )asm";
+
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  EXPECT(tester.getIRSAddrOfSymbol("a") == 4);
+
+  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
+
+  tester.loadCode();
+  tester.execute();
+
+  qfp32_t expect = 1;
+  EXPECT(tester.getProcessor().readMemory(4) == expect.toRaw());
+  tester.expectMemoryAt(4, 1);
+}
+
+MTEST(testAssignment, test_that_var_assigned_to_var_works)
+{
+  RTProg testAssign = R"asm(
     a=1;
     b=a;
     a=0;%otherwise a is optimized away%
-  );
-  
+  )asm";
+
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  EXPECT(tester.getIRSAddrOfSymbol("b") == 5);//first 4 words reserved for calls
-  
+
+  EXPECT(tester.getIRSAddrOfSymbol("b") == 5);  // first 4 words reserved for calls
+
   tester.loadCode();
   tester.execute();
-  
-  qfp32_t expect=1;  
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == expect.toRaw()); 
-  tester.expectSymbol("b",1); 
+
+  qfp32_t expect = 1;
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("b")) == expect.toRaw());
+  tester.expectSymbol("b", 1);
 }
 
-MTEST(testAssignment,test_that_def_const_assigned_to_array_works)
+MTEST(testAssignment, test_that_def_const_assigned_to_array_works)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
     def x 7;
     decl arr 5;
     arr(2)=x;
-  );
-  
+  )asm";
+
   RTProgTester tester(testAssign);
-  EXPECT(tester.parse().getNumErrors() == 0);  
+  EXPECT(tester.parse().getNumErrors() == 0);
   EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  qfp32_t expect=7;  
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("arr")+2) == expect.toRaw());
-  tester.expectSymbolWithOffset("arr",2,7);  
+
+  qfp32_t expect = 7;
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("arr") + 2) == expect.toRaw());
+  tester.expectSymbolWithOffset("arr", 2, 7);
 }
 
-MTEST(testAssignment,test_that_ref_assigned_to_array_works)
+MTEST(testAssignment, test_that_ref_assigned_to_array_works)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
     ref x 4;
     decl arr 5;
     arr(2)=x;
-  );
-  
+  )asm";
+
   RTProgTester tester(testAssign);
-  EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
-  
-  uint32_t addr=tester.getIRSAddrOfSymbol("arr");
+  EXPECT(tester.parse(2).getNumErrors() == 0);  // allocate 2 parameters
+
+  uint32_t addr = tester.getIRSAddrOfSymbol("arr");
   EXPECT(addr == 8);
-  
-  qfp32_t expect=7; 
-  tester.getProcessor().writeMemory(4,expect.toRaw());
-  
+
+  qfp32_t expect = 7;
+  tester.getProcessor().writeMemory(4, expect.toRaw());
+
   tester.loadCode();
   tester.execute();
-  
-  EXPECT(tester.getProcessor().readMemory(addr+2) == expect.toRaw());
-  tester.expectMemoryAt(int32_t(addr)+2,expect);
+
+  EXPECT(tester.getProcessor().readMemory(addr + 2) == expect.toRaw());
+  tester.expectMemoryAt(int32_t(addr) + 2, expect);
 }
 
-MTEST(testAssignment,test_that_array_assigned_to_ref_works)
+MTEST(testAssignment, test_that_array_assigned_to_ref_works)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
     ref x 4;
     decl arr 5;
     arr(4)=15;
     x=arr(4);
-  );
-  
+  )asm";
+
   RTProgTester tester(testAssign);
-  EXPECT(tester.parse(2).getNumErrors() == 0);//allocate 2 parameters
+  EXPECT(tester.parse(2).getNumErrors() == 0);  // allocate 2 parameters
   EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
-  
-  tester.getProcessor().writeMemory(4,qfp32_t(7).toRaw());
-  
+
+  tester.getProcessor().writeMemory(4, qfp32_t(7).toRaw());
+
   tester.loadCode();
   tester.execute();
-  
+
   EXPECT(tester.getProcessor().readMemory(4) == qfp32_t(15).toRaw());
-  tester.expectMemoryAt(4,15); 
+  tester.expectMemoryAt(4, 15);
 }
 
-MTEST(testAssignment,test_that_array_assigned_to_var_works)
+MTEST(testAssignment, test_that_array_assigned_to_var_works)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
     decl arr 4;
     a=0;
     arr(0)=15;
     a=arr(0);
-  );
-  
+  )asm";
+
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  EXPECT(tester.getIRSAddrOfSymbol("a") == 4);//first 4 words reserved for calls
+
+  EXPECT(tester.getIRSAddrOfSymbol("a") == 4);  // first 4 words reserved for calls
   EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
-  
+
   tester.loadCode();
   tester.execute();
-  
+
   EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("a")) == qfp32_t(15).toRaw());
-  tester.expectSymbol("a",15);  
+  tester.expectSymbol("a", 15);
 }
 
-MTEST(testAssignment,test_that_array_base_addr_load_works)
+MTEST(testAssignment, test_that_array_base_addr_load_works)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
     a=0;
     decl arr 4;
     arr(1)=5;
     a0=arr+1;
     [a0]=1;
     a=1;
-  );
-  
+  )asm";
+
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
   EXPECT(tester.getIRSAddrOfSymbol("arr") == 8);
-  
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
+  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
-  
-  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("arr")+1) == qfp32_t(1).toRaw());
-  tester.expectSymbolWithOffset("arr",1,1);
+
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("arr") + 1) == qfp32_t(1).toRaw());
+  tester.expectSymbolWithOffset("arr", 1, 1);
 }
-      
-MTEST(testAssignment,test_that_assign_in_if_branch_with_reallocate_var_works_correctly)
+
+MTEST(testAssignment, test_that_assign_in_if_branch_with_reallocate_var_works_correctly)
 {
-  RTProg testAssign=R"(
+  RTProg testAssign = R"(
   x=99;
   loop(2)
     if(i == 1)
@@ -234,21 +235,21 @@ MTEST(testAssignment,test_that_assign_in_if_branch_with_reallocate_var_works_cor
   end
   t=y; 
   )";
-  
+
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
+  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("y",99);
+
+  tester.expectSymbol("y", 99);
 }
 
-MTEST(testAssignment,test_that_var_created_outsid_loop_is_released_after_loop_only)
+MTEST(testAssignment, test_that_var_created_outsid_loop_is_released_after_loop_only)
 {
-  RTProg testAssign=R"(
+  RTProg testAssign = R"(
   x=99;
   loop(2)
     if(i == 1)
@@ -260,14 +261,14 @@ MTEST(testAssignment,test_that_var_created_outsid_loop_is_released_after_loop_on
   end
   t=y; 
   )";
-  
+
   RTProgTester tester(testAssign);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
-  std::cout<<"disasm:\n"<<(tester.getDisAsmString())<<"\n";
+
+  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("y",99);
+
+  tester.expectSymbol("y", 99);
 }
