@@ -1,14 +1,15 @@
-#include "RTAsmTest.h"
 #include <mtest.h>
+
+#include "RTAsmTest.h"
 
 class testNeuralNetLib : public mtest::test
 {
 };
 
-MTEST(testNeuralNetLib,test_that_neural_net_evaluation_function_works_correct)
+MTEST(testNeuralNetLib, test_that_neural_net_evaluation_function_works_correct)
 {
-  std::string file=__FILE__;
-  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  std::string file = __FILE__;
+  RTProg testCode = RTProg::createFromFile(file.substr(0, file.find_last_of("/") + 1) + "nnet_resolved");
 
   testCode.append(R"(
   numNodes=4;
@@ -21,33 +22,33 @@ MTEST(testNeuralNetLib,test_that_neural_net_evaluation_function_works_correct)
   evaluteNodes(numNodes,weightMatrix,inputVec_local,numInputs,resultVec_local,sumVec);
   )");
 
-
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
-  std::cout<<"sumvec 0: "<<(1.7+4*1+5*2+6*3)<<"   as raw: "<<std::hex<<"0x"<<(qfp32_t(1.7+4*1+5*2+6*3).getAsRawUint())<<std::dec<<std::endl;
-  std::cout<<"is: "<<(qfp32_t::initFromRaw(0x05b33333U))<<"\n";
+  std::cout << "sumvec 0: " << (1.7 + 4 * 1 + 5 * 2 + 6 * 3) << "   as raw: " << std::hex << "0x"
+            << (qfp32_t(1.7 + 4 * 1 + 5 * 2 + 6 * 3).getAsRawUint()) << std::dec << std::endl;
+  std::cout << "is: " << (qfp32_t::initFromRaw(0x05b33333U)) << "\n";
 
   tester.loadCode();
   tester.execute();
 
-  tester.expectSymbolWithOffset("sumVec",0,1.7+4*1+5*2+6*3);
-  tester.expectSymbolWithOffset("sumVec",1,-0.5+33*1+12*2+17*3);
-  tester.expectSymbolWithOffset("sumVec",2,0.23+1*1+2*1+3*1);
-  tester.expectSymbolWithOffset("sumVec",3,-100+9*1+-20*2+7*3);
+  tester.expectSymbolWithOffset("sumVec", 0, 1.7 + 4 * 1 + 5 * 2 + 6 * 3);
+  tester.expectSymbolWithOffset("sumVec", 1, -0.5 + 33 * 1 + 12 * 2 + 17 * 3);
+  tester.expectSymbolWithOffset("sumVec", 2, 0.23 + 1 * 1 + 2 * 1 + 3 * 1);
+  tester.expectSymbolWithOffset("sumVec", 3, -100 + 9 * 1 + -20 * 2 + 7 * 3);
 
-  tester.expectSymbolWithOffset("resultVec_local",0,33.7);
-  tester.expectSymbolWithOffset("resultVec_local",1,107.5);
-  tester.expectSymbolWithOffset("resultVec_local",2,6.23);
-  tester.expectSymbolWithOffset("resultVec_local",3,qfp32_t(0.01)*qfp32_t(-110.0));
+  tester.expectSymbolWithOffset("resultVec_local", 0, 33.7);
+  tester.expectSymbolWithOffset("resultVec_local", 1, 107.5);
+  tester.expectSymbolWithOffset("resultVec_local", 2, 6.23);
+  tester.expectSymbolWithOffset("resultVec_local", 3, qfp32_t(0.01) * qfp32_t(-110.0));
 }
 
-MTEST(testNeuralNetLib,test_that_neural_net_dif_output_function_works_correct)
+MTEST(testNeuralNetLib, test_that_neural_net_dif_output_function_works_correct)
 {
-  std::string file=__FILE__;
-  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  std::string file = __FILE__;
+  RTProg testCode = RTProg::createFromFile(file.substr(0, file.find_last_of("/") + 1) + "nnet_resolved");
 
   testCode.append(R"(
   n=4;
@@ -71,30 +72,29 @@ MTEST(testNeuralNetLib,test_that_neural_net_dif_output_function_works_correct)
 
   n=n; ## dummy)");
 
-
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
 
-  tester.expectSymbolWithOffset("y_local",0,-5.55999279);
-  tester.expectSymbolWithOffset("y_local",1,16.47970432);
-  tester.expectSymbolWithOffset("y_local",2,-9.99800318);
-  tester.expectSymbolWithOffset("y_local",3,-21.27865529);
+  tester.expectSymbolWithOffset("y_local", 0, -5.55999279);
+  tester.expectSymbolWithOffset("y_local", 1, 16.47970432);
+  tester.expectSymbolWithOffset("y_local", 2, -9.99800318);
+  tester.expectSymbolWithOffset("y_local", 3, -21.27865529);
 
-  tester.expectSymbolWithOffset("dif_out",0,-5.55999994);
-  tester.expectSymbolWithOffset("dif_out",1,16.48000001);
-  tester.expectSymbolWithOffset("dif_out",2,-9.99800002);
-  tester.expectSymbolWithOffset("dif_out",3,-21.27999997);
+  tester.expectSymbolWithOffset("dif_out", 0, -5.55999994);
+  tester.expectSymbolWithOffset("dif_out", 1, 16.48000001);
+  tester.expectSymbolWithOffset("dif_out", 2, -9.99800002);
+  tester.expectSymbolWithOffset("dif_out", 3, -21.27999997);
 }
 
-MTEST(testNeuralNetLib,test_that_neural_net_dif_layer_function_works_correct)
+MTEST(testNeuralNetLib, test_that_neural_net_dif_layer_function_works_correct)
 {
-  std::string file=__FILE__;
-  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  std::string file = __FILE__;
+  RTProg testCode = RTProg::createFromFile(file.substr(0, file.find_last_of("/") + 1) + "nnet_resolved");
 
   testCode.append(R"(
   size=4;
@@ -189,63 +189,63 @@ MTEST(testNeuralNetLib,test_that_neural_net_dif_layer_function_works_correct)
 
   numInputs=3; ## dummy instr otherwise last loop will be executed only once)");
 
-
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
-  std::cout<<"should: "<<(qfp32_t::initFromRaw(0x3d13e945U))<<"  but is "<<(qfp32_t::initFromRaw(0x3d03e945U))<<"\n";
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
+  std::cout << "should: " << (qfp32_t::initFromRaw(0x3d13e945U)) << "  but is "
+            << (qfp32_t::initFromRaw(0x3d03e945U)) << "\n";
 
   tester.loadCode();
   tester.execute();
 
-  tester.expectSymbolWithOffset("weightMatrixResult",0,-66.44400024);
-  tester.expectSymbolWithOffset("weightMatrixResult",1,-66.44400024);
-  tester.expectSymbolWithOffset("weightMatrixResult",2,-132.88800048);
-  tester.expectSymbolWithOffset("weightMatrixResult",3,-199.33200073);
-  tester.expectSymbolWithOffset("weightMatrixResult",4,-216.66799926);
-  tester.expectSymbolWithOffset("weightMatrixResult",5,-216.66799926);
-  tester.expectSymbolWithOffset("weightMatrixResult",6,-433.33599853);
-  tester.expectSymbolWithOffset("weightMatrixResult",7,-650.00399780);
-  tester.expectSymbolWithOffset("weightMatrixResult",8,-12.40200006);
-  tester.expectSymbolWithOffset("weightMatrixResult",9,-12.40200006);
-  tester.expectSymbolWithOffset("weightMatrixResult",10,-24.80400013);
-  tester.expectSymbolWithOffset("weightMatrixResult",11,-37.20599365);
-  tester.expectSymbolWithOffset("weightMatrixResult",12,0.02200317);
-  tester.expectSymbolWithOffset("weightMatrixResult",13,0.02200794);
-  tester.expectSymbolWithOffset("weightMatrixResult",14,0.04401588);
-  tester.expectSymbolWithOffset("weightMatrixResult",15,0.06602382);
+  tester.expectSymbolWithOffset("weightMatrixResult", 0, -66.44400024);
+  tester.expectSymbolWithOffset("weightMatrixResult", 1, -66.44400024);
+  tester.expectSymbolWithOffset("weightMatrixResult", 2, -132.88800048);
+  tester.expectSymbolWithOffset("weightMatrixResult", 3, -199.33200073);
+  tester.expectSymbolWithOffset("weightMatrixResult", 4, -216.66799926);
+  tester.expectSymbolWithOffset("weightMatrixResult", 5, -216.66799926);
+  tester.expectSymbolWithOffset("weightMatrixResult", 6, -433.33599853);
+  tester.expectSymbolWithOffset("weightMatrixResult", 7, -650.00399780);
+  tester.expectSymbolWithOffset("weightMatrixResult", 8, -12.40200006);
+  tester.expectSymbolWithOffset("weightMatrixResult", 9, -12.40200006);
+  tester.expectSymbolWithOffset("weightMatrixResult", 10, -24.80400013);
+  tester.expectSymbolWithOffset("weightMatrixResult", 11, -37.20599365);
+  tester.expectSymbolWithOffset("weightMatrixResult", 12, 0.02200317);
+  tester.expectSymbolWithOffset("weightMatrixResult", 13, 0.02200794);
+  tester.expectSymbolWithOffset("weightMatrixResult", 14, 0.04401588);
+  tester.expectSymbolWithOffset("weightMatrixResult", 15, 0.06602382);
 
-  tester.expectSymbolWithOffset("wdifs",0,-66.45825195);
-  tester.expectSymbolWithOffset("wdifs",1,-66.45825195);
-  tester.expectSymbolWithOffset("wdifs",2,-132.86581420);
-  tester.expectSymbolWithOffset("wdifs",3,-199.32406616);
-  tester.expectSymbolWithOffset("wdifs",4,-216.54916381);
-  tester.expectSymbolWithOffset("wdifs",5,-216.54916381);
-  tester.expectSymbolWithOffset("wdifs",6,-433.42897033);
-  tester.expectSymbolWithOffset("wdifs",7,-650.14346313);
-  tester.expectSymbolWithOffset("wdifs",8,-12.40200006);
-  tester.expectSymbolWithOffset("wdifs",9,-12.40200006);
-  tester.expectSymbolWithOffset("wdifs",10,-24.80400013);
-  tester.expectSymbolWithOffset("wdifs",11,-37.20599365);
-  tester.expectSymbolWithOffset("wdifs",12,0.02199190);
-  tester.expectSymbolWithOffset("wdifs",13,0.02199190);
-  tester.expectSymbolWithOffset("wdifs",14,0.04401010);
-  tester.expectSymbolWithOffset("wdifs",15,0.06601518);
+  tester.expectSymbolWithOffset("wdifs", 0, -66.45825195);
+  tester.expectSymbolWithOffset("wdifs", 1, -66.45825195);
+  tester.expectSymbolWithOffset("wdifs", 2, -132.86581420);
+  tester.expectSymbolWithOffset("wdifs", 3, -199.32406616);
+  tester.expectSymbolWithOffset("wdifs", 4, -216.54916381);
+  tester.expectSymbolWithOffset("wdifs", 5, -216.54916381);
+  tester.expectSymbolWithOffset("wdifs", 6, -433.42897033);
+  tester.expectSymbolWithOffset("wdifs", 7, -650.14346313);
+  tester.expectSymbolWithOffset("wdifs", 8, -12.40200006);
+  tester.expectSymbolWithOffset("wdifs", 9, -12.40200006);
+  tester.expectSymbolWithOffset("wdifs", 10, -24.80400013);
+  tester.expectSymbolWithOffset("wdifs", 11, -37.20599365);
+  tester.expectSymbolWithOffset("wdifs", 12, 0.02199190);
+  tester.expectSymbolWithOffset("wdifs", 13, 0.02199190);
+  tester.expectSymbolWithOffset("wdifs", 14, 0.04401010);
+  tester.expectSymbolWithOffset("wdifs", 15, 0.06601518);
 
-  tester.expectSymbolWithOffset("nextDifVec",0,7428.02389526);
-  tester.expectSymbolWithOffset("nextDifVec",1,2945.07814025);
-  tester.expectSymbolWithOffset("nextDifVec",2,4094.26792907);
+  tester.expectSymbolWithOffset("nextDifVec", 0, 7428.02389526);
+  tester.expectSymbolWithOffset("nextDifVec", 1, 2945.07814025);
+  tester.expectSymbolWithOffset("nextDifVec", 2, 4094.26792907);
 
-  tester.expectSymbolWithOffset("idifs",0,7427.91120910);
-  tester.expectSymbolWithOffset("idifs",1,2944.94471740);
-  tester.expectSymbolWithOffset("idifs",2,4094.38119506);
+  tester.expectSymbolWithOffset("idifs", 0, 7427.91120910);
+  tester.expectSymbolWithOffset("idifs", 1, 2944.94471740);
+  tester.expectSymbolWithOffset("idifs", 2, 4094.38119506);
 }
 
-MTEST(testNeuralNetLib,test_that_neural_net_create_function_works_correct)
+MTEST(testNeuralNetLib, test_that_neural_net_create_function_works_correct)
 {
-  std::string file=__FILE__;
-  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  std::string file = __FILE__;
+  RTProg testCode = RTProg::createFromFile(file.substr(0, file.find_last_of("/") + 1) + "nnet_resolved");
 
   testCode.append(R"(
 
@@ -273,37 +273,37 @@ MTEST(testNeuralNetLib,test_that_neural_net_create_function_works_correct)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
 
-  qfp32_t nnetAddr=501;
+  qfp32_t nnetAddr = 501;
 
-  tester.expectSymbol("nnet",nnetAddr);
+  tester.expectSymbol("nnet", nnetAddr);
 
-  tester.expectMemoryAt(nnetAddr+0,2.0);//num layers
+  tester.expectMemoryAt(nnetAddr + 0, 2.0);  // num layers
 
-  //2 * layer struc
-  tester.expectMemoryAt(nnetAddr+1,4.0);
-  tester.expectMemoryAt(nnetAddr+2,492.0);//exact memory location depend on allocator
-  tester.expectMemoryAt(nnetAddr+3,1007.0);
+  // 2 * layer struc
+  tester.expectMemoryAt(nnetAddr + 1, 4.0);
+  tester.expectMemoryAt(nnetAddr + 2, 492.0);  // exact memory location depend on allocator
+  tester.expectMemoryAt(nnetAddr + 3, 1007.0);
 
-  tester.expectMemoryAt(nnetAddr+4,2.0);
-  tester.expectMemoryAt(nnetAddr+5,487.0);
-  tester.expectMemoryAt(nnetAddr+6,995.0);
+  tester.expectMemoryAt(nnetAddr + 4, 2.0);
+  tester.expectMemoryAt(nnetAddr + 5, 487.0);
+  tester.expectMemoryAt(nnetAddr + 6, 995.0);
 
-  tester.expectMemoryAt(nnetAddr+7,478);
-  tester.expectMemoryAt(nnetAddr+8,482);
+  tester.expectMemoryAt(nnetAddr + 7, 478);
+  tester.expectMemoryAt(nnetAddr + 8, 482);
 
-  tester.expectMemoryAt(nnetAddr+9,3.0);// num inputs
-  tester.expectMemoryAt(nnetAddr+10,2.0);//num outputs
+  tester.expectMemoryAt(nnetAddr + 9, 3.0);   // num inputs
+  tester.expectMemoryAt(nnetAddr + 10, 2.0);  // num outputs
 }
 
-MTEST(testNeuralNetLib,test_that_neural_net_eval_function_works_correct)
+MTEST(testNeuralNetLib, test_that_neural_net_eval_function_works_correct)
 {
-  std::string file=__FILE__;
-  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  std::string file = __FILE__;
+  RTProg testCode = RTProg::createFromFile(file.substr(0, file.find_last_of("/") + 1) + "nnet_resolved");
 
   testCode.append(R"(
 
@@ -334,85 +334,76 @@ MTEST(testNeuralNetLib,test_that_neural_net_eval_function_works_correct)
   )");
 
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,20).getNumErrors() == 0);
+  EXPECT(tester.parse(0, false, 20).getNumErrors() == 0);
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
 
+  qfp32_t weights1[8] = {-17.5, 11, -99, 2, 0.5, -1.05, 31.5, 3};
 
-  qfp32_t weights1[8]=
-  {
-    -17.5,11,-99,2,
-    0.5,-1.05,31.5,3
-  };
-
-  qfp32_t weights2[6]=
-  {
-    7,0.001,-2.5,
-    -2,-1,9
-  };
+  qfp32_t weights2[6] = {7, 0.001, -2.5, -2, -1, 9};
 
   tester.execute();
 
-  qfp32_t nnetAddr=501;
-  tester.expectSymbol("nnet",nnetAddr);
+  qfp32_t nnetAddr = 501;
+  tester.expectSymbol("nnet", nnetAddr);
 
-  //weights layer 1
-  qfp32_t weightAddr1=1015;
-  tester.expectMemoryAt(nnetAddr+3,weightAddr1);
+  // weights layer 1
+  qfp32_t weightAddr1 = 1015;
+  tester.expectMemoryAt(nnetAddr + 3, weightAddr1);
 
-  //weights layer 2
-  qfp32_t weightAddr2=1007;
-  tester.expectMemoryAt(nnetAddr+6,weightAddr2);
+  // weights layer 2
+  qfp32_t weightAddr2 = 1007;
+  tester.expectMemoryAt(nnetAddr + 6, weightAddr2);
 
-  //calculate expected output
-  qfp32_t inputs[4]={1.0,1.0,2.0,3.0};
+  // calculate expected output
+  qfp32_t inputs[4] = {1.0, 1.0, 2.0, 3.0};
 
   qfp32_t layerOutputs1[2];
-  for(uint32_t i=0;i<2;++i)
+  for(uint32_t i = 0; i < 2; ++i)
   {
-    layerOutputs1[i]=0;
-    for(uint32_t j=0;j<4;++j)
+    layerOutputs1[i] = 0;
+    for(uint32_t j = 0; j < 4; ++j)
     {
-      layerOutputs1[i]=layerOutputs1[i]+weights1[i*4+j]*inputs[j];
+      layerOutputs1[i] = layerOutputs1[i] + weights1[i * 4 + j] * inputs[j];
     }
 
     if(layerOutputs1[i] < qfp32_t(0.0))
     {
-      layerOutputs1[i]=layerOutputs1[i]*qfp32_t(0.01);
+      layerOutputs1[i] = layerOutputs1[i] * qfp32_t(0.01);
     }
   }
 
-  inputs[1]=layerOutputs1[0];
-  inputs[2]=layerOutputs1[1];
+  inputs[1] = layerOutputs1[0];
+  inputs[2] = layerOutputs1[1];
 
   qfp32_t layerOutputs2[2];
-  for(uint32_t i=0;i<2;++i)
+  for(uint32_t i = 0; i < 2; ++i)
   {
-    layerOutputs2[i]=0;
-    for(uint32_t j=0;j<3;++j)
+    layerOutputs2[i] = 0;
+    for(uint32_t j = 0; j < 3; ++j)
     {
-      layerOutputs2[i]=layerOutputs2[i]+weights2[i*3+j]*inputs[j];
+      layerOutputs2[i] = layerOutputs2[i] + weights2[i * 3 + j] * inputs[j];
     }
 
     if(layerOutputs2[i] < qfp32_t(0.0))
     {
-      layerOutputs2[i]=layerOutputs2[i]*qfp32_t(0.01);
+      layerOutputs2[i] = layerOutputs2[i] * qfp32_t(0.01);
     }
   }
 
-  qfp32_t outputsAddr=491;
-  tester.expectSymbol("outputs",outputsAddr);
+  qfp32_t outputsAddr = 491;
+  tester.expectSymbol("outputs", outputsAddr);
 
-  tester.expectMemoryAt(outputsAddr+0,layerOutputs2[0]);
-  tester.expectMemoryAt(outputsAddr+1,layerOutputs2[1]);
+  tester.expectMemoryAt(outputsAddr + 0, layerOutputs2[0]);
+  tester.expectMemoryAt(outputsAddr + 1, layerOutputs2[1]);
 }
 
-MTEST(testNeuralNetLib,test_that_neural_net_update_works_correct)
+MTEST(testNeuralNetLib, test_that_neural_net_update_works_correct)
 {
-  std::string file=__FILE__;
-  RTProg testCode=RTProg::createFromFile(file.substr(0,file.find_last_of("/")+1)+"nnet_resolved");
+  std::string file = __FILE__;
+  RTProg testCode = RTProg::createFromFile(file.substr(0, file.find_last_of("/") + 1) + "nnet_resolved");
 
   testCode.append(R"(
 
@@ -467,12 +458,12 @@ MTEST(testNeuralNetLib,test_that_neural_net_update_works_correct)
   )");
 
   RTProgTester tester(testCode);
-  EXPECT(tester.parse(0,false,0).getNumErrors() == 0);
+  EXPECT(tester.parse(0, false, 0).getNumErrors() == 0);
 
-  std::cout<<"dis:\n"<<(tester.getDisAsmString())<<"\n";
+  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
 
-  tester.expectSymbol("ok",1);
+  tester.expectSymbol("ok", 1);
 }

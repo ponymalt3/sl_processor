@@ -1,13 +1,14 @@
-#include "RTAsmTest.h"
 #include <mtest.h>
+
+#include "RTAsmTest.h"
 
 class testSyntax : public mtest::test
 {
 };
 
-MTEST(testSyntax,test_basic_features)
+MTEST(testSyntax, test_basic_features)
 {
-  RTProg test=RTASM(
+  RTProg test = R"asm(
     def const 1000;
     decl arr 10;
     ref r 4;
@@ -35,15 +36,15 @@ MTEST(testSyntax,test_basic_features)
       y=y+i;
     end
 
-  );
-  
+  )asm";
+
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 1);
 }
 
-MTEST(testSyntax,test_basic_exprs)
+MTEST(testSyntax, test_basic_exprs)
 {
-  RTProg testExpr=RTASM(
+  RTProg testExpr = R"asm(
     def a 100;
     def b 2;
     def c 3;
@@ -66,15 +67,15 @@ MTEST(testSyntax,test_basic_exprs)
     %test sub/add replacement%
     test_as1=a+-b*c;
     test_as2=a+-b-c;
-  );
-  
+  )asm";
+
   RTProgTester tester(testExpr);
   EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_assign)
+MTEST(testSyntax, test_assign)
 {
-  RTProg testAssign=RTASM(
+  RTProg testAssign = R"asm(
     def a 23;
 
     b=0.735;
@@ -99,51 +100,51 @@ MTEST(testSyntax,test_assign)
     c=c*2;
     b=3.4594;
     b=c;
-  );
+  )asm";
 
   RTProgTester tester(testAssign);
-  EXPECT(tester.parse().getNumErrors() == 0);    
+  EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_const_values_cant_be_assigned)
+MTEST(testSyntax, test_const_values_cant_be_assigned)
 {
-  RTProg code=RTASM(
+  RTProg code = R"asm(
     def a 23;
 
   %cant assign values to consts%
     a=1;
-  );
-  
-  //expect errors
+  )asm";
+
+  // expect errors
   RTProgTester tester(code);
-  EXPECT(tester.parse().getNumErrors() != 0); 
+  EXPECT(tester.parse().getNumErrors() != 0);
 }
 
-MTEST(testSyntax,test_addr_reg_cant_be_read)
+MTEST(testSyntax, test_addr_reg_cant_be_read)
 {
-  RTProg code=RTASM(
+  RTProg code = R"asm(
   %cant read a0/a1%
     b=a1;
-  );
-  
-  RTProgTester tester(code);
-  EXPECT(tester.parse().getNumErrors() != 0); 
-}
-
-MTEST(testSyntax,test_non_existing_var_cant_be_read)
-{
-  RTProg code=RTASM(
-  %cant read non existing values%
-    c=d;
-  );
+  )asm";
 
   RTProgTester tester(code);
   EXPECT(tester.parse().getNumErrors() != 0);
 }
 
-MTEST(testSyntax,test_if_construct)
+MTEST(testSyntax, test_non_existing_var_cant_be_read)
 {
-  RTProg testIf=RTASM(
+  RTProg code = R"asm(
+  %cant read non existing values%
+    c=d;
+  )asm";
+
+  RTProgTester tester(code);
+  EXPECT(tester.parse().getNumErrors() != 0);
+}
+
+MTEST(testSyntax, test_if_construct)
+{
+  RTProg testIf = R"asm(
     def a 100;
 
     b=2;
@@ -206,15 +207,15 @@ MTEST(testSyntax,test_if_construct)
       result = 0 ;
     end
 
-  );
+  )asm";
 
   RTProgTester tester(testIf);
   EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_loop_construct)
+MTEST(testSyntax, test_loop_construct)
 {
-  RTProg testLoop=RTASM(
+  RTProg testLoop = R"asm(
     a=10;
 
     def b 3;
@@ -234,15 +235,15 @@ MTEST(testSyntax,test_loop_construct)
       end
       sum2=sum2+i;
     end
-  );
+  )asm";
 
   RTProgTester tester(testLoop);
-  EXPECT(tester.parse().getNumErrors() == 0);    
+  EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_array)
+MTEST(testSyntax, test_array)
 {
-  RTProg testDef=RTASM(
+  RTProg testDef = R"asm(
     def a 10;
     ref param0 4;
 
@@ -257,106 +258,106 @@ MTEST(testSyntax,test_array)
     loop(3)
       sum=sum+[a0++];
     end
-  );
+  )asm";
 
   RTProgTester tester(testDef);
-  EXPECT(tester.parse().getNumErrors() == 0);    
+  EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_empty_branch)
+MTEST(testSyntax, test_empty_branch)
 {
-  RTProg testSyntax=RTASM(
+  RTProg testSyntax = R"asm(
     a=10;
 
     if(a == 10)
     else
       a=99;
     end
-  );
-  
+  )asm";
+
   RTProgTester tester(testSyntax);
-  EXPECT(tester.parse().getNumErrors() == 0);    
+  EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_that_comment_at_the_end_works)
+MTEST(testSyntax, test_that_comment_at_the_end_works)
 {
-  RTProg testComment=RTASM(
+  RTProg testComment = R"asm(
     b=2;%test%
-  );
-  
-  RTProgTester tester(testComment);
-  EXPECT(tester.parse().getNumErrors() == 0);  
-}  
+  )asm";
 
-MTEST(testSyntax,test_that_store_const_in_irs_works)
+  RTProgTester tester(testComment);
+  EXPECT(tester.parse().getNumErrors() == 0);
+}
+
+MTEST(testSyntax, test_that_store_const_in_irs_works)
 {
-  RTProg test=RTASM(
+  RTProg test = R"asm(
     def cons -31;
     a=cons;
-  );
-  
-  //a should be allocted to irs address 1
-  
+  )asm";
+
+  // a should be allocted to irs address 1
+
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_that_store_const2_in_irs_works)
+MTEST(testSyntax, test_that_store_const2_in_irs_works)
 {
-  RTProg test=RTASM(
+  RTProg test = R"asm(
     def cons 199;
     a=cons;
-  );
-  
-  //a should be allocted to irs address 1
-  
+  )asm";
+
+  // a should be allocted to irs address 1
+
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_that_store_const3_in_irs_works)
+MTEST(testSyntax, test_that_store_const3_in_irs_works)
 {
-  RTProg test=RTASM(
+  RTProg test = R"asm(
     def cons 400000000;
     a=cons;
-  );
-  
-  //a should be allocted to irs address 1
-  
+  )asm";
+
+  // a should be allocted to irs address 1
+
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 0);
 }
 
-MTEST(testSyntax,test_that_refs_are_only_allowed_at_irs_addr_higher_than_4_expect_errors)
+MTEST(testSyntax, test_that_refs_are_only_allowed_at_irs_addr_higher_than_4_expect_errors)
 {
-  RTProg test=R"(
+  RTProg test = R"(
     ref a 0;
     ref b 1;
     ref c 2;
     ref d 3;
     f=a+b+c+d;
   )";
-  
+
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 4);
 }
 
-MTEST(testSyntax,test_that_loop_index_cant_be_written_inside_loop_expect_errors)
+MTEST(testSyntax, test_that_loop_index_cant_be_written_inside_loop_expect_errors)
 {
-  RTProg test=R"(
+  RTProg test = R"(
     loop(1)
       i=10;
       k=99; % should be ok
     end
   )";
-  
+
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 5);
 }
 
-MTEST(testSyntax,test_that_different_loop_index_cant_be_written_inside_loop_expect_errors)
+MTEST(testSyntax, test_that_different_loop_index_cant_be_written_inside_loop_expect_errors)
 {
-  RTProg test=R"(
+  RTProg test = R"(
     loop(1)
       loop(1)
         i=0;
@@ -364,7 +365,7 @@ MTEST(testSyntax,test_that_different_loop_index_cant_be_written_inside_loop_expe
       end
     end
   )";
-  
+
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 7);
 }

@@ -1,13 +1,14 @@
-#include "RTAsmTest.h"
 #include <mtest.h>
+
+#include "RTAsmTest.h"
 
 class testWhileLoop : public mtest::test
 {
 };
 
-MTEST(testWhileLoop,test_that_simple_while_works)
+MTEST(testWhileLoop, test_that_simple_while_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     a=10;
     b=1;
     while(a > 0)
@@ -16,19 +17,19 @@ MTEST(testWhileLoop,test_that_simple_while_works)
     end
     b=b;
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("b",1024);
+
+  tester.expectSymbol("b", 1024);
 }
 
-MTEST(testWhileLoop,test_that_while_loop_with_continue_works)
+MTEST(testWhileLoop, test_that_while_loop_with_continue_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     a=10;
     b=1;
     while(a > 0)
@@ -43,19 +44,19 @@ MTEST(testWhileLoop,test_that_while_loop_with_continue_works)
     end 
     b=b;
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("b",7);
+
+  tester.expectSymbol("b", 7);
 }
 
-MTEST(testWhileLoop,test_that_while_loop_with_break_works)
+MTEST(testWhileLoop, test_that_while_loop_with_break_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     a=10;
     b=1;
     while(a > 0)
@@ -69,19 +70,19 @@ MTEST(testWhileLoop,test_that_while_loop_with_break_works)
     end 
     b=b;
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("b",6);
+
+  tester.expectSymbol("b", 6);
 }
 
-MTEST(testWhileLoop,test_that_while_loop_with_multiple_conditions_works)
+MTEST(testWhileLoop, test_that_while_loop_with_multiple_conditions_works)
 {
-  RTProg testCode=R"asm(
+  RTProg testCode = R"asm(
     a=10;
     b=100;
     x=1;
@@ -96,14 +97,14 @@ MTEST(testWhileLoop,test_that_while_loop_with_multiple_conditions_works)
     end 
     b=b;
   )asm";
-  
+
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-  
+
   tester.loadCode();
   tester.execute();
-  
-  tester.expectSymbol("x",0);
-  tester.expectSymbol("a",6);
-  tester.expectSymbol("b",6.25);
+
+  tester.expectSymbol("x", 0);
+  tester.expectSymbol("a", 6);
+  tester.expectSymbol("b", 6.25);
 }
