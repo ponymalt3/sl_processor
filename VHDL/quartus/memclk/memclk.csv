@@ -1,0 +1,18 @@
+# system info memclk on 2019.01.01.15:47:41
+system_info:
+name,value
+DEVICE,EP4CE22F17C6
+DEVICE_FAMILY,Cyclone IV E
+GENERATION_ID,1546354061
+#
+#
+# Files generated for memclk on 2019.01.01.15:47:41
+files:
+filepath,kind,attributes,module,is_top
+simulation/memclk.vhd,VHDL,,memclk,true
+simulation/submodules/memclk_altclkctrl_0.v,VERILOG,,memclk_altclkctrl_0,false
+#
+# Map from instance-path to kind of module
+instances:
+instancePath,module
+memclk.altclkctrl_0,memclk_altclkctrl_0

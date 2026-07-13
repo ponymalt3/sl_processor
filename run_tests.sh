@@ -40,9 +40,8 @@ fi
 
 cd "$REPO_ROOT"
 
-if [ ! -f "${BUILD_DIR}/CMakeCache.txt" ]; then
-    cmake -B "${BUILD_DIR}" .
-fi
+# Always re-configure so that new source files (GLOB_RECURSE) are picked up.
+cmake -B "${BUILD_DIR}" . -DCMAKE_BUILD_TYPE=Release
 
 # Build C++ tests (POST_BUILD runs them and generates test.vector),
 # then run all VHDL cocotb sim targets in parallel.

@@ -1,0 +1,29 @@
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate /home/malte/workspace/SLProcessor/VHDL/quartus/sdram.qsys --synthesis=VHDL --output-directory=/home/malte/workspace/SLProcessor/VHDL/quartus/sdram/synthesis --family="Cyclone IV E" --part=EP4CE22F17C6
+Progress: Loading quartus/sdram.qsys
+Progress: Reading input file
+Progress: Adding clk_0 [clock_source 18.1]
+Progress: Parameterizing module clk_0
+Progress: Adding sdram [altera_avalon_new_sdram_controller 18.1]
+Progress: Parameterizing module sdram
+Progress: Adding sys_sdram_pll_0 [altera_up_avalon_sys_sdram_pll 18.0]
+Progress: Parameterizing module sys_sdram_pll_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: sdram.sdram: SDRAM Controller will only be supported in Quartus Prime Standard Edition in the future release.
+Info: sdram.sys_sdram_pll_0: Refclk Freq: 50.0
+Warning: sdram.: You have exported the interface sdram.s1 but not its associated clock interface.  Export the driver of sdram.clk
+Info: sdram: Generating sdram "sdram" for QUARTUS_SYNTH
+Info: sdram: Starting RTL generation for module 'sdram_sdram'
+Info: sdram:   Generation command is [exec /home/malte/intelFPGA_lite/18.1/quartus/linux64/perl/bin/perl -I /home/malte/intelFPGA_lite/18.1/quartus/linux64/perl/lib -I /home/malte/intelFPGA_lite/18.1/quartus/sopc_builder/bin/europa -I /home/malte/intelFPGA_lite/18.1/quartus/sopc_builder/bin/perl_lib -I /home/malte/intelFPGA_lite/18.1/quartus/sopc_builder/bin -I /home/malte/intelFPGA_lite/18.1/quartus/../ip/altera/sopc_builder_ip/common -I /home/malte/intelFPGA_lite/18.1/quartus/../ip/altera/sopc_builder_ip/altera_avalon_new_sdram_controller -- /home/malte/intelFPGA_lite/18.1/quartus/../ip/altera/sopc_builder_ip/altera_avalon_new_sdram_controller/generate_rtl.pl --name=sdram_sdram --dir=/tmp/alt7917_6003765563235011153.dir/0002_sdram_gen/ --quartus_dir=/home/malte/intelFPGA_lite/18.1/quartus --verilog --config=/tmp/alt7917_6003765563235011153.dir/0002_sdram_gen//sdram_sdram_component_configuration.pl  --do_build_sim=0  ]
+Info: sdram: Done RTL generation for module 'sdram_sdram'
+Info: sdram: "sdram" instantiated altera_avalon_new_sdram_controller "sdram"
+Info: sys_sdram_pll_0: "sdram" instantiated altera_up_avalon_sys_sdram_pll "sys_sdram_pll_0"
+Info: rst_controller: "sdram" instantiated altera_reset_controller "rst_controller"
+Info: sys_pll: "sys_sdram_pll_0" instantiated altera_up_altpll "sys_pll"
+Info: reset_from_locked: "sys_sdram_pll_0" instantiated altera_up_avalon_reset_from_locked_signal "reset_from_locked"
+Info: sdram: Done "sdram" with 6 modules, 8 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

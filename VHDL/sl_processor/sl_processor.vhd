@@ -170,7 +170,7 @@ begin  -- architecture rtl
 
   qfp_unit_1: entity work.qfp_unit
     generic map (
-      config => qfp_config_add+qfp_config_mul+qfp_config_div+qfp_config_math+qfp_config_mac)
+      config => qfp_config_add or qfp_config_mul or qfp_config_div or qfp_config_math or qfp_config_mac)
     port map (
       clk_i      => clk_i,
       reset_n_i  => core_reset_n_i,

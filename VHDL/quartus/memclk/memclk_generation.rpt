@@ -1,0 +1,56 @@
+Info: Starting: Create simulation model
+Info: qsys-generate /home/malte/workspace/SLProcessor/VHDL/quartus/memclk.qsys --simulation=VHDL --allow-mixed-language-simulation --output-directory=/home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation --family="Cyclone IV E" --part=EP4CE22F17C6
+Progress: Loading quartus/memclk.qsys
+Progress: Reading input file
+Progress: Adding altclkctrl_0 [altclkctrl 17.1]
+Progress: Parameterizing module altclkctrl_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+: memclk.altclkctrl_0: Targeting device family: Cyclone IV E.
+: memclk.altclkctrl_0: Global clock network allows a clock signal to reach all parts of the chip with the same amount of skew. Input port 'clkselect' can be used to switch between four clock inputs.
+Info: memclk: Generating memclk "memclk" for SIM_VHDL
+Info: altclkctrl_0: Generating top-level entity memclk_altclkctrl_0.
+Info: altclkctrl_0: "memclk" instantiated altclkctrl "altclkctrl_0"
+Info: memclk: Done "memclk" with 2 modules, 2 files
+Info: qsys-generate succeeded.
+Info: Finished: Create simulation model
+Info: Starting: Create Modelsim Project.
+Info: sim-script-gen --spd=/home/malte/workspace/SLProcessor/VHDL/quartus/memclk/memclk.spd --output-directory=/home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation/ --use-relative-paths=true
+Info: Doing: ip-make-simscript --spd=/home/malte/workspace/SLProcessor/VHDL/quartus/memclk/memclk.spd --output-directory=/home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation/ --use-relative-paths=true
+Info: Generating the following file(s) for MODELSIM simulator in /home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation/ directory:
+Info: 	mentor/msim_setup.tcl
+Info: Skipping VCS script generation since VHDL file $QUARTUS_INSTALL_DIR/eda/sim_lib/altera_syn_attributes.vhd is required for simulation
+Info: Generating the following file(s) for VCSMX simulator in /home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation/ directory:
+Info: 	synopsys/vcsmx/synopsys_sim.setup
+Info: 	synopsys/vcsmx/vcsmx_setup.sh
+Info: Generating the following file(s) for NCSIM simulator in /home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation/ directory:
+Info: 	cadence/cds.lib
+Info: 	cadence/hdl.var
+Info: 	cadence/ncsim_setup.sh
+Info: 	1 .cds.lib files in cadence/cds_libs/ directory
+Info: Generating the following file(s) for RIVIERA simulator in /home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation/ directory:
+Info: 	aldec/rivierapro_setup.tcl
+Info: For information on how to simulate your IP, see the explanatory comments in the simulator-specific subdirectories under /home/malte/workspace/SLProcessor/VHDL/quartus/memclk/simulation/.
+Info: Regenerate these scripts whenever you make any change to any Quartus-generated IP in your project.
+Info: Finished: Create Modelsim Project.
+Info: 
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate /home/malte/workspace/SLProcessor/VHDL/quartus/memclk.qsys --synthesis=VHDL --output-directory=/home/malte/workspace/SLProcessor/VHDL/quartus/memclk/synthesis --family="Cyclone IV E" --part=EP4CE22F17C6
+Progress: Loading quartus/memclk.qsys
+Progress: Reading input file
+Progress: Adding altclkctrl_0 [altclkctrl 17.1]
+Progress: Parameterizing module altclkctrl_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+: memclk.altclkctrl_0: Targeting device family: Cyclone IV E.
+: memclk.altclkctrl_0: Global clock network allows a clock signal to reach all parts of the chip with the same amount of skew. Input port 'clkselect' can be used to switch between four clock inputs.
+Info: memclk: Generating memclk "memclk" for QUARTUS_SYNTH
+Info: altclkctrl_0: Generating top-level entity memclk_altclkctrl_0.
+Info: altclkctrl_0: "memclk" instantiated altclkctrl "altclkctrl_0"
+Info: memclk: Done "memclk" with 2 modules, 2 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

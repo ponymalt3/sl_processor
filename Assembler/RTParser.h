@@ -21,6 +21,7 @@
  *        'log2' '(' exp ')' |
  *        'int' '(' exp ')' |
  *        'shft' '(' exp ',' exp ')' |
+ *        'macres' '(' ')' |
  *        '(' exp ')';
  *
  * exp' := e |
@@ -46,6 +47,7 @@
  *           ('decl' | 'array')  name int |
  *           'def' name const |
  *           'ref' name const |
+ *           'mac' '(' exp ',' exp ')' |
  *           'break' |
  *           'continue';
  *

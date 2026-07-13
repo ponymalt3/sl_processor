@@ -597,6 +597,70 @@ MTEST(testOperationsBasic, test_that_shft_with_both_var_operands_works)
   tester.expectSymbol("a", qfp32_t(9.0 / 8));
 }
 
+MTEST(testOperationsBasic, test_that_single_mac_term_works)
+{
+  RTProg testCode = R"asm(
+    a=3;
+    b=4;
+    mac(a,b);
+    x=macres();
+  )asm";
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("x", qfp32_t(3.0 * 4.0));
+}
+
+MTEST(testOperationsBasic, test_that_mac_accumulates_a_dot_product_driven_by_a_loop)
+{
+  RTProg testCode = R"asm(
+    data0 {1,2,3,4};
+    data1 {5,6,7,8};
+
+    a0=data0;
+    a1=data1;
+    loop(4)
+      mac([a0++],[a1++]);
+    end
+
+    x=macres();
+  )asm";
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("x", qfp32_t(1 * 5 + 2 * 6 + 3 * 7 + 4 * 8));
+}
+
+MTEST(testOperationsBasic, test_that_macres_resets_the_accumulator_after_reading_it)
+{
+  RTProg testCode = R"asm(
+    a=2;
+    b=3;
+    mac(a,b);
+    x=macres();
+    y=macres();
+    x=x;
+    y=y;
+  )asm";
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("x", qfp32_t(2.0 * 3.0));
+  tester.expectSymbol("y", qfp32_t(0.0));
+}
+
 MTEST(testOperationsBasic, test_that_array_base_addr_load_in_expr_works)
 {
   RTProg testCode = R"(

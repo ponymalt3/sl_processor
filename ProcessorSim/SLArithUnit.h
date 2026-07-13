@@ -17,9 +17,9 @@ public:
 
   void reset();
 
-  void addOperation(const _DecodeEx &decEx);
-  _MUnit comb(const _DecodeEx &decEx);
-  void update(const _DecodeEx &decEx,const _MUnit &comb,uint32_t en);
+  void addOperation(const _DecodeEx& decEx);
+  _MUnit comb(const _DecodeEx& decEx);
+  void update(const _DecodeEx& decEx, const _MUnit& comb, uint32_t en);
 
 protected:
   struct _PendingOp
@@ -32,7 +32,8 @@ protected:
   uint32_t curCycle_;
   uint32_t activeOp_;
   bool newOpAdded_;
-  uint32_t mac_acc_raw_; // MAC running sum (raw qfp32 bits)
+  uint32_t mac_lane_raw_[2];
+  uint32_t mac_term_count_;
 };
 
 #endif /* SLARITHUNIT_H_ */
