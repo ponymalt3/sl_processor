@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 
 #include "ErrorHandler.h"
 
@@ -30,13 +31,15 @@ public:
   static RTProg createFromFile(const std::string &filename)
   {
     std::fstream f(filename,std::ios::in|std::ios::binary);
-    
-    if(f.is_open())
+
+    if(!f.is_open())
     {
-      std::stringstream ss;
-      ss << f.rdbuf();
-      return RTProg(ss.str());
+      throw std::runtime_error("RTProg::createFromFile: could not open file '"+filename+"'");
     }
+
+    std::stringstream ss;
+    ss << f.rdbuf();
+    return RTProg(ss.str());
   }
   
 protected:

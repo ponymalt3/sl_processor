@@ -38,6 +38,7 @@ public:
     TOK_ARRAY_SIZE,
     TOK_WHILE,
     TOK_BUSLOCK,
+    TOK_STRUCT,
     TOK_EOS
   };
 

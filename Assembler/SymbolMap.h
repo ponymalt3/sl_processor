@@ -37,10 +37,11 @@ public:
     uint16_t flagStayAllocated_ : 1;//memory cant be released (cause there might be references)
     uint16_t flagsAllocateHighest_ : 1;
     uint16_t flagsIsFunction_ : 1;
-    uint16_t flagsHasCustomStr_ : 1;
+    uint16_t flagIsStructRef_ : 1;//holds a pointer to a struct instance (e.g. a by-reference function parameter) instead of being the storage itself
     uint16_t loopIndexScope_;
     uint16_t allocatedSize_;
     uint16_t link_;
+    uint16_t structTypeId_;//InvalidLink if not a struct instance/reference
     union
     {
       struct

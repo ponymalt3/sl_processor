@@ -18,11 +18,13 @@ SymbolMap::_Symbol::_Symbol()
   flagStayAllocated_=0;
   flagsAllocateHighest_=0;
   flagsIsFunction_=0;
+  flagIsStructRef_=0;
   allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
   loopIndexScope_=0;
   link_=InvalidLink;
+  structTypeId_=InvalidLink;
 }
 
 SymbolMap::_Symbol::_Symbol(const Stream::String &str)
@@ -35,11 +37,13 @@ SymbolMap::_Symbol::_Symbol(const Stream::String &str)
   flagStayAllocated_=0;
   flagsAllocateHighest_=0;
   flagsIsFunction_=0;
+  flagIsStructRef_=0;
   allocatedSize_=0;
   allocatedAddr_=0;
   lastAccess_=0;
   loopIndexScope_=0;
   link_=InvalidLink;
+  structTypeId_=InvalidLink;
 }
 
 void SymbolMap::_Symbol::changeArraySize(uint32_t size)
