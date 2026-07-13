@@ -108,6 +108,14 @@ Stream& Stream::skipWhiteSpaces()
     {
       ++pos_;
       while(pos_ < length_ && asmText_[pos_] != '%' && asmText_[pos_] != '\n') ++pos_;
+
+      if(pos_ >= length_)
+      {
+        //unterminated comment reaching end of file
+        ch=asmText_[pos_];//'\0'
+        break;
+      }
+
       line_+=asmText_[pos_]=='\n';
       ch=asmText_[++pos_];
     }
@@ -352,6 +360,8 @@ Token Stream::readToken()
       return Token(sym,Token::TOK_FCN_RET);
     if(sym == "sizeof")
       return Token(sym,Token::TOK_ARRAY_SIZE);
+    if(sym == "struct")
+      return Token(sym,Token::TOK_STRUCT);
   }
   
   if(sym.getLength() == 7)

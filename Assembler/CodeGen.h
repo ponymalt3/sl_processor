@@ -204,7 +204,7 @@ public:
   
   enum {EXEC_MODE_1CYC,EXEC_MODE_3CYC};
   enum {MaxLoopDepth=6,LoopStorageIndex=0,NoLoopFrame=-1};
-  enum {NoRef=0xFFFF,NoLabel=NoRef,RefLoad=0xFFFE,RefLabelOffset=0xFFC0};
+  enum {NoRef=0xFFFF,NoLabel=NoRef,RefLoad=0xFFFE,RefLabelOffset=0xFFC0,NoStructType=0xFFFF};
 
   struct _LoopFrame
   {
@@ -234,6 +234,12 @@ public:
       std::vector<_Instr> instrs_;
       std::vector<bool> alreadyPatched_;
     } inline_;
+    std::vector<uint32_t> paramStructTypeId_;//NoStructType for scalar parameters
+  };
+
+  struct _StructType
+  {
+    std::vector<std::string> fields_;
   };
   
   class CodeGenDelegate
@@ -274,6 +280,14 @@ public:
   void resizeArray(const Stream::String &str,uint32_t newSize);
   void addDefinition(const Stream::String &str,qfp32 value);
   void addReference(const Stream::String &str,uint32_t irsOffset);
+
+  uint32_t addStructDeclaration(const Stream::String &name,const std::vector<Stream::String> &fields);
+  uint32_t findStructType(const Stream::String &name);
+  uint32_t getStructFieldCount(uint32_t typeId);
+  uint32_t findStructField(uint32_t typeId,const Stream::String &fieldName);
+  void addStructInstanceDeclaration(const Stream::String &name,uint32_t typeId);
+  void markSymbolAsStructReference(const Stream::String &name,uint32_t typeId);
+  void addStructPointerDeclaration(const Stream::String &name,uint32_t typeId);
   
   uint32_t getCurCodeAddr() const
   {
@@ -363,6 +377,8 @@ public:
   SymStack<4> symbolMaps_;
   Stream &stream_;
   std::map<std::string,_FunctionInfo> functions_;
+  std::vector<_StructType> structTypes_;
+  std::map<std::string,uint32_t> structTypeIds_;
   SymbolMap defaultSymbols_;
   
   //settings

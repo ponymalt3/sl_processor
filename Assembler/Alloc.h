@@ -56,7 +56,7 @@ public:
     
     if(addr/8 == firstFreeBlock_)
     {
-      firstFreeBlock_=+size/8;
+      firstFreeBlock_+=size/8;
       while(firstFreeBlock_ < numBlocks_ && blocks_[firstFreeBlock_] == 0xFF) ++firstFreeBlock_;
     }
     

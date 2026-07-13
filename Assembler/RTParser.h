@@ -44,6 +44,8 @@
  *           loop |
  *           while |
  *           array |
+ *           struct |
+ *           structInstance |
  *           ('decl' | 'array')  name int |
  *           'def' name const |
  *           'ref' name const |
@@ -56,12 +58,18 @@
  * stments' := e |
  *             stment;
  *
- * symbol := name ['(' uint ')'] |
+ * symbol := name ['(' uint ')' | '.' name] |
  *           '[' 'a' ('0'|'1') ['++'] ']'
  *
  * const := number | hex
- * 
+ *
  * array := name '{' exp { ',' exp } '}';
+ *
+ * struct := 'struct' name '{' { name ';' } '}' ';';
+ *
+ * structInstance := name name [ '{' exp { ',' exp } '}' ];
+ *
+ * structPointer := 'ref' name name [ '=' exp ];
  *
  */
 
@@ -111,6 +119,15 @@ public:
   _Operand parseFunctionCall(Stream &stream,const Stream::String &name);
   void parseFunctionDecl(Stream &stream);
   void parseArrayDecl(Stream &stream,const Stream::String &name);
+  void parseStructDecl(Stream &stream);
+  void parseStructInstanceDecl(Stream &stream,uint32_t structTypeId,const Stream::String &name);
+  void parseStructPointerDecl(Stream &stream,uint32_t structTypeId,const Stream::String &name);
+  bool parseFieldOrIndexSuffix(Stream &stream,const Stream::String &name,uint32_t &index,uint32_t &structRefFieldOffset);
+  uint32_t parseFieldName(Stream &stream,uint32_t structTypeId);
+  void emitStructRefAddrIntoA1(const Stream::String &refName,uint32_t fieldOffset);
+  void emitStructRefAddrIntoA1(const _Operand &addr,uint32_t fieldOffset);
+  _Operand materializeStructRefFieldRead(const _Operand &addr,uint32_t fieldOffset);
+  void parseStructRefFieldAssignment(Stream &stream,const Stream::String &refName,uint32_t fieldOffset);
 
 protected:
   enum {NonMovableLineFlag=0x80000000};

@@ -612,6 +612,84 @@ void CodeGen::addReference(const Stream::String &str,uint32_t irsOffset)
   symbolMaps_.top().createReference(str,irsOffset);
 }
 
+uint32_t CodeGen::addStructDeclaration(const Stream::String &name,const std::vector<Stream::String> &fields)
+{
+  std::string key(name.getBase()+name.getOffset(),name.getLength());
+
+  Error::expect(structTypeIds_.find(key) == structTypeIds_.end()) << stream_ << "struct '" << name << "' already defined" << ErrorHandler::FATAL;
+  Error::expect(fields.size() > 0) << stream_ << "struct '" << name << "' must have at least one field" << ErrorHandler::FATAL;
+
+  _StructType type;
+  for(auto &f : fields)
+  {
+    type.fields_.push_back(std::string(f.getBase()+f.getOffset(),f.getLength()));
+  }
+
+  uint32_t id=structTypes_.size();
+  structTypes_.push_back(type);
+  structTypeIds_[key]=id;
+
+  return id;
+}
+
+uint32_t CodeGen::findStructType(const Stream::String &name)
+{
+  std::string key(name.getBase()+name.getOffset(),name.getLength());
+
+  auto it=structTypeIds_.find(key);
+  return it == structTypeIds_.end() ? NoStructType : it->second;
+}
+
+uint32_t CodeGen::getStructFieldCount(uint32_t typeId)
+{
+  Error::expect(typeId < structTypes_.size()) << "internal error: invalid struct type id" << ErrorHandler::FATAL;
+  return structTypes_[typeId].fields_.size();
+}
+
+uint32_t CodeGen::findStructField(uint32_t typeId,const Stream::String &fieldName)
+{
+  Error::expect(typeId < structTypes_.size()) << "internal error: invalid struct type id" << ErrorHandler::FATAL;
+
+  std::string key(fieldName.getBase()+fieldName.getOffset(),fieldName.getLength());
+
+  const std::vector<std::string> &fields=structTypes_[typeId].fields_;
+  for(uint32_t i=0;i<fields.size();++i)
+  {
+    if(fields[i] == key)
+      return i;
+  }
+
+  return NoRef;
+}
+
+void CodeGen::addStructInstanceDeclaration(const Stream::String &name,uint32_t typeId)
+{
+  uint32_t size=getStructFieldCount(typeId);
+  symbolMaps_.top().createSymbol(name,size);
+
+  uint32_t symRef=symbolMaps_.top().findSymbol(name);
+  symbolMaps_.top()[symRef].structTypeId_=typeId;
+
+  arrayAllocInfo_.insert({getCurCodeAddr(),symRef});
+}
+
+void CodeGen::markSymbolAsStructReference(const Stream::String &name,uint32_t typeId)
+{
+  uint32_t symRef=symbolMaps_.top().findSymbol(name);
+  Error::expect(symRef != SymbolMap::InvalidLink) << stream_ << "internal error: symbol '" << name << "' not found" << ErrorHandler::FATAL;
+
+  SymbolMap::_Symbol &sym=symbolMaps_.top()[symRef];
+  sym.structTypeId_=typeId;
+  sym.flagIsStructRef_=1;
+}
+
+void CodeGen::addStructPointerDeclaration(const Stream::String &name,uint32_t typeId)
+{
+  //plain scalar slot holding an (unchecked) pointer value, reinterpreted as the given struct type
+  symbolMaps_.top().createSymbol(name,0);
+  markSymbolAsStructReference(name,typeId);
+}
+
 void CodeGen::createLoopFrame(const Label &contLabel,const Label &breakLabel,const _Operand *counter)
 {
   Error::expect(loopDepth_ < MaxLoopDepth) << "internal error: no more loop frames available" << ErrorHandler::FATAL;
