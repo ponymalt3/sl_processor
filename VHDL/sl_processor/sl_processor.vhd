@@ -170,7 +170,7 @@ begin  -- architecture rtl
 
   qfp_unit_1: entity work.qfp_unit
     generic map (
-      config => qfp_config_add+qfp_config_mul+qfp_config_div+qfp_config_math+qfp_config_mac)
+      config => qfp_config_add or qfp_config_mul or qfp_config_div or qfp_config_math or qfp_config_mac)
     port map (
       clk_i      => clk_i,
       reset_n_i  => core_reset_n_i,
@@ -222,7 +222,8 @@ begin  -- architecture rtl
       qfp_idle <= '1';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       if core_en_i = '1' then
-        if qfp_ready = '1' and alu_en2 = '1' and qfp_cmd.unit /= QFP_UNIT_NONE then
+        if qfp_ready = '1' and alu_en2 = '1' and qfp_cmd.unit /= QFP_UNIT_NONE
+           and alu_cmd /= CMD_MAC then
           qfp_idle <= '0';
         end if;
         if qfp_complete = '1' then

@@ -25,7 +25,8 @@ option(SIM_WAVES "Generate FST waveform files (open with GTKWave)" ON)
 add_subdirectory(VHDL/sl_processor/testing)
 add_subdirectory(VHDL/wishbone/testing/wb_cache)
 add_subdirectory(VHDL/wishbone/testing/wb_interconnect)
+add_subdirectory(VHDL/qfp32/Test)
 
-# cmake --build . --target sim_all  runs all three in parallel
+# cmake --build . --target sim_all  runs all four in parallel
 add_custom_target(sim_all)
-add_dependencies(sim_all sim_processor sim_wb_cache sim_wb_interconnect)
+add_dependencies(sim_all sim_processor sim_wb_cache sim_wb_interconnect sim_qfp32)

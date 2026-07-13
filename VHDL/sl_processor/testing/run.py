@@ -22,7 +22,7 @@ SCRIPT_DIR   = Path(__file__).parent.resolve()
 VHDL_ROOT    = SCRIPT_DIR.parent.parent                # testing/ → sl_processor/ → VHDL/
 REPO_ROOT    = VHDL_ROOT.parent                        # → SLProcessor/
 SL_PROC_DIR  = VHDL_ROOT / "sl_processor"
-QFP32_ROOT   = VHDL_ROOT / "qfp32" / "trunk"
+QFP32_ROOT   = VHDL_ROOT / "qfp32"
 COCOTB_LIB   = VHDL_ROOT / "cocotb"
 
 _DEFAULT_WORKERS   = int(os.environ.get("SIM_WORKERS", min(os.cpu_count() or 4, 8)))
@@ -39,6 +39,7 @@ VHDL_SOURCES = [
     QFP32_ROOT / "Units" / "norm.vhd",
     QFP32_ROOT / "Units" / "recp.vhd",
     QFP32_ROOT / "Units" / "math.vhd",
+    QFP32_ROOT / "Units" / "mac.vhd",
     QFP32_ROOT / "unit.vhd",
     # SL processor (sl_misc/sl_dpram stay at VHDL root)
     VHDL_ROOT    / "sl_misc.vhd",
