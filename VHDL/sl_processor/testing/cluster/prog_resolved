@@ -1,0 +1,39 @@
+function main1()
+  a1 = 512 + 0*2;
+  x = [a1];
+  a1 = 512 + 0*2 + 1;
+  [a1] = x*2 + 0;
+
+  loop(2000)
+  end
+end
+
+function main2()
+  a1 = 512 + 1*2;
+  x = [a1];
+  a1 = 512 + 1*2 + 1;
+  [a1] = x*2 + 1;
+
+  loop(2000)
+  end
+end
+
+function main3()
+  a1 = 512 + 2*2;
+  x = [a1];
+  a1 = 512 + 2*2 + 1;
+  [a1] = x*2 + 2;
+
+  loop(2000)
+  end
+end
+
+function main4()
+  a1 = 512 + 3*2;
+  x = [a1];
+  a1 = 512 + 3*2 + 1;
+  [a1] = x*2 + 3;
+
+  loop(2000)
+  end
+end

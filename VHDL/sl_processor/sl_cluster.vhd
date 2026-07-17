@@ -10,17 +10,17 @@ use work.sl_misc_p.all;
 use work.wishbone_p.all;
 
 entity sl_cluster is
-  
+
   generic (
     LocalMemSizeInKB  : natural := 2;
-    ExtMemSizeInKB    : natural := 8;
-    CodeMemSizeInKB   : natural := 8);
+    ExtMemSizeInKB    : natural := 8*1024;
+    CodeMemSizeInKB   : natural := 2);
 
   port (
     clk_i          : in std_ulogic;
     mem_clk_i      : in std_ulogic;
     reset_n_i      : in std_ulogic;
-    
+
     core_en_i      : in std_ulogic_vector(3 downto 0);
     core_reset_n_i : in std_ulogic_vector(3 downto 0);
 
@@ -67,7 +67,7 @@ begin  -- architecture rtl
     code_master_o <= slave_in(0);
     slave_out(0) <= code_master_i;
     ext_master_o <= slave_in(1);
-    slave_out(1) <= ext_master_i;      
+    slave_out(1) <= ext_master_i;
 
   --debug_o <= code_data(0)(3 downto 0) & To_StdULogicVector(std_logic_vector(code_addr(0)(3 downto 0)));
 
@@ -95,7 +95,7 @@ begin  -- architecture rtl
       generic map (
         WordsPerLine  => 8,
         NumberOfLines => 64,
-        WriteTrough   => true)
+        WriteThrough  => true)
       port map (
         clk_i           => clk_i,
         mem_clk_i       => mem_clk_i,
@@ -112,7 +112,7 @@ begin  -- architecture rtl
         snooping_en_i   => '0',
         master_out_i    => master_in(2*i),
         master_out_o    => master_out(2*i));
-    
+
     sl_processor_1: entity work.sl_processor
       generic map (
         LocalMemSizeInKB => LocalMemSizeInKB,
