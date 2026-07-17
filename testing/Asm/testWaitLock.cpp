@@ -73,21 +73,25 @@ MTEST(testWaitLock, test_that_lock_works_correctly)
 {
   RTProg testCode = R"(
     a=0;
+    a1=1000;
     buslock {
-      a0=100;
-      if([a0] == 17)
-        [a0]=18;
+      if([a1] == 17)
+        [a1]=99;
       end
     }
+    b=a*7/a;
   )";
 
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-
-  tester.getProcessor().writeMemory(100, 17.0);
+  tester.getProcessor().writeMemory(1000, 17.0);
 
   tester.loadCode();
+  tester.getProcessor().executeUntilAddr(20);  // after buslock (BUS_LOCK opcode retired)
+  tester.getProcessor().expectBusLocked(true);
+  tester.getProcessor().executeUntilAddr(32);
+  tester.getProcessor().expectBusLocked(false);
   tester.execute();
 
-  tester.expectMemoryAt(100, 18);
+  tester.expectMemoryAt(1000, 99);
 }

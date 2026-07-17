@@ -44,6 +44,7 @@ entity sl_core is
     ext_mem_rw_o : out std_ulogic;
     ext_mem_en_o : out std_ulogic;
     ext_mem_stall_i : in std_ulogic;
+    bus_locked_o : out std_ulogic;
 
     -- read ports (falling edge)
     rp0_addr_o : out reg_addr_t;
@@ -59,7 +60,7 @@ entity sl_core is
     wp_we_o : out std_ulogic;
 
     executed_addr_o : out unsigned(15 downto 0));
-  
+
 end entity sl_core;
 
 architecture rtl of sl_core is
@@ -134,6 +135,8 @@ begin  -- architecture rtl
   alu_op_a_o <= mem0_reg when proc.decex.mux0 = MUX1_MEM else proc.state.result;
   alu_op_b_o <= proc.decex.memX when proc.decex.wr_ext = '1' else mem1_reg;
 
+  bus_locked_o <= proc.state.bus_locked;
+
   -- temporarily fix for problem with cache when addr changes while fetch is in progress
   state_enable_reg <= en_i when state_next.pc = proc.state.pc or cp_stall_i = '0' else '0';
 
@@ -142,9 +145,9 @@ begin  -- architecture rtl
     if reset_n_i = '0' then             -- asynchronous reset (active low)
       executed_addr_o <= to_unsigned(0,16);
       proc.fetch <= ((others => '0'),to_unsigned(0,16),'0');
-      proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0');
+      proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0','0','0');
       proc.decex <= ("0000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0','0',(others => '0'),'0');
-      proc.state <= (to_unsigned(CodeStartAddr,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","111",'0',(others => '0'),(others => '0'),'0','0','0','1');
+      proc.state <= (to_unsigned(CodeStartAddr,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","111",'0',(others => '0'),(others => '0'),'0','0','0','1','0');
       reset_1d <= '1';
       disable_alu <= '0';
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
@@ -225,6 +228,13 @@ begin  -- architecture rtl
     if proc.state.enable(S_EXEC) = '1' and proc.dec.loop1 = '1' then
       state_next.loop_count <= exec_next.int_result;
       state_next.loop_count(31) <= '1';
+    end if;
+
+    if proc.state.enable(S_EXEC) = '1' and proc.dec.bus_lock = '1' then
+      state_next.bus_locked <= '1';
+    end if;
+    if proc.state.enable(S_EXEC) = '1' and proc.dec.bus_unlock = '1' then
+      state_next.bus_locked <= '0';
     end if;
 
     if exec_next.complete = '1' or (proc.state.enable(S_EXEC) = '1' and proc.decex.wb_en = '1' and proc.decex.wb_reg = WBREG_NONE) then

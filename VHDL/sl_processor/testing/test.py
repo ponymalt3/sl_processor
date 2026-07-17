@@ -13,6 +13,18 @@ Vector entry types:
   0004 <addr32> <dat32> — write data to memory address
   0005 <hex32>        — run N cycles with ext_mem_stall asserted
   000F <addr32> <dat32> — read memory and assert result == expected
+  0011 <0|1>          — bus lock probe (see expectBusLocked in SLProcessorTest.h):
+                          1 = start a concurrent write to a scratch ext_mem address
+                              WITHOUT disabling the processor, then watch every cycle
+                              for as long as sl_processor_1.bus_locked stays asserted:
+                              the write must NOT complete during that window (proves
+                              the arbiter is withholding the grant while locked). A
+                              fixed cycle count doesn't work here since the lock's
+                              actual duration depends on the test program's own code
+                              inside buslock{} -- tying the check to the real signal
+                              avoids having to guess/tune a window length.
+                          0 = assert the write started by the last "0011 1" has
+                              completed by now (proves it unblocked after busunlock)
 
 Failed test lines are written to FAILED_VECTOR (env var) if any test fails.
 """
@@ -24,6 +36,13 @@ from cocotb.triggers import RisingEdge, Timer
 
 CLK_PERIOD_NS = 20
 _ADDR_WAIT_LIMIT_NS = 50_000_000            # 50ms sim time = 2.5M cycles
+_BUS_LOCK_PROBE_ADDR = 600                  # scratch ext_mem word (must be in ext_mem's wishbone
+                                             # range [512,1024) -- that's the only slave the
+                                             # processor's master shares an arbiter with, see
+                                             # MasterConfig in wrapper.vhd; core_mem isn't even
+                                             # reachable from the processor's wb master)
+_BUS_LOCK_PROBE_DATA = 0xDEADBEEF
+_BUS_LOCK_MAX_WAIT_CYCLES = 1000            # safety net so a stuck lock times out instead of hanging
 
 
 class _TestMaster:
@@ -39,7 +58,9 @@ class _TestMaster:
         self._dut.mem_we_i.value   = 0
         self._dut.mem_en_i.value   = 0
 
-    async def write(self, addr: int, data: int):
+    async def start_write(self, addr: int, data: int):
+        """Trigger a write and return once issued, WITHOUT waiting for mem_complete_o.
+        Caller is responsible for polling completion (used to probe bus arbitration)."""
         self._dut.mem_addr_i.value = addr
         self._dut.mem_din_i.value  = data
         self._dut.mem_we_i.value   = 1
@@ -47,6 +68,9 @@ class _TestMaster:
         await RisingEdge(self._clk)
         self._dut.mem_en_i.value = 0
         self._dut.mem_we_i.value = 0
+
+    async def write(self, addr: int, data: int):
+        await self.start_write(addr, data)
         while not self._dut.mem_complete_o.value:
             await RisingEdge(self._clk)
         await RisingEdge(self._clk)
@@ -97,6 +121,7 @@ async def test_from_vector(dut):
     assertions_passed = 0
     tests_passed      = 0
     tests_failed      = 0
+    bus_lock_probe_completed = False  # set by the "0011 1" handler, read by "0011 0"
 
     def _log_test_result():
         if not current_test_name:
@@ -232,6 +257,68 @@ async def test_from_vector(dut):
                     test_failed = True
             else:
                 assertions_passed += 1
+
+        elif entry_type == 0x0011:
+            current_test_lines.append(line)
+            if test_failed:
+                continue
+            expect_locked = int(rest[0], 16) != 0
+
+            if expect_locked:
+                # Must actually be locked right now -- otherwise everything below
+                # (which only checks for a premature completion) would trivially
+                # "pass" even if buslock never engages at all.
+                if not dut.sl_processor_1.bus_locked.value:
+                    msg = "bus_locked is not asserted where the test expects it to be"
+                    cocotb.log.error(f"  assertion failed: {msg}")
+                    failed_tests.append(list(current_test_lines))
+                    test_failed = True
+                    continue
+
+                # concurrent probe -- processor keeps running (no force_proc_bus_off_i)
+                await master.start_write(_BUS_LOCK_PROBE_ADDR, _BUS_LOCK_PROBE_DATA)
+                # ONE continuous watch from probe-start until the completion pulse is
+                # actually observed (or a generous timeout), recording whether
+                # bus_locked was still asserted at that exact moment. A two-phase
+                # design (watch only "while locked", then separately re-check after
+                # a later "run until addr N") has a blind spot: mem_complete_o is a
+                # ONE-CYCLE PULSE (see wb_master.vhd), and if it fires during the gap
+                # between the two phases -- which it does here, landing the cycle
+                # right after unlock -- neither phase ever sees it. Watching
+                # continuously through and past the unlock avoids that gap entirely.
+                bus_lock_probe_completed = False
+                completed_while_locked = False
+                waited = 0
+                while not bus_lock_probe_completed and waited < _BUS_LOCK_MAX_WAIT_CYCLES:
+                    still_locked = bool(dut.sl_processor_1.bus_locked.value)
+                    await RisingEdge(dut.clk_i)
+                    waited += 1
+                    if dut.mem_complete_o.value:
+                        bus_lock_probe_completed = True
+                        completed_while_locked = still_locked
+                if completed_while_locked:
+                    msg = "bus probe completed while locked -- buslock did not block it"
+                    cocotb.log.error(f"  assertion failed: {msg}")
+                    failed_tests.append(list(current_test_lines))
+                    test_failed = True
+                elif not bus_lock_probe_completed:
+                    msg = "bus probe never completed at all (timed out)"
+                    cocotb.log.error(f"  assertion failed: {msg}")
+                    failed_tests.append(list(current_test_lines))
+                    test_failed = True
+                else:
+                    assertions_passed += 1
+            else:
+                # the matching "0011 1" already watched the probe through to
+                # completion; this just confirms it was actually observed to finish
+                if not bus_lock_probe_completed:
+                    msg = "bus probe never completed after buslock released"
+                    cocotb.log.error(f"  assertion failed: {msg}")
+                    failed_tests.append(list(current_test_lines))
+                    test_failed = True
+                else:
+                    assertions_passed += 1
+                    await RisingEdge(dut.clk_i)  # let complete_o settle, matches _TestMaster.write/read
 
     _log_test_result()
     if current_test_name:

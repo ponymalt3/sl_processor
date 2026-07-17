@@ -94,6 +94,8 @@ package sl_structs_p is
     jmp_target_pc : reg_pc_t;
     inc_ad0 : std_ulogic;
     inc_ad1 : std_ulogic;
+    bus_lock : std_ulogic;
+    bus_unlock : std_ulogic;
   end record sl_decode_t;
 
   type sl_decode_ex_t is record
@@ -147,7 +149,9 @@ package sl_structs_p is
     inc_ad1 : std_ulogic;
 
     exec_next : std_ulogic;
-    
+
+    bus_locked : std_ulogic; -- holds ext_master_o.cyc across a buslock{} block
+
   end record sl_state_t;
 
   type sl_alu_t is record

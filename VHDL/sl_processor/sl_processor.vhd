@@ -78,6 +78,7 @@ architecture rtl of sl_processor is
   signal ext_mem_rw : std_ulogic;
   signal ext_mem_en : std_ulogic;
   signal ext_mem_stall : std_ulogic;
+  signal bus_locked : std_ulogic;
 
   constant InternalMemAddrWidth : natural := log2(LocalMemSizeInKB*1024/4);
   
@@ -114,6 +115,7 @@ begin  -- architecture rtl
       ext_mem_rw_o    => ext_mem_rw,
       ext_mem_en_o    => ext_mem_en,
       ext_mem_stall_i => ext_mem_stall,
+      bus_locked_o    => bus_locked,
       rp0_addr_o      => rp0_addr,
       rp0_din_i       => rp0_dout,
       rp0_en_o        => rp0_en,
@@ -233,7 +235,7 @@ begin  -- architecture rtl
     end if;
   end process;
 
-  ext_master_o <= (ext_mem_addr,ext_mem_dout,ext_mem_rw,"1111",ext_mem_en and not ext_mem_disable,ext_mem_en);
+  ext_master_o <= (ext_mem_addr,ext_mem_dout,ext_mem_rw,"1111",ext_mem_en and not ext_mem_disable,ext_mem_en or bus_locked);
   ext_mem_din <= ext_master_i.dat;
 
   process (clk_i, reset_n_i) is

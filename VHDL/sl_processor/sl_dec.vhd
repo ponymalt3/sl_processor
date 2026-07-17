@@ -64,6 +64,8 @@ package body sl_dec_p is
     decode.wait1 := '0';
     decode.signal1 := '0';
     decode.loop1 := '0';
+    decode.bus_lock := '0';
+    decode.bus_unlock := '0';
 
     decode.cmp_mode := data(1 downto 0);
     decode.cmp_noX_cy := data(11);
@@ -119,6 +121,8 @@ package body sl_dec_p is
             when 3 => -- SIG
               decode.wait1 := data(10);
               decode.signal1 := not data(10);
+              decode.bus_lock := data(4);
+              decode.bus_unlock := data(5);
             when 4 => -- UNARY
               decode.neg := data(0);
               decode.trunc := data(2);

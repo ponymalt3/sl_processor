@@ -508,6 +508,7 @@ _State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uin
 
   stateNext.pc_=pcNext;
   stateNext.loadState_=state_.loadState_;
+  stateNext.busLock_=state_.busLock_;
 
   //update load state
   if(enable_(_State::S_EXEC))

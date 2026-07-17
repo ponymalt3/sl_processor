@@ -273,6 +273,20 @@ public:
     getVdhlTestGenerator().expect(addr, expectedValue);
   }
 
+  // raw peek, no vector recording -- for polling loops that shouldn't emit a 0011 line every cycle
+  bool isBusLocked() const { return processor_.isBusLocked(); }
+
+  void expectBusLocked(bool expected)
+  {
+    std::stringstream ss;
+    ss << "expect: isBusLocked() == " << (expected) << "  but is " << (processor_.isBusLocked());
+
+    mtest::manager::instance() =
+        mtest::condition(processor_.isBusLocked() == expected, ss.str(), mtest::condition::expect);
+
+    getVdhlTestGenerator().expectBusLock(expected);
+  }
+
   void expect(qfp32_t expectedValue, uint32_t addr, const std::string& expectString = "")
   {
     std::stringstream ss;
