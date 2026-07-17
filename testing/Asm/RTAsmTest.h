@@ -42,7 +42,8 @@ public:
     {
       codeGen_.generateEntryVector(4, 4);
     }
-    else if(Error(prog_.getErrorHandler()).getNumErrors() == 0)
+
+    if(Error(prog_.getErrorHandler()).getNumErrors() == 0)
     {
       codeGen_.storageAllocationPass(512, reserveParameter);
     }
