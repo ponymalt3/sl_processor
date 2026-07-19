@@ -83,6 +83,8 @@ begin  -- architecture rtl
     local_reset(i) <= reset_n_i and core_reset_n_i(i);
     code_stall <= not cache_dout_valid;
 
+    code_data <= cache_dout(31 downto 16) when code_addr(0) = '1' else cache_dout(15 downto 0);
+
     master_out(2*i+1) <=
       (ext_master_out.adr+to_unsigned((CodeMemSizeInKB*1024)/4,32),
        ext_master_out.dat,
@@ -100,8 +102,8 @@ begin  -- architecture rtl
         clk_i           => clk_i,
         mem_clk_i       => mem_clk_i,
         reset_n_i       => reset_n_i,
-        addr_i(15 downto 0) => code_addr,
-        addr_i(31 downto 16) => X"0000",
+        addr_i(14 downto 0) => code_addr(15 downto 1),
+        addr_i(31 downto 15) => (others => '0'),
         din_i           => (others => '0'),
         dout_o          => cache_dout,
         en_i            => core_en_i(i),
@@ -125,7 +127,7 @@ begin  -- architecture rtl
         core_reset_n_i  => local_reset(i),
         code_addr_o     => code_addr,
         code_stall_i    => code_stall,
-        code_data_i     => cache_dout(15 downto 0),
+        code_data_i     => code_data,
         ext_master_i    => master_in(2*i+1),
         ext_master_o    => ext_master_out,
         debug_slave_i   => (to_unsigned(0,32),(others => '0'),'0',(others => '0'),'0','0'),

@@ -46,9 +46,13 @@ async def four_cores_run_in_parallel(dut):
     await RisingEdge(dut.clk_i)
     dut.reset_n_i.value = 1
 
+    # code_mem is word-addressed with 2 packed 16-bit instructions/word (low
+    # halfword first), matching sl_cluster's wb_cache addr_i(15 downto 1)/mux
     code = _load_code()
-    for addr, word in enumerate(code):
-        await probe.write(CODE_MEM_BASE + addr, word)
+    for i in range(0, len(code), 2):
+        lo = code[i]
+        hi = code[i + 1] if i + 1 < len(code) else 0
+        await probe.write(CODE_MEM_BASE + i // 2, lo | (hi << 16))
 
     for core, value in enumerate(INPUTS):
         await probe.write(EXT_MEM_BASE + core * 2, value)
