@@ -102,6 +102,7 @@ struct _DecodeEx
   uint32_t mem1_;
   uint32_t memX_;
   uint32_t mux0_ : 1;
+  uint32_t irsWb_ : 1;
 
   uint32_t writeAddr_ : 16;
   uint32_t writeEn_ : 1;

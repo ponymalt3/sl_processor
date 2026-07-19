@@ -12,7 +12,8 @@
 class RTProgTester
 {
 public:
-  RTProgTester(RTProg prog) : prog_(prog), s_(prog_), codeGen_(s_, 16), parser_(codeGen_)
+  RTProgTester(RTProg prog, CodeGen::TargetConfig targetConfig = CodeGen::TargetConfig())
+      : prog_(prog), s_(prog_), codeGen_(s_, 16, true, targetConfig), parser_(codeGen_)
   {
     // zero memory (at least first 256 words)
     for(uint32_t i = 0; i < 512; ++i)

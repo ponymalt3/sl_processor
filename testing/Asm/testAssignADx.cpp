@@ -195,6 +195,32 @@ MTEST(testAssignADx, test_that_deref_addr0_assigned_to_deref_addr1_with_both_inc
   tester.expectMemoryAt(6, 43);
 }
 
+MTEST(testAssignADx, test_that_addr0_assigned_from_var_emits_single_instr_when_enabled)
+{
+  RTProg testAssign = R"asm(
+    a=23;
+    a0=a;
+    [a0]=a;
+  )asm";
+
+  RTProgTester tester(testAssign);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  qfp32_t value = 23;
+  EXPECT(tester.getProcessor().readMemory(value) == value.toRaw());
+  tester.expectMemoryAt(23, 23);
+
+  CodeGen::TargetConfig disabled;
+  disabled.enableIrsToAddrLoad = false;
+  RTProgTester splitTester(testAssign, disabled);
+  EXPECT(splitTester.parse().getNumErrors() == 0);
+
+  EXPECT(splitTester.getCodeSize() == tester.getCodeSize() + 1);
+}
+
 MTEST(testAssignADx, test_that_var_assigned_to_deref_addr0_without_inc_works)
 {
   RTProg testAssign = R"asm(

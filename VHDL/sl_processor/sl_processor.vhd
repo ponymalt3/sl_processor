@@ -14,7 +14,8 @@ entity sl_processor is
   generic (
     LocalMemSizeInKB : natural := 4;
     CodeStartAddr  : natural := 0;
-    EnableDebugMemPort : boolean := false);
+    EnableDebugMemPort : boolean := false;
+    EnableIrsToAddrLoad : boolean := true);
   
   port (
     clk_i     : in std_ulogic;
@@ -57,6 +58,7 @@ architecture rtl of sl_processor is
   signal wp_addr       : reg_addr_t;
   signal wp_din        : reg_raw_t;
   signal wp_we         : std_ulogic;
+  signal irs_wb        : std_ulogic;
 
   signal qfp_cmd      : qfp_cmd_t;
   signal qfp_ready   : std_ulogic;
@@ -65,6 +67,7 @@ architecture rtl of sl_processor is
   signal qfp_cmp_z   : std_ulogic;
   signal qfp_complete : std_ulogic;
   signal qfp_int_result   : std_ulogic_vector(31 downto 0);
+  signal int_result_src   : std_ulogic_vector(31 downto 0);
   signal qfp_idle : std_ulogic;
 
   signal alu_en2 : std_ulogic;
@@ -96,7 +99,8 @@ begin  -- architecture rtl
   sl_core_1: entity work.sl_core
     generic map (
       ExtAddrThreshold => LocalMemSizeInKB*(1024/4),
-      CodeStartAddr  => CodeStartAddr)
+      CodeStartAddr  => CodeStartAddr,
+      EnableIrsToAddrLoad => EnableIrsToAddrLoad)
     port map (
       clk_i           => clk_i,
       reset_n_i       => core_reset_n_i,
@@ -125,6 +129,7 @@ begin  -- architecture rtl
       wp_addr_o       => wp_addr,
       wp_dout_o       => wp_din,
       wp_we_o         => wp_we,
+      irs_wb_o        => irs_wb,
       executed_addr_o => executed_addr_o);
 
   code_addr_o <= unsigned(cp_addr);
@@ -187,7 +192,8 @@ begin  -- architecture rtl
       cmp_z_o    => qfp_cmp_z,
       complete_o => qfp_complete);
 
-  qfp_int_result <= "000" & To_StdULogicVector(std_logic_vector(fast_shift(unsigned(alu_op_a(28 downto 0)),to_integer(unsigned(not alu_op_a(30 downto 29)))*8,'1')));
+  int_result_src <= alu_op_b when irs_wb = '1' else alu_op_a;
+  qfp_int_result <= "000" & To_StdULogicVector(std_logic_vector(fast_shift(unsigned(int_result_src(28 downto 0)),to_integer(unsigned(not int_result_src(30 downto 29)))*8,'1')));
 
   alu_en2 <= '1' when alu_en = '1' and alu_cmd /= CMD_CMP else '0'; 
 

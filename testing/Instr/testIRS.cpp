@@ -106,3 +106,51 @@ MTEST(TestIRS, test_that_irs_access_after_irs_changed_is_stalled)
   EXPECT(proc.readMemory(ad0) == value.toRaw());
   proc.expectThatMemIs(ad0, value);
 }
+
+MTEST(TestIRS, test_that_mov_to_AD0_from_IRS_works)
+{
+  int32_t offset = 5;
+  qfp32_t ad0Ptr = 42;
+  qfp32_t marker = 7;
+
+  uint32_t code[] = {SLCode::Mov::create(SLCode::REG_AD0, SLCode::IRS, offset),
+
+                     SLCode::Load::create1(marker.toRaw()),
+                     SLCode::Mov::create(SLCode::DEREF_AD0, SLCode::REG_RES),
+
+                     0xFFFF,
+                     0xFFFF,
+                     0xFFFF};
+
+  LoadAndSimulateProcessor proc(code);
+
+  proc.writeMemory(offset, ad0Ptr.toRaw());
+
+  proc.run(8);
+
+  proc.expectThatMemIs(ad0Ptr, marker);
+}
+
+MTEST(TestIRS, test_that_mov_to_AD1_from_IRS_works)
+{
+  int32_t offset = 6;
+  qfp32_t ad1Ptr = 55;
+  qfp32_t marker = 15;
+
+  uint32_t code[] = {SLCode::Mov::create(SLCode::REG_AD1, SLCode::IRS, offset),
+
+                     SLCode::Load::create1(marker.toRaw()),
+                     SLCode::Mov::create(SLCode::DEREF_AD1, SLCode::REG_RES),
+
+                     0xFFFF,
+                     0xFFFF,
+                     0xFFFF};
+
+  LoadAndSimulateProcessor proc(code);
+
+  proc.writeMemory(offset, ad1Ptr.toRaw());
+
+  proc.run(8);
+
+  proc.expectThatMemIs(ad1Ptr, marker);
+}

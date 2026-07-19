@@ -104,6 +104,7 @@ package sl_structs_p is
     memX : reg_raw_t;
 
     mux0 : std_ulogic;
+    irs_wb : std_ulogic; -- int_result (AD0/AD1/IRS wb) sourced from IRS read (mem1) instead of mem0/RESULT
 
     wr_addr : reg_addr_t;
     wr_en : std_ulogic;

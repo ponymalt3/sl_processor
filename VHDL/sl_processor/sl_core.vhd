@@ -17,7 +17,8 @@ use work.sl_misc_p.all;
 entity sl_core is
   generic (
     ExtAddrThreshold : natural := 512;
-    CodeStartAddr  : natural := 0);
+    CodeStartAddr  : natural := 0;
+    EnableIrsToAddrLoad : boolean := true);
   
   port (
     clk_i           : in std_ulogic;
@@ -58,6 +59,8 @@ entity sl_core is
     wp_addr_o : out reg_addr_t;
     wp_dout_o : out reg_raw_t;
     wp_we_o : out std_ulogic;
+
+    irs_wb_o : out std_ulogic;
 
     executed_addr_o : out unsigned(15 downto 0));
 
@@ -136,6 +139,7 @@ begin  -- architecture rtl
   alu_op_b_o <= proc.decex.memX when proc.decex.wr_ext = '1' else mem1_reg;
 
   bus_locked_o <= proc.state.bus_locked;
+  irs_wb_o <= proc.decex.irs_wb;
 
   -- temporarily fix for problem with cache when addr changes while fetch is in progress
   state_enable_reg <= en_i when state_next.pc = proc.state.pc or cp_stall_i = '0' else '0';
@@ -146,7 +150,7 @@ begin  -- architecture rtl
       executed_addr_o <= to_unsigned(0,16);
       proc.fetch <= ((others => '0'),to_unsigned(0,16),'0');
       proc.dec <= ('0','0','0','0','0','0','0',(others => '0'),(others => '0'),(others => '0'),(others => '0'),'0','0','0','0','0','0','0','0','0','0','0','0',(others => '0'),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0',to_unsigned(0,16),'0','0','0','0');
-      proc.decex <= ("0000",(others => '0'),'0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0','0',(others => '0'),'0');
+      proc.decex <= ("0000",(others => '0'),'0','0',to_unsigned(0,32),'0','0','0',"00",'0',"00",'0','0','0','0',(others => '0'),'0');
       proc.state <= (to_unsigned(CodeStartAddr,16),((others => '0'),(others => '0')),to_unsigned(0,32),"001","111",'0',(others => '0'),(others => '0'),'0','0','0','1','0');
       reset_1d <= '1';
       disable_alu <= '0';
@@ -204,7 +208,7 @@ begin  -- architecture rtl
     end if;
     
     dec_next <= sl_dec(proc,ExtAddrThreshold);
-    decex_next <= sl_dec_ex(proc,dec_next,mem1_next,mem2_next,ext_mem_stall_i);
+    decex_next <= sl_dec_ex(proc,dec_next,mem1_next,mem2_next,ext_mem_stall_i,EnableIrsToAddrLoad);
     exec_next <= sl_execute(proc,dec_next,alu_i,ext_mem_stall_i);
     ctrl_next <= sl_control(proc,decex_next.stall,exec_next.stall,exec_next.exec_next,exec_next.flush,not cp_stall_i);
     state_next <= sl_state_update(proc,dec_next,exec_next,ctrl_next,cp_stall_i);

@@ -167,7 +167,10 @@ uint32_t _Instr::getGotoTarget()
   return offset;
 }
 
-CodeGen::CodeGen(Stream& stream, uint32_t entryVectorSize, bool safeAllocationInsideLoop)
+CodeGen::CodeGen(Stream& stream,
+                 uint32_t entryVectorSize,
+                 bool safeAllocationInsideLoop,
+                 TargetConfig targetConfig)
     : Error(stream.getErrorHandler()), stream_(stream), defaultSymbols_(stream, 0)
 {
   loopDepth_ = 0;
@@ -191,6 +194,7 @@ CodeGen::CodeGen(Stream& stream, uint32_t entryVectorSize, bool safeAllocationIn
   }
 
   safeAllocationInsideLoop_ = safeAllocationInsideLoop;
+  targetConfig_ = targetConfig;
 }
 
 CodeGen::~CodeGen()
@@ -320,9 +324,6 @@ void CodeGen::instrOperation(const _Operand& opa, const _Operand& opb, uint32_t 
 
 void CodeGen::instrMov(const _Operand& opa, const _Operand& opb)
 {
-  // optimize hint
-  // try to implement mov AD0,AD1,... [IRS]
-
   if(opa.isResult() && opb.isResult())
   {
     return;
@@ -354,7 +355,7 @@ void CodeGen::instrMov(const _Operand& opa, const _Operand& opb)
   // mov [DATAx], LOOP
 
   if((aIsIRS && bIsIRS) || (aIsIRS && bIsMem) || (aIsMem && bIsIRS) || (aIsMem && bIsMem) ||
-     a.isInternalReg())
+     (a.isInternalReg() && !(bIsIRS && targetConfig_.enableIrsToAddrLoad)))
   {
     instrMov(_Operand::createResult(), b);
     b = _Operand::createResult();

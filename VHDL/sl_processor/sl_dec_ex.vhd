@@ -12,7 +12,8 @@ package sl_dec_ex_p is
     decode : sl_decode_t;
     mem1 : sl_mem1_t;
     mem2 : sl_mem2_t;
-    ext_mem_stall : std_ulogic)
+    ext_mem_stall : std_ulogic;
+    EnableIrsToAddrLoad : boolean := true)
     return sl_decode_ex_t;
 
 end package sl_dec_ex_p;
@@ -24,13 +25,18 @@ package body sl_dec_ex_p is
     decode : sl_decode_t;
     mem1 : sl_mem1_t;
     mem2 : sl_mem2_t;
-    ext_mem_stall : std_ulogic)
+    ext_mem_stall : std_ulogic;
+    EnableIrsToAddrLoad : boolean := true)
     return sl_decode_ex_t is
 
     variable decode_ex : sl_decode_ex_t;
   begin
 
     decode_ex.mux0 := decode.mux_a;
+    decode_ex.irs_wb := '0';
+    if EnableIrsToAddrLoad then
+      decode_ex.irs_wb := decode.en_irs;
+    end if;
 
     --decode_ex.mem0 := mem2.read_data(0);
     --decode_ex.mem1 := mem2.read_data(1);

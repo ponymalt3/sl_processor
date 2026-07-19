@@ -353,6 +353,7 @@ _DecodeEx SLProcessor::decodeEx(const _Decode &decodeComb,const _MemFetch1 &mem1
   _DecodeEx decodeEx;
 
   decodeEx.mux0_=decodeComb.muxA_;
+  decodeEx.irsWb_=decodeComb.enIRS_;
 
   decodeEx.mem0_=mem2.readData_[0];
   decodeEx.mem1_=mem2.readData_[1];
@@ -576,7 +577,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
     }
   }
 
-  exec.intResult_=(int32_t)(_qfp32_t::initFromRaw(decEx_.a_).abs());
+  exec.intResult_=(int32_t)(_qfp32_t::initFromRaw(decEx_.irsWb_?decEx_.mem1_:decEx_.a_).abs());
 
   exec.execNext_=1;
 

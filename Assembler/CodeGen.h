@@ -80,8 +80,11 @@ struct _Instr
 
   bool writesAD1() const
   {
-    return (code_ ^ SLCode::Mov::Code2) >> (16 - SLCode::Mov::Bits2) == 0 &&
-           ((code_ >> 5) & 0x3) == SLCode::WBREG_AD1;
+    bool viaData = (code_ ^ SLCode::Mov::Code2) >> (16 - SLCode::Mov::Bits2) == 0 &&
+                   ((code_ >> 5) & 0x3) == SLCode::WBREG_AD1;
+    bool viaIrs = (code_ ^ SLCode::Mov::Code1) >> (16 - SLCode::Mov::Bits1) == 0 && (code_ & 0x1000) == 0 &&
+                  (code_ & 0x3) == SLCode::WBREG_AD1;
+    return viaData || viaIrs;
   }
 
   static qfp32_t restoreValueFromLoad(_Instr a, _Instr b = {0, 0}, _Instr c = {0, 0})
@@ -261,6 +264,13 @@ public:
     std::vector<std::string> fields_;
   };
 
+  struct TargetConfig
+  {
+    TargetConfig() : enableIrsToAddrLoad(true) {}
+
+    bool enableIrsToAddrLoad;  // target supports MOV AD0/AD1/IRS, [IRS+offset] directly
+  };
+
   class CodeGenDelegate
   {
   public:
@@ -279,7 +289,10 @@ public:
     Label& target_;
   };
 
-  CodeGen(Stream& stream, uint32_t entryVectorSize = 0, bool safeAllocationInsideLoop = true);
+  CodeGen(Stream& stream,
+          uint32_t entryVectorSize = 0,
+          bool safeAllocationInsideLoop = true,
+          TargetConfig targetConfig = TargetConfig());
   ~CodeGen();
 
   void instrOperation(const _Operand& opa, const _Operand& opb, uint32_t op, TmpStorage& tmpStorage);
@@ -399,4 +412,5 @@ public:
 
   // settings
   bool safeAllocationInsideLoop_;
+  TargetConfig targetConfig_;
 };
