@@ -2,6 +2,9 @@
 **/*Debug/**
 **/*Release/**
 
+docker/quartus/*.run
+docker/quartus/*.qdz
+
 *.mk
 *.list
 *.db
@@ -57,5 +60,15 @@
 
 # VUnit simulation output
 VHDL/vunit_out/
+
+# Quartus build artifacts for VHDL/boards/*/ (build.tcl generates the
+# project/.qsf fresh each run -- nothing under here is hand-maintained)
+VHDL/boards/*/db/
+VHDL/boards/*/incremental_db/
+VHDL/boards/*/output_files/
+VHDL/boards/*/*.qpf
+VHDL/boards/*/*.qsf
+VHDL/boards/*/*.qws
+VHDL/boards/*/*.done
 
 
