@@ -18,10 +18,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPT_DIR   = Path(__file__).parent.resolve()
-VHDL_ROOT    = SCRIPT_DIR.parent.parent                # testing/ → sl_processor/ → VHDL/
-REPO_ROOT    = VHDL_ROOT.parent                        # → SLProcessor/
-SL_PROC_DIR  = VHDL_ROOT / "sl_processor"
+SCRIPT_DIR   = Path(__file__).parent.resolve()          # processor/
+SL_PROC_DIR  = SCRIPT_DIR.parent.parent                  # processor/ → testing/ → sl_processor/
+VHDL_ROOT    = SL_PROC_DIR.parent                        # → VHDL/
+REPO_ROOT    = VHDL_ROOT.parent                          # → SLProcessor/
 QFP32_ROOT   = VHDL_ROOT / "qfp32"
 COCOTB_LIB   = VHDL_ROOT / "cocotb"
 

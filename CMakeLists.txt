@@ -22,7 +22,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 # Disable: cmake -DSIM_WAVES=OFF
 option(SIM_WAVES "Generate FST waveform files (open with GTKWave)" ON)
 
-add_subdirectory(VHDL/sl_processor/testing)
+add_subdirectory(VHDL/sl_processor/testing/processor)
 add_subdirectory(VHDL/sl_processor/testing/cluster)
 add_subdirectory(VHDL/wishbone/testing/wb_cache)
 add_subdirectory(VHDL/wishbone/testing/wb_interconnect)
