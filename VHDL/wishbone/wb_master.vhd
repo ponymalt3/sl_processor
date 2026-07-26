@@ -16,6 +16,7 @@ entity wb_master is
     en_i       : in    std_ulogic;
     burst_i    : in    unsigned(5 downto 0) := to_unsigned(0,6);
     we_i       : in    std_ulogic;
+    hold_i     : in    std_ulogic := '0'; -- holds cyc high
     dready_o   : out   std_ulogic;
     complete_o : out   std_ulogic;
     err_o      : out   std_ulogic;
@@ -36,7 +37,6 @@ architecture rtl of wb_master is
   signal mask : unsigned(2 downto 0);
 
 begin  -- architecture rtl
-  
 
   process (clk_i, reset_n_i) is
   begin  -- process
@@ -91,15 +91,17 @@ begin  -- architecture rtl
         if (master_out_i.ack = '1' and count_ack = to_unsigned(0,3)) or master_out_i.err = '1' then
           state <= ST_IDLE;
           master_out.stb <= '0';
-          master_out.cyc <= '0';
+          master_out.cyc <= hold_i;
           master_out.we <= '0';
           complete_o <= '1';
           dready_o <= not master_out.we;
         end if;
+      elsif state = ST_IDLE and hold_i = '0' then
+        master_out.cyc <= '0';
       end if;
     end if;
   end process;
 
   master_out_o <= master_out;
-  
+
 end architecture rtl;

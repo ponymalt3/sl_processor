@@ -3,7 +3,7 @@
 import random
 import cocotb
 from cocotb.triggers import Timer
-from wb_cache import WriteBackCache, WriteThroughCache
+from wb_cache import WriteBackCache, WriteThroughCache, BypassCache
 
 
 # ---------------------------------------------------------------------------
@@ -349,6 +349,122 @@ async def invalidate_while_reading(dut):
 
     assert await cache.read(40) == 0xDCBB_BB00, \
         "cache not reloaded after invalidate during read"
+
+
+# ---------------------------------------------------------------------------
+# Bypass tests (write-through + EnableBypass, mirrors sl_cluster.vhd's data
+# cache; BypassCache.BYPASS_BASE_ADDR = 48)
+# ---------------------------------------------------------------------------
+
+def _setup_byp(dut):
+    BypassCache.start_clock(dut)
+    cache = BypassCache(dut)
+    cache.start()
+    return cache
+
+
+@cocotb.test()
+async def bypass_read_forwards_directly(dut):
+    cache = _setup_byp(dut)
+    await cache.reset()
+
+    addr = 100
+    cache.mem[addr] = 0x1234_5678
+
+    t0 = cache.sim_time_ns()
+    result = await cache.read(addr)
+    elapsed = cache.sim_time_ns() - t0
+
+    assert result == 0x1234_5678, f"wrong data: {result:#010x}"
+    assert elapsed <= 100, \
+        f"bypass read took {elapsed:.0f}ns, expected a fast single-word turnaround (not a line fetch)"
+
+
+@cocotb.test()
+async def bypass_write_forwards_directly(dut):
+    cache = _setup_byp(dut)
+    await cache.reset()
+
+    addr = 120
+    await cache.write(addr, 0xABCD_1234)
+
+    assert cache.mem[addr] == 0xABCD_1234, "bypass write did not land in backing memory"
+    assert await cache.read(addr) == 0xABCD_1234, "read-back mismatch"
+
+
+@cocotb.test()
+async def bypass_in_cache_indexable_range_still_bypasses(dut):
+    cache = _setup_byp(dut)
+    await cache.reset()
+
+    # 50 is inside the cache's own 64-word indexable range but >= BYPASS_BASE_ADDR
+    addr = 50
+    assert addr >= BypassCache.BYPASS_BASE_ADDR
+
+    cache.mem[addr] = 0xAAAA_5555
+    assert await cache.read(addr) == 0xAAAA_5555
+
+    # if this address had been (incorrectly) cached, changing backing memory
+    # directly and re-reading would return stale data instead of the update
+    cache.mem[addr] = 0xBBBB_6666
+    result = await cache.read(addr)
+    assert result == 0xBBBB_6666, \
+        f"got stale {result:#010x} -- address {addr} appears to have been cached despite being >= BypassBaseAddr"
+
+
+@cocotb.test()
+async def bypass_does_not_pollute_cache(dut):
+    cache = _setup_byp(dut)
+    await cache.reset()
+
+    # addr 10 and addr 72 share the same tag-index slot (bits[5:2] == 2) but
+    # 72 is >= BYPASS_BASE_ADDR so it must never touch that slot's tag/data
+    cached_addr  = 10
+    bypass_addr  = 72
+    assert (cached_addr >> 2) & 0xF == (bypass_addr >> 2) & 0xF
+    assert bypass_addr >= BypassCache.BYPASS_BASE_ADDR
+
+    cache.mem[cached_addr] = 0x1111_2222
+    assert await cache.read(cached_addr) == 0x1111_2222  # cold fetch, allocates the slot
+
+    cache.mem[bypass_addr] = 0x3333_4444
+    assert await cache.read(bypass_addr) == 0x3333_4444  # must not evict/corrupt the slot above
+
+    t0 = cache.sim_time_ns()
+    result = await cache.read(cached_addr)
+    elapsed = cache.sim_time_ns() - t0
+
+    assert result == 0x1111_2222, \
+        f"addr {cached_addr} corrupted by bypass traffic to colliding index: got {result:#010x}"
+    assert elapsed <= 20, \
+        f"addr {cached_addr} unexpectedly re-fetched ({elapsed:.0f}ns) -- line was evicted by bypass traffic"
+
+
+@cocotb.test()
+async def bypass_blocks_until_background_linefill_completes(dut):
+    """A read miss returns complete_o as soon as the critical (requested)
+    word arrives, while the rest of the line keeps streaming in the
+    background (state stays non-idle). A bypass request issued right after
+    must wait for that background fill to finish before it can use the
+    cache's shared downstream wb_master."""
+    cache = _setup_byp(dut)
+    await cache.reset()
+
+    line_addr = 0
+    cache.mem[line_addr] = 0xCAFE_F00D
+    assert await cache.read(line_addr) == 0xCAFE_F00D  # triggers the line fetch
+
+    bypass_addr = 100
+    cache.mem[bypass_addr] = 0x9999_AAAA
+
+    t0 = cache.sim_time_ns()
+    result = await cache.read(bypass_addr)
+    elapsed = cache.sim_time_ns() - t0
+
+    assert result == 0x9999_AAAA, f"wrong data: {result:#010x}"
+    assert elapsed > 100, \
+        f"bypass completed in {elapsed:.0f}ns -- expected it to wait for the " \
+        f"still-in-progress background line-fill (baseline idle bypass is <=100ns)"
 
 
 # ---------------------------------------------------------------------------

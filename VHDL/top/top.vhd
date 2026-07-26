@@ -179,7 +179,7 @@ begin  -- architecture rtl
 
   snoop_active <= '1' when sdram_cache_slave_in.cyc = '1' and sdram_cache_slave_in.we = '1' and sdram_cache_slave_out.ack = '1' else '0';
 
-  wb_cache_adapted_1: entity work.wb_cache_adapted
+  sdram_cache_1: entity work.wb_cache
     generic map (
       WordsPerLine  => SdramCacheWordsPerLine,
       NumberOfLines => SdramCacheLines,

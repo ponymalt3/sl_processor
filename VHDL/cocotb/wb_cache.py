@@ -121,3 +121,15 @@ class WriteThroughCache(_CacheBase):
     async def backdoor_write(self, addr: int, data: int):
         """Write directly into the backing memory, bypassing the cache."""
         self.mem[addr] = data
+
+
+class BypassCache(_CacheBase):
+    """Interface to the write-through + EnableBypass cache instance (byp_*
+    ports) -- mirrors sl_cluster.vhd's data-cache instantiation. Addresses
+    >= BYPASS_BASE_ADDR forward straight through to the backing memory
+    without allocating a cache line."""
+
+    BYPASS_BASE_ADDR = 48
+
+    def __init__(self, dut):
+        super().__init__(dut, prefix="byp_", write_delay=0)
