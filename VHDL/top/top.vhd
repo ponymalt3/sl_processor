@@ -10,26 +10,17 @@ entity sl_system is
   generic (
     ClockFreqHz       : natural := 50_000_000;
     BaudRate          : natural := 115200;
-    LocalMemSizeInKB  : natural := 2;
-    CodeMemSizeInKB   : natural := 8;
+    LocalMemSizeInKB  : natural := 3;
+    CodeMemSizeInKB   : natural := 64;
     ExtMemSizeInKB    : natural := 8*1024;
     CodeCacheSizeInKB : natural := 2;
-    DataCacheSizeInKB : natural := 2;
-    -- on-chip block RAM budget: these two are usually the biggest
-    -- consumers, so board-level integrators size them to fit their actual
-    -- device (e.g. DE0-Nano's EP4CE22 only has ~594Kbit/66 M9K blocks total)
+    DataCacheSizeInKB : natural := 4;
     SdramCacheSizeInKB : natural := 32;
-    SyncMemSizeInKB    : natural := 4);
+    SyncMemSizeInKB    : natural := 2);
 
   port (
     clk_i     : in std_ulogic;
-    -- same-frequency, ~180 degree phase-shifted companion clock for the
-    -- on-chip BRAMs (code/data cache, sync mem, L2 cache) -- their sl_dpram
-    -- storage is clocked directly off this signal and needs a real clock
-    -- edge every clk_i cycle; a single register can't produce that from
-    -- only one clk_i edge (it would divide the frequency by 2), so this is
-    -- supplied by the board (e.g. a PLL tap), just like clk_i itself
-    mem_clk_i : in std_ulogic;
+    mem_clk_i : in std_ulogic;     -- same-frequency, ~180 degree phase-shifted for mem blocks
     reset_n_i : in std_ulogic;
 
     uart_rxd_i : in  std_ulogic;
@@ -44,9 +35,7 @@ entity sl_system is
     sdram_ba_o    : out std_ulogic_vector(1 downto 0);
     sdram_addr_o  : out std_ulogic_vector(12 downto 0);
     sdram_dqm_o   : out std_ulogic_vector(1 downto 0);
-    sdram_dq_io   : inout std_logic_vector(15 downto 0);
-
-    debug_o : out std_ulogic_vector(7 downto 0));
+    sdram_dq_io   : inout std_logic_vector(15 downto 0));
 
 end entity sl_system;
 
@@ -71,9 +60,6 @@ architecture rtl of sl_system is
   signal abp_slave_in  : wb_slave_ifc_in_t;
   signal abp_slave_out : wb_slave_ifc_out_t;
 
-  -- write-back cache in front of the (slow, single-word-at-a-time) SDRAM;
-  -- see line-size note in the commit/PR discussion -- WordsPerLine=8
-  -- matches the rest of the codebase since wb_sdram never bursts anyway
   constant SdramCacheWordsPerLine : natural := 8;
   constant SdramCacheLines : natural := (SdramCacheSizeInKB*1024)/(SdramCacheWordsPerLine*4);
 
@@ -84,25 +70,10 @@ architecture rtl of sl_system is
 
   signal snoop_active : std_ulogic;
 
-  -- small uncached on-chip RAM for cross-core shared/sync data -- must stay
-  -- uncached, otherwise it reintroduces the staleness problem sync exists
-  -- to avoid; carved out of the top of the cluster's own ExtMemSizeInKB
-  -- budget (cores can only ever address up to that bound via ext_master_o)
-  constant AbpSizeInWords  : natural := 256;
-
-  -- sl_cluster itself carves the *same* peripheral window out of the top of
-  -- ExtMemSizeInKB (it needs to know the size to route non-cached ext_mem
-  -- traffic straight through instead of into a core's private data cache);
-  -- PeripheralSizeInKB passed down below must equal SyncMemSizeInKB+abp, or
-  -- the two independently-computed address maps silently disagree
-  constant CodeMemWords : natural := (CodeMemSizeInKB*1024)/4;
-  constant ExtMemWords  : natural := (ExtMemSizeInKB*1024)/4;
-  constant SyncMemWords : natural := (SyncMemSizeInKB*1024)/4;
-  constant PeripheralWords : natural := SyncMemWords+AbpSizeInWords;
-  constant PeripheralSizeInKB : natural := (PeripheralWords*4)/1024;
-  constant CachedExtMemWords : natural := ExtMemWords-PeripheralWords;
-
-  constant SdramWords : natural := CodeMemWords+CachedExtMemWords;
+  constant ExtMemSize  : natural := (ExtMemSizeInKB*1024)/4;
+  constant SyncMemSize : natural := (SyncMemSizeInKB*1024)/4;
+  constant AbpBridgeSize  : natural := 256;
+  constant PeripheralSizeInKB : natural := ((SyncMemSize+AbpBridgeSize)*4)/1024;
 
   signal sync_mem_slave_in  : wb_slave_ifc_in_t;
   signal sync_mem_slave_out : wb_slave_ifc_out_t;
@@ -142,7 +113,6 @@ begin  -- architecture rtl
       snoop_addr_i   => sdram_cache_slave_in.adr,
       snoop_en_i     => snoop_active);
 
-
   wb_ixs_1: entity work.wb_ixs
     generic map (
       MasterConfig => (
@@ -150,9 +120,9 @@ begin  -- architecture rtl
         wb_master("sdram"),
         wb_master("sdram sync_mem abp")),
       SlaveMap => (
-        wb_slave("sdram",0,SdramWords),
-        wb_slave("sync_mem",SdramWords,SyncMemWords),
-        wb_slave("abp",SdramWords+SyncMemWords,AbpSizeInWords)))
+        wb_slave("sdram",0,ExtMemSize),
+        wb_slave("sync_mem",ExtMemSize,SyncMemSize),
+        wb_slave("abp",ExtMemSize+SyncMemSize,AbpBridgeSize)))
     port map (
       clk_i       => clk_i,
       reset_n_i   => reset_n_i,
@@ -231,8 +201,8 @@ begin  -- architecture rtl
     port map (
       clk_i      => clk_i,
       reset_n_i  => reset_n_i,
-      wb_slave_i => abp_slave_in,
-      wb_slave_o => abp_slave_out,
+      slave_i => abp_slave_in,
+      slave_o => abp_slave_out,
       apb_sel_o  => apb_sel,
       apb_en_o   => apb_en,
       apb_addr_o => apb_addr,

@@ -12,9 +12,12 @@ use work.wishbone_p.all;
 entity sl_cluster is
 
   generic (
-    LocalMemSizeInKB  : natural := 2;
-    ExtMemSizeInKB    : natural := 8*1024;
-    CodeMemSizeInKB   : natural := 2);
+    LocalMemSizeInKB   : natural := 2;
+    ExtMemSizeInKB     : natural := 16*1024;
+    CodeMemSizeInKB    : natural := 2;
+    CodeCacheSizeInKB  : natural := 2;
+    DataCacheSizeInKB  : natural := 2;
+    PeripheralSizeInKB : natural := 8);
 
   port (
     clk_i          : in std_ulogic;
@@ -28,7 +31,9 @@ entity sl_cluster is
     ext_master_o : out wb_master_ifc_out_t;
     code_master_i : in  wb_master_ifc_in_t;
     code_master_o : out wb_master_ifc_out_t;
-    debug_o : out std_ulogic_vector(7 downto 0));
+
+    snoop_addr_i : in unsigned(31 downto 0) := to_unsigned(0,32);
+    snoop_en_i   : in std_ulogic := '0');
 
 end entity sl_cluster;
 
@@ -39,22 +44,33 @@ architecture rtl of sl_cluster is
   signal slave_in : wb_slave_ifc_in_array_t(1 downto 0);
   signal slave_out : wb_slave_ifc_out_array_t(1 downto 0);
 
+  constant CacheWordsPerLine : natural := 8;
+  constant CodeCacheLines : natural := (CodeCacheSizeInKB*1024)/(CacheWordsPerLine*4);
+  constant DataCacheLines : natural := (DataCacheSizeInKB*1024)/(CacheWordsPerLine*4);
+
+  constant CodeMemSize : natural := (CodeMemSizeInKB*1024)/4;
+  constant ExtMemSize : natural := (ExtMemSizeInKB*1024)/4;
+  constant PeripheralSize : natural := (PeripheralSizeInKB*1024)/4;
+
+  signal snoop_in_code_range : std_ulogic;
+  signal data_snoop_addr : unsigned(31 downto 0);
+
 begin  -- architecture rtl
 
   wb_ixs_1: entity work.wb_ixs
     generic map (
       MasterConfig => (
         wb_master("code_mem"),
-        wb_master("ext_mem"),
+        wb_master("code_mem"),
+        wb_master("code_mem"),
         wb_master("code_mem"),
         wb_master("ext_mem"),
-        wb_master("code_mem"),
         wb_master("ext_mem"),
-        wb_master("code_mem"),
+        wb_master("ext_mem"),
         wb_master("ext_mem")),
       SlaveMap     => (
-        wb_slave("code_mem",0,(CodeMemSizeInKB*1024)/4),
-        wb_slave("ext_mem",(CodeMemSizeInKB*1024)/4,(ExtMemSizeInKB*1024)/4)))
+        wb_slave("code_mem",0,CodeMemSize),
+        wb_slave("ext_mem",0,ExtMemSize-CodeMemSize+PeripheralSize)))
 
     port map (
       clk_i       => clk_i,
@@ -66,54 +82,74 @@ begin  -- architecture rtl
 
     code_master_o <= slave_in(0);
     slave_out(0) <= code_master_i;
-    ext_master_o <= slave_in(1);
-    slave_out(1) <= ext_master_i;
 
-  --debug_o <= code_data(0)(3 downto 0) & To_StdULogicVector(std_logic_vector(code_addr(0)(3 downto 0)));
+    -- offsets ext mem
+    ext_master_o <=
+      (slave_in(1).adr+to_unsigned(CodeMemSize,32),
+       slave_in(1).dat,
+       slave_in(1).we,
+       slave_in(1).sel,
+       slave_in(1).stb,
+       slave_in(1).cyc);
+    slave_out(1) <= ext_master_i;
 
   proc: for i in 0 to 3 generate
     signal local_reset : std_ulogic_vector(3 downto 0);
     signal code_addr : unsigned(15 downto 0);
     signal code_data : std_ulogic_vector(15 downto 0);
-    signal cache_dout : std_ulogic_vector(31 downto 0);
-    signal cache_dout_valid : std_ulogic;
     signal code_stall : std_ulogic;
+    signal code_cache_in  : wb_slave_ifc_in_t;
+    signal code_cache_out : wb_slave_ifc_out_t;
     signal ext_master_out : wb_master_ifc_out_t;
+    signal ext_master_in : wb_master_ifc_in_t;
   begin
     local_reset(i) <= reset_n_i and core_reset_n_i(i);
-    code_stall <= not cache_dout_valid;
+    code_stall <= not code_cache_out.ack;
+    code_cache_in.adr(14 downto 0)  <= code_addr(15 downto 1);
+    code_cache_in.adr(31 downto 15) <= (others => '0');
+    code_cache_in.dat <= (others => '0');
+    code_cache_in.we  <= '0';
+    code_cache_in.sel <= (others => '1');
+    code_cache_in.stb <= core_en_i(i);
+    code_cache_in.cyc <= core_en_i(i);
 
-    code_data <= cache_dout(31 downto 16) when code_addr(0) = '1' else cache_dout(15 downto 0);
-
-    master_out(2*i+1) <=
-      (ext_master_out.adr+to_unsigned((CodeMemSizeInKB*1024)/4,32),
-       ext_master_out.dat,
-       ext_master_out.we,
-       ext_master_out.sel,
-       ext_master_out.stb,
-       ext_master_out.cyc);
+    -- code_mem is word-addressed (2 instructions/word); low bit of the
+    -- halfword PC selects which half of the fetched word is the instruction
+    code_data <= code_cache_out.dat(31 downto 16) when code_addr(0) = '1' else code_cache_out.dat(15 downto 0);
 
     wb_cache_1: entity work.wb_cache
       generic map (
-        WordsPerLine  => 8,
-        NumberOfLines => 64,
+        WordsPerLine  => CacheWordsPerLine,
+        NumberOfLines => CodeCacheLines,
         WriteThrough  => true)
       port map (
         clk_i           => clk_i,
         mem_clk_i       => mem_clk_i,
         reset_n_i       => reset_n_i,
-        addr_i(14 downto 0) => code_addr(15 downto 1),
-        addr_i(31 downto 15) => (others => '0'),
-        din_i           => (others => '0'),
-        dout_o          => cache_dout,
-        en_i            => core_en_i(i),
-        we_i            => '0',
-        complete_o      => cache_dout_valid,
-        err_o           => open,
-        snooping_addr_i => to_unsigned(0,32),
-        snooping_en_i   => '0',
-        master_out_i    => master_in(2*i),
-        master_out_o    => master_out(2*i));
+        slave_i         => code_cache_in,
+        slave_o         => code_cache_out,
+        snooping_addr_i => snoop_addr_i,
+        snooping_en_i   => snoop_en_i,
+        master_out_i    => master_in(i),
+        master_out_o    => master_out(i));
+
+    data_cache_1: entity work.wb_cache
+      generic map (
+        WordsPerLine   => CacheWordsPerLine,
+        NumberOfLines  => DataCacheLines,
+        WriteThrough   => true,
+        EnableBypass   => true,
+        BypassBaseAddr => ExtMemSize-CodeMemSize)
+      port map (
+        clk_i           => clk_i,
+        mem_clk_i       => mem_clk_i,
+        reset_n_i       => reset_n_i,
+        snooping_addr_i => snoop_addr_i-to_unsigned(CodeMemSize, 32),
+        snooping_en_i   => snoop_en_i,
+        slave_i         => ext_master_out,
+        slave_o         => ext_master_in,
+        master_out_i    => master_in(4+i),
+        master_out_o    => master_out(4+i));
 
     sl_processor_1: entity work.sl_processor
       generic map (
@@ -128,7 +164,7 @@ begin  -- architecture rtl
         code_addr_o     => code_addr,
         code_stall_i    => code_stall,
         code_data_i     => code_data,
-        ext_master_i    => master_in(2*i+1),
+        ext_master_i    => ext_master_in,
         ext_master_o    => ext_master_out,
         debug_slave_i   => (to_unsigned(0,32),(others => '0'),'0',(others => '0'),'0','0'),
         debug_slave_o   => open,
