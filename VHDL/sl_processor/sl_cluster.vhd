@@ -121,7 +121,8 @@ begin  -- architecture rtl
       generic map (
         WordsPerLine  => CacheWordsPerLine,
         NumberOfLines => CodeCacheLines,
-        WriteThrough  => true)
+        WriteThrough  => true,
+        NarrowTag     => true)
       port map (
         clk_i           => clk_i,
         mem_clk_i       => mem_clk_i,
@@ -138,8 +139,9 @@ begin  -- architecture rtl
         WordsPerLine   => CacheWordsPerLine,
         NumberOfLines  => DataCacheLines,
         WriteThrough   => true,
+        NarrowTag      => true,
         EnableBypass   => true,
-        BypassBaseAddr => ExtMemSize-CodeMemSize)
+        BypassBaseAddr => CacheWordsPerLine*65536)  -- 2**(WordIndexBits+16) words = NarrowTag's addressable cap
       port map (
         clk_i           => clk_i,
         mem_clk_i       => mem_clk_i,

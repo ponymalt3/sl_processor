@@ -11,7 +11,8 @@ entity wb_cache is
     NumberOfLines : natural := 48;
     WriteThrough   : boolean := false;
     EnableBypass   : boolean := false;
-    BypassBaseAddr : natural := 0);
+    BypassBaseAddr : natural := 0;
+    NarrowTag      : boolean := false);  -- 18-bit tag (1 M9K block); caps addressable range to 2**(WordIndexBits+16) bytes
   
   port (
     clk_i      : in    std_ulogic;
@@ -35,6 +36,16 @@ architecture rtl of wb_cache is
   constant LineIndexBits : natural := log2(NumberOfLines);
   constant MaxCount : unsigned(WordIndexBits-1 downto 0) := to_unsigned(2**WordsPerLine-1,WordIndexBits);
   constant BurstSize : unsigned(5 downto 0) := to_unsigned(to_integer(MaxCount),6);
+
+  function sel(cond : boolean; t, f : natural) return natural is
+  begin
+    if cond then return t; else return f; end if;
+  end function sel;
+
+  constant TagWidth  : natural := sel(NarrowTag, 18, 32);
+  constant TagAddrHi : natural := sel(NarrowTag, WordIndexBits+15, 31);
+  constant TagAddrLo : natural := sel(NarrowTag, WordIndexBits, 2);
+  constant TagLow : natural := WordIndexBits-TagAddrLo+2;
 
   alias addr_i : unsigned(31 downto 0) is slave_i.adr;
   alias din_i  : std_ulogic_vector(31 downto 0) is slave_i.dat;
@@ -68,16 +79,16 @@ architecture rtl of wb_cache is
   signal wb_fetch : std_ulogic;
   signal wb_writeback : std_ulogic;
   
-  signal tag_index : unsigned(LineIndexBits-1 downto 0); 
-  signal tag_in : std_ulogic_vector(31 downto 0);
+  signal tag_index : unsigned(LineIndexBits-1 downto 0);
+  signal tag_in : std_ulogic_vector(TagWidth-1 downto 0);
   signal tag_we : std_ulogic;
-  signal tag_out : std_ulogic_vector(31 downto 0);
+  signal tag_out : std_ulogic_vector(TagWidth-1 downto 0);
   signal tag1_re_and_invalidate : std_ulogic;
   signal tag1_we : std_ulogic;
-  signal tag1_in : std_ulogic_vector(31 downto 0);
-  signal tag1_out : std_ulogic_vector(31 downto 0);
+  signal tag1_in : std_ulogic_vector(TagWidth-1 downto 0);
+  signal tag1_out : std_ulogic_vector(TagWidth-1 downto 0);
   signal tag1_index : unsigned(LineIndexBits-1 downto 0);
-  signal inv_addr : unsigned(31-LineIndexBits downto 0);
+  signal inv_addr : unsigned(TagAddrHi-LineIndexBits downto 0);
 
   signal wb_en : std_ulogic;
   signal wb_we : std_ulogic;
@@ -118,8 +129,8 @@ begin
 
   sl_dpram_1: entity work.sl_dpram
     generic map (
-      SizeInBytes => NumberOfLines*4,
-      SizeOfElementInBits => 32)
+      SizeInBytes => NumberOfLines*((TagWidth+7)/8),
+      SizeOfElementInBits => TagWidth)
     port map (
       clk_i     => mem_clk_i,
       reset_n_i => reset_n_i,
@@ -167,7 +178,7 @@ begin
       tag1_out <= (others => '0');
       tag1_we <= '1';
       tag1_index <= to_unsigned(0,LineIndexBits);
-      inv_addr <= to_unsigned(0,32-LineIndexBits);
+      inv_addr <= to_unsigned(0,TagAddrHi-LineIndexBits+1);
       mem_din <= (others => '0');
       mem1_addr <= to_unsigned(0,LineIndexBits+WordIndexBits);
       mem_write_en <= '0';
@@ -211,7 +222,7 @@ begin
             fetch_ignore_addr <= mem_addr(WordIndexBits-1 downto 0)+1;
           end if;
           state <= ST_WRITEBACK_PRE;
-          mem1_addr <= unsigned(tag_in(LineIndexBits+WordIndexBits-1 downto WordIndexBits)) & mem_addr(WordIndexBits-1 downto 0);
+          mem1_addr <= unsigned(tag_in(LineIndexBits+TagLow-1 downto TagLow)) & mem_addr(WordIndexBits-1 downto 0);
           count <= MaxCount;
         elsif wb_fetch = '1' then
           if we_i = '1' then
@@ -270,11 +281,11 @@ begin
       -- tag control
       if state = ST_FETCH and wb_dready = '1' and count = MaxCount then
         -- update on fetch
-        tag_out <= to_stdUlogicVector(std_logic_vector(addr_i(31 downto 2))) & we_1d & '1';
+        tag_out <= to_stdUlogicVector(std_logic_vector(addr_i(TagAddrHi downto TagAddrLo))) & we_1d & '1';
         tag_we <= '1';
       elsif state = ST_IDLE and wb_writeback = '1' then
         -- update on fetch for write
-        tag_out <= to_stdUlogicVector(std_logic_vector(addr_i(31 downto 2))) & we_1d & '1';
+        tag_out <= to_stdUlogicVector(std_logic_vector(addr_i(TagAddrHi downto TagAddrLo))) & we_1d & '1';
         tag_we <= '1';
       else
         tag_we <= '0';
@@ -291,19 +302,19 @@ begin
         -- bus snooping
         tag1_we <= '0';
         if tag1_re_and_invalidate = '1' then
-          if unsigned(tag1_in(31 downto LineIndexBits)) = inv_addr then
+          if unsigned(tag1_in(TagWidth-1 downto LineIndexBits-TagAddrLo+2)) = inv_addr then
             tag1_we <= '1';
           end if;
           tag1_re_and_invalidate <= '0';
         elsif snooping_en = '1' then
-          inv_addr <= snooping_addr_i(31 downto LineIndexBits);
+          inv_addr <= snooping_addr_i(TagAddrHi downto LineIndexBits);
           tag1_index <= snooping_addr_i(LineIndexBits+WordIndexBits-1 downto WordIndexBits);
           tag1_out <= (others => '0');
           tag1_re_and_invalidate <= '1';
         end if;
       elsif cache_hit = '1' and we_i = '1' then
          -- mark as dirty
-        tag1_out <= tag_in(31 downto 2) & '1' & tag_in(0);
+        tag1_out <= tag_in(TagWidth-1 downto 2) & '1' & tag_in(0);
         tag1_we <= '1';
         tag1_index <= tag_index;
       else
@@ -328,7 +339,7 @@ begin
            din_i, en, en_and_line_inactive, req, mem1_addr(WordIndexBits-1 downto 0),
            mem1_addr_ov_bit, mem1_dout, mem1_write_en, mem_write_en,
            pending_write, pending_write_1d, snooping_en_i, state, tag_in(0),
-           tag_in(1), tag_in(31 downto WordIndexBits), tag_index,
+           tag_in(1), tag_in(TagWidth-1 downto TagLow), tag_index,
            tag_init_complete, wb_complete, wb_fetch, wb_writeback, we_1d, we_i,
            line_addr_conflict) is
   begin  -- process
@@ -340,7 +351,7 @@ begin
     tag_index <= addr_i(LineIndexBits+WordIndexBits-1 downto WordIndexBits);
 
     cache_hit <= '0';
-    if addr_i(31 downto WordIndexBits) = unsigned(tag_in(31 downto WordIndexBits)) and tag_in(0) = '1' then
+    if addr_i(TagAddrHi downto WordIndexBits) = unsigned(tag_in(TagWidth-1 downto TagLow)) and tag_in(0) = '1' then
       cache_hit <= '1'; -- match
     end if;
 
@@ -374,7 +385,7 @@ begin
       -- trigger writeback
       wb_en <= '1';
       wb_we <= '1';
-      wb_addr <= unsigned(tag_in(31 downto WordIndexBits)) & addr_i(WordIndexBits-1 downto 0);
+      wb_addr <= (31 downto TagAddrHi+1 => '0') & unsigned(tag_in(TagWidth-1 downto TagLow)) & addr_i(WordIndexBits-1 downto 0);
     elsif (wb_fetch = '1' and state = ST_IDLE) then
        -- trigger fetch
       wb_en <= '1';
