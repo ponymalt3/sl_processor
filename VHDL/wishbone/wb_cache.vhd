@@ -10,9 +10,6 @@ entity wb_cache is
     WordsPerLine  : natural := 8;
     NumberOfLines : natural := 48;
     WriteThrough   : boolean := false;
-    -- non-cacheable passthrough: any addr_i >= BypassBaseAddr forwards the
-    -- raw single-word transaction straight through this cache's own
-    -- downstream wb_master, untouched by tag/mem/state-machine logic
     EnableBypass   : boolean := false;
     BypassBaseAddr : natural := 0);
   
@@ -48,7 +45,6 @@ architecture rtl of wb_cache is
   alias stall_o : std_ulogic is slave_o.stall;
 
   signal req  : std_ulogic;
-
 
   type state_t is (ST_IDLE,ST_WRITE_TROUGH,ST_FETCH,ST_FETCH_AFTER_WB,ST_WRITEBACK_PRE,ST_WRITEBACK,ST_WRITEBACK_WAIT);
 

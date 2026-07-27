@@ -34,7 +34,6 @@ foreach f {
     ../../wishbone/wb_master.vhd
     ../../wishbone/wb_cache.vhd
     ../../wishbone/wb_mem.vhd
-    ../../wishbone/adapter/wb_cache_adapted.vhd
     ../../wishbone/adapter/wb_abp_bridge.vhd
     ../../wishbone/wb_sdram.vhd
     ../../top/uart.vhd

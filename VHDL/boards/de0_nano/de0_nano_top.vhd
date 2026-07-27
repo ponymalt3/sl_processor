@@ -47,8 +47,6 @@ architecture rtl of de0_nano_top is
   signal sdram_addr  : std_ulogic_vector(12 downto 0);
   signal sdram_dqm   : std_ulogic_vector(1 downto 0);
 
-  signal debug : std_ulogic_vector(7 downto 0);
-
 begin
 
   pll_1: entity work.pll
@@ -62,24 +60,22 @@ begin
 
   sl_system_1: entity work.sl_system
     generic map (
-      -- EP4CE22 only has 66 M9K blocks (~594Kbit/~74KB) of on-chip block
-      -- RAM total; sl_system's own defaults (32KB L2 + 4x2KB code/data
-      -- caches) alone are right at that ceiling with zero packing margin,
-      -- so this board sizes down to comfortably fit alongside everything
-      -- else (local mem, tag storage, sync mem)
-      CodeCacheSizeInKB => 1,
-      DataCacheSizeInKB => 1,
-      SdramCacheSizeInKB => 8,
-      SyncMemSizeInKB    => 4)
+      ClockFreqHz        => 50_000_000,
+      BaudRate           => 1000000,
+      LocalMemSizeInKB   => 4,
+      CodeMemSizeInKB    => 128,
+      ExtMemSizeInKB     => 16*1024,
+      CodeCacheSizeInKB  => 2,
+      DataCacheSizeInKB  => 2,
+      SdramCacheSizeInKB => 16,
+      SyncMemSizeInKB    => 2)
     port map (
       clk_i         => clk,
       mem_clk_i     => mem_clk,
       reset_n_i     => reset_n,
       uart_rxd_i    => uart_rxd,
       uart_txd_o    => uart_txd,
-      sdram_clk_o   => open,          -- physical DRAM_CLK comes straight
-                                       -- from the PLL's phase-shifted c1,
-                                       -- not from sl_system/wb_sdram
+      sdram_clk_o   => open, -- comes directly from PLL
       sdram_cke_o   => sdram_cke,
       sdram_cs_n_o  => sdram_cs_n,
       sdram_ras_n_o => sdram_ras_n,
@@ -88,8 +84,7 @@ begin
       sdram_ba_o    => sdram_ba,
       sdram_addr_o  => sdram_addr,
       sdram_dqm_o   => sdram_dqm,
-      sdram_dq_io   => DRAM_DQ,
-      debug_o       => debug);
+      sdram_dq_io   => DRAM_DQ);
 
   DRAM_CLK   <= sdram_clk_shifted;
   DRAM_CKE   <= sdram_cke;
@@ -104,6 +99,6 @@ begin
   uart_rxd   <= GPIO_0(0);
   GPIO_0(1)  <= uart_txd;
 
-  LED <= std_logic_vector(debug);
+  LED <= (others => '0');
 
 end architecture rtl;

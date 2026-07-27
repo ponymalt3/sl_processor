@@ -33,7 +33,7 @@ package wishbone_p is
   type integer_array_t is array (natural range <>) of integer;
  
   type wb_master_config_t is record
-    id        : natural;
+    id : natural;
     connected_slaves : integer_array_t(31 downto 0);
     rel_slave_pos : natural; -- only used if masters are filter for one slave
   end record wb_master_config_t;
@@ -86,11 +86,11 @@ package body wishbone_p is
   function wb_hash (
     name : string)
     return integer is
-    variable hash : unsigned(31 downto 0) := to_unsigned(46929344, 32);
+    variable hash : unsigned(31 downto 0) := to_unsigned(46929343, 32);
     variable tmp  : unsigned(63 downto 0);
   begin
     for i in name'range loop
-      tmp  := hash * to_unsigned(89428428, 32);
+      tmp  := hash * to_unsigned(89428429, 32);
       hash := tmp(31 downto 0) + to_unsigned(character'pos(name(i)), 32);
     end loop;
     return to_integer(signed(hash));

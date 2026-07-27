@@ -125,12 +125,14 @@ BEGIN
 	-- starting point for this board/chip combo; re-tune against the real
 	-- board (e.g. via SignalTap or a memtest) before trusting it blindly,
 	-- same as any SDRAM clock-to-pad timing budget.
-	-- clk2: 50MHz -> 50MHz, ~144 deg / 8ns (mem_clk_i, see file header) --
+	-- clk2: 50MHz -> 50MHz, ~125 deg / 6.934ns (mem_clk_i, see file header) --
 	-- not a plain half-period (180 deg) shift on purpose: the clk_i<->mem_clk_i
 	-- setup budget splits unevenly between the two crossing directions (the
 	-- mem_clk_i->clk_i cache read-out path is the slower one per Quartus STA),
 	-- so this balances the split instead of giving both directions an equal
-	-- but mismatched-to-actual-delay half of the period
+	-- but mismatched-to-actual-delay half of the period. Re-derive this value
+	-- from the real .sta.rpt worst-case delays/skew any time the datapath
+	-- changes -- see VHDL/boards/de0_nano/synth.sh.
 	altpll_component : altpll
 	GENERIC MAP (
 		bandwidth_type => "AUTO",
@@ -145,7 +147,7 @@ BEGIN
 		clk2_divide_by => 1,
 		clk2_duty_cycle => 50,
 		clk2_multiply_by => 1,
-		clk2_phase_shift => "8000",
+		clk2_phase_shift => "6934",
 		compensate_clock => "CLK0",
 		inclk0_input_frequency => 20000,
 		intended_device_family => "Cyclone IV E",

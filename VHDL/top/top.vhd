@@ -9,7 +9,7 @@ entity sl_system is
 
   generic (
     ClockFreqHz       : natural := 50_000_000;
-    BaudRate          : natural := 115200;
+    BaudRate          : natural := 1000000;
     LocalMemSizeInKB  : natural := 3;
     CodeMemSizeInKB   : natural := 64;
     ExtMemSizeInKB    : natural := 8*1024;
