@@ -48,6 +48,7 @@ VHDL_SOURCES = [
     VHDL_ROOT / "wishbone" / "wb_ixs_arbiter.vhd",
     VHDL_ROOT / "wishbone" / "wb_ixs.vhd",
     VHDL_ROOT / "wishbone" / "wb_cache.vhd",
+    VHDL_ROOT / "wishbone" / "adapter" / "wb_cache_adapter.vhd",
     VHDL_ROOT / "wishbone" / "wb_mem.vhd",
     # Cluster + this test's wrapper
     SL_PROC_DIR / "sl_cluster.vhd",

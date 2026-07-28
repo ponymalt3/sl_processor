@@ -68,6 +68,14 @@ architecture rtl of sl_system is
   signal sdram_cache_master_in  : wb_master_ifc_in_t;
   signal sdram_cache_master_out : wb_master_ifc_out_t;
 
+  signal sdram_cache_addr     : unsigned(31 downto 0);
+  signal sdram_cache_wdata    : std_ulogic_vector(31 downto 0);
+  signal sdram_cache_rdata    : std_ulogic_vector(31 downto 0);
+  signal sdram_cache_en       : std_ulogic;
+  signal sdram_cache_we       : std_ulogic;
+  signal sdram_cache_complete : std_ulogic;
+  signal sdram_cache_err      : std_ulogic;
+
   signal snoop_active : std_ulogic;
 
   constant ExtMemSize  : natural := (ExtMemSizeInKB*1024)/4;
@@ -135,8 +143,6 @@ begin  -- architecture rtl
   debug_master_in <= master_in(0);
   master_out(1) <= code_master_out;
   code_master_in <= master_in(1);
-  -- ext_master_out is already offset onto the unified code/ext address
-  -- space by sl_cluster itself (code_mem and ext_mem are the same memory)
   master_out(2) <= ext_master_out;
   ext_master_in <= master_in(2);
 
@@ -149,6 +155,21 @@ begin  -- architecture rtl
 
   snoop_active <= '1' when sdram_cache_slave_in.cyc = '1' and sdram_cache_slave_in.we = '1' and sdram_cache_slave_out.ack = '1' else '0';
 
+  wb_cache_adapter_sdram: entity work.wb_cache_adapter
+    generic map (IsConnectedToIXS => true)
+    port map (
+      clk_i      => clk_i,
+      reset_n_i  => reset_n_i,
+      addr_o     => sdram_cache_addr,
+      din_i      => sdram_cache_rdata,
+      dout_o     => sdram_cache_wdata,
+      en_o       => sdram_cache_en,
+      we_o       => sdram_cache_we,
+      complete_i => sdram_cache_complete,
+      err_i      => sdram_cache_err,
+      slave_i    => sdram_cache_slave_in,
+      slave_o    => sdram_cache_slave_out);
+
   sdram_cache_1: entity work.wb_cache
     generic map (
       WordsPerLine  => SdramCacheWordsPerLine,
@@ -158,10 +179,15 @@ begin  -- architecture rtl
       clk_i           => clk_i,
       mem_clk_i       => mem_clk_i,
       reset_n_i       => reset_n_i,
+      addr_i          => sdram_cache_addr,
+      din_i           => sdram_cache_wdata,
+      dout_o          => sdram_cache_rdata,
+      en_i            => sdram_cache_en,
+      we_i            => sdram_cache_we,
+      complete_o      => sdram_cache_complete,
+      err_o           => sdram_cache_err,
       snooping_addr_i => to_unsigned(0,32),
       snooping_en_i   => '0',
-      slave_i         => sdram_cache_slave_in,
-      slave_o         => sdram_cache_slave_out,
       master_out_i    => sdram_cache_master_in,
       master_out_o    => sdram_cache_master_out);
 

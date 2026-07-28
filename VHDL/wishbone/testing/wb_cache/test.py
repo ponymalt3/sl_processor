@@ -2,13 +2,13 @@
 
 import random
 import cocotb
-from cocotb.triggers import Timer
-from wb_cache import WriteBackCache, WriteThroughCache, BypassCache
-
+from cocotb.triggers import RisingEdge, Timer
+from wb_cache import WriteBackCache, WriteThroughCache, BypassCache, CacheThroughArbiter
 
 # ---------------------------------------------------------------------------
 # Write-back tests
 # ---------------------------------------------------------------------------
+
 
 def _setup_wb(dut):
     WriteBackCache.start_clock(dut)
@@ -57,6 +57,77 @@ async def write_to_invalid_cache_line(dut):
 
 
 @cocotb.test()
+async def hit_survives_after_arbiter_regrant(dut):
+    CacheThroughArbiter.start_clock(dut)
+    cache = CacheThroughArbiter(dut)
+    cache.start()
+    await cache.reset()
+
+    await cache.write(100, 0xDEADBEEF)
+    await Timer(2_000, unit="ns")  # matches the long idle gap in the system test
+
+    result = await cache.read(100)
+    assert result == 0xDEADBEEF, (
+        f"wrong read-back: {result:#010x} -- a real cache hit through the "
+        "arbiter was read back as a miss, and the spurious re-fetch "
+        "clobbered the cached (not yet written back) data"
+    )
+
+
+@cocotb.test()
+async def writeback_trigger_needs_stable_en_for_two_cycles(dut):
+    """Regression: wb_cache.vhd's ST_IDLE -> ST_WRITEBACK_PRE transition
+    (triggered when wb_writeback='1', i.e. en=1 on a dirty-but-missed line)
+    is unconditional once entered: ST_WRITEBACK_PRE always advances to
+    ST_WRITEBACK on the next cycle regardless of anything. But the actual
+    wb_en pulse that kicks off the real downstream eviction is gated by
+    wb_writeback again, one cycle later, in ST_WRITEBACK_PRE itself -- which
+    recomputes from whatever en/cache_hit/tag_in look like THEN, not what
+    they were in ST_IDLE. If the upstream en/we pulse is held for only a
+    single cycle (as e.g. a one-cycle glitch from an arbiter would, rather
+    than a Python driver holding it stable), wb_writeback has already gone
+    back to 0 by ST_WRITEBACK_PRE, so wb_en never fires -- yet the FSM has
+    already committed to ST_WRITEBACK, where it now waits forever for a
+    wb_dready/wb_complete from a downstream transaction that was never
+    started. Every other test in this file drives the cache through
+    WriteBackCache.write(), which holds en_i until complete_o -- this is
+    the one test that pokes a single-cycle pulse directly, matching what a
+    one-cycle upstream glitch looks like."""
+    cache = _setup_wb(dut)
+    await cache.reset()
+
+    # dirty the line without flushing it
+    await cache.write(9, 0xAAAA5555)
+
+    # addr=9+64 aliases the SAME cache line (tag_index) as addr=9 with a
+    # DIFFERENT tag, so accessing it must evict the dirty line above --
+    # poked directly, held for exactly one clock cycle
+    dut.wb_addr_i.value = 9 + 64
+    dut.wb_din_i.value = 0x12345678
+    dut.wb_we_i.value = 1
+    dut.wb_en_i.value = 1
+    await RisingEdge(dut.clk_i)
+    dut.wb_en_i.value = 0
+    dut.wb_we_i.value = 0
+
+    for _ in range(100):
+        await RisingEdge(dut.clk_i)
+        cocotb.log.info(
+            f"PROBE {cocotb.utils.get_sim_time('ns')}ns "
+            f"wb_en={dut.DUT_WB.wb_en.value} wb_we={dut.DUT_WB.wb_we.value} "
+            f"wb_dready={dut.DUT_WB.wb_dready.value} wb_complete={dut.DUT_WB.wb_complete.value} "
+            f"wb_writeback={dut.DUT_WB.wb_writeback.value}")
+        if dut.wb_complete_o.value == 1:
+            break
+
+    assert dut.wb_complete_o.value == 1, (
+        "cache never completed -- a one-cycle en/we pulse triggered "
+        "ST_WRITEBACK_PRE (unconditional) but wb_en (gated on wb_writeback "
+        "again, one cycle later) never fired, stranding the cache forever"
+    )
+
+
+@cocotb.test()
 async def write_to_existing_dirty_cache_line(dut):
     cache = _setup_wb(dut)
     await cache.reset()
@@ -68,7 +139,9 @@ async def write_to_existing_dirty_cache_line(dut):
     result = await cache.read(90)
     elapsed = cache.sim_time_ns() - t0
 
-    assert elapsed <= 440, f"fetch after eviction took {elapsed:.0f}ns (writeback+fetch, ≤22 cycles)"
+    assert (
+        elapsed <= 440
+    ), f"fetch after eviction took {elapsed:.0f}ns (writeback+fetch, ≤22 cycles)"
     assert cache.mem[26] == 0xCCCCCCAB, "dirty line not written back on eviction"
     assert result == 0xDEADBEEF, f"wrong data in new line: {result:#010x}"
 
@@ -90,8 +163,9 @@ async def write_is_delayed_correctly(dut):
     assert result == 0xDEADB33F, f"wrong data: {result:#010x}"
 
     await cache.flush_line(27)
-    assert cache.mem[24] == 0xDEADBE3F and cache.mem[27] == 0xDEADB33F, \
-        "delayed writes not flushed correctly"
+    assert (
+        cache.mem[24] == 0xDEADBE3F and cache.mem[27] == 0xDEADB33F
+    ), "delayed writes not flushed correctly"
 
 
 @cocotb.test()
@@ -99,8 +173,8 @@ async def write_with_stall_while_pending_fetch(dut):
     cache = _setup_wb(dut)
     await cache.reset()
 
-    await cache.write(1,  0x00DEAD00)
-    await cache.write(6,  0xCAFEBABE)
+    await cache.write(1, 0x00DEAD00)
+    await cache.write(6, 0xCAFEBABE)
     await cache.write(64, 0xDEADB00B)
     await cache.write(68, 0xB00BDEAD)
 
@@ -110,8 +184,9 @@ async def write_with_stall_while_pending_fetch(dut):
     await cache.flush_line(64)
     await cache.flush_line(68)
 
-    assert cache.mem[64] == 0xDEADB00B and cache.mem[68] == 0xB00BDEAD, \
-        "writeback incorrect"
+    assert (
+        cache.mem[64] == 0xDEADB00B and cache.mem[68] == 0xB00BDEAD
+    ), "writeback incorrect"
 
 
 @cocotb.test()
@@ -171,7 +246,7 @@ async def pending_writeback_does_not_stall_write(dut):
     await cache.reset()
 
     await cache.read(48)
-    await cache.write(45,      0xEADBBBEE)
+    await cache.write(45, 0xEADBBBEE)
     await cache.write(45 + 64, 0xDEDEDEDE)
 
     t0 = cache.sim_time_ns()
@@ -201,6 +276,7 @@ async def idle_write_only_takes_one_cycle(dut):
 # ---------------------------------------------------------------------------
 # Write-through tests
 # ---------------------------------------------------------------------------
+
 
 def _setup_wt(dut):
     WriteThroughCache.start_clock(dut)
@@ -249,8 +325,9 @@ async def write_through_to_same_line(dut):
     await cache.write(13, 0xA123_456C)
     await Timer(20, unit="ns")
 
-    assert cache.mem[12] == 0xA123_456B and cache.mem[13] == 0xA123_456C, \
-        "write-through to same line failed"
+    assert (
+        cache.mem[12] == 0xA123_456B and cache.mem[13] == 0xA123_456C
+    ), "write-through to same line failed"
     assert await cache.read(12) == 0xA123_456B
     assert await cache.read(13) == 0xA123_456C
 
@@ -264,8 +341,9 @@ async def write_through_to_different_lines(dut):
     await cache.write(16, 0xA123_456E)
     await Timer(20, unit="ns")
 
-    assert cache.mem[14] == 0xA123_456D and cache.mem[16] == 0xA123_456E, \
-        "write-through to different lines failed"
+    assert (
+        cache.mem[14] == 0xA123_456D and cache.mem[16] == 0xA123_456E
+    ), "write-through to different lines failed"
     assert await cache.read(14) == 0xA123_456D
     assert await cache.read(16) == 0xA123_456E
 
@@ -315,8 +393,9 @@ async def invalidate_while_idle(dut):
     await cache.invalidate(33)
     await Timer(40, unit="ns")
 
-    assert await cache.read(33) == 0xDCBA_9913, \
-        "cache not reloaded after idle invalidate"
+    assert (
+        await cache.read(33) == 0xDCBA_9913
+    ), "cache not reloaded after idle invalidate"
 
 
 @cocotb.test()
@@ -329,8 +408,9 @@ async def invalidate_while_fetching(dut):
     await cache.invalidate(36)
     await Timer(40, unit="ns")
 
-    assert await cache.read(36) == 0xDC33_9913, \
-        "cache not reloaded after invalidate during fetch"
+    assert (
+        await cache.read(36) == 0xDC33_9913
+    ), "cache not reloaded after invalidate during fetch"
 
 
 @cocotb.test()
@@ -342,19 +422,21 @@ async def invalidate_while_reading(dut):
     await cache.backdoor_write(40, 0xDCBB_BB00)
 
     cache._inv_addr.value = 40
-    cache._inv_en.value   = 1
+    cache._inv_en.value = 1
     await cache.read(41)
-    cache._inv_en.value   = 0
+    cache._inv_en.value = 0
     await Timer(40, unit="ns")
 
-    assert await cache.read(40) == 0xDCBB_BB00, \
-        "cache not reloaded after invalidate during read"
+    assert (
+        await cache.read(40) == 0xDCBB_BB00
+    ), "cache not reloaded after invalidate during read"
 
 
 # ---------------------------------------------------------------------------
 # Bypass tests (write-through + EnableBypass, mirrors sl_cluster.vhd's data
 # cache; BypassCache.BYPASS_BASE_ADDR = 48)
 # ---------------------------------------------------------------------------
+
 
 def _setup_byp(dut):
     BypassCache.start_clock(dut)
@@ -376,8 +458,9 @@ async def bypass_read_forwards_directly(dut):
     elapsed = cache.sim_time_ns() - t0
 
     assert result == 0x1234_5678, f"wrong data: {result:#010x}"
-    assert elapsed <= 100, \
-        f"bypass read took {elapsed:.0f}ns, expected a fast single-word turnaround (not a line fetch)"
+    assert (
+        elapsed <= 100
+    ), f"bypass read took {elapsed:.0f}ns, expected a fast single-word turnaround (not a line fetch)"
 
 
 @cocotb.test()
@@ -408,8 +491,9 @@ async def bypass_in_cache_indexable_range_still_bypasses(dut):
     # directly and re-reading would return stale data instead of the update
     cache.mem[addr] = 0xBBBB_6666
     result = await cache.read(addr)
-    assert result == 0xBBBB_6666, \
-        f"got stale {result:#010x} -- address {addr} appears to have been cached despite being >= BypassBaseAddr"
+    assert (
+        result == 0xBBBB_6666
+    ), f"got stale {result:#010x} -- address {addr} appears to have been cached despite being >= BypassBaseAddr"
 
 
 @cocotb.test()
@@ -419,25 +503,31 @@ async def bypass_does_not_pollute_cache(dut):
 
     # addr 10 and addr 72 share the same tag-index slot (bits[5:2] == 2) but
     # 72 is >= BYPASS_BASE_ADDR so it must never touch that slot's tag/data
-    cached_addr  = 10
-    bypass_addr  = 72
+    cached_addr = 10
+    bypass_addr = 72
     assert (cached_addr >> 2) & 0xF == (bypass_addr >> 2) & 0xF
     assert bypass_addr >= BypassCache.BYPASS_BASE_ADDR
 
     cache.mem[cached_addr] = 0x1111_2222
-    assert await cache.read(cached_addr) == 0x1111_2222  # cold fetch, allocates the slot
+    assert (
+        await cache.read(cached_addr) == 0x1111_2222
+    )  # cold fetch, allocates the slot
 
     cache.mem[bypass_addr] = 0x3333_4444
-    assert await cache.read(bypass_addr) == 0x3333_4444  # must not evict/corrupt the slot above
+    assert (
+        await cache.read(bypass_addr) == 0x3333_4444
+    )  # must not evict/corrupt the slot above
 
     t0 = cache.sim_time_ns()
     result = await cache.read(cached_addr)
     elapsed = cache.sim_time_ns() - t0
 
-    assert result == 0x1111_2222, \
-        f"addr {cached_addr} corrupted by bypass traffic to colliding index: got {result:#010x}"
-    assert elapsed <= 20, \
-        f"addr {cached_addr} unexpectedly re-fetched ({elapsed:.0f}ns) -- line was evicted by bypass traffic"
+    assert (
+        result == 0x1111_2222
+    ), f"addr {cached_addr} corrupted by bypass traffic to colliding index: got {result:#010x}"
+    assert (
+        elapsed <= 20
+    ), f"addr {cached_addr} unexpectedly re-fetched ({elapsed:.0f}ns) -- line was evicted by bypass traffic"
 
 
 @cocotb.test()
@@ -462,20 +552,21 @@ async def bypass_blocks_until_background_linefill_completes(dut):
     elapsed = cache.sim_time_ns() - t0
 
     assert result == 0x9999_AAAA, f"wrong data: {result:#010x}"
-    assert elapsed > 100, \
-        f"bypass completed in {elapsed:.0f}ns -- expected it to wait for the " \
+    assert elapsed > 100, (
+        f"bypass completed in {elapsed:.0f}ns -- expected it to wait for the "
         f"still-in-progress background line-fill (baseline idle bypass is <=100ns)"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Stress tests
 # ---------------------------------------------------------------------------
 
-SEED     = 0xDEAD_BEEF
+SEED = 0xDEAD_BEEF
 MEM_SIZE = 256
-N_READS  = 1024 * 4
-N_WRITES = 512  * 4
-N_INVS   = 433  * 4
+N_READS = 1024 * 4
+N_WRITES = 512 * 4
+N_INVS = 433 * 4
 
 
 async def _stress(cache, n_reads, n_writes, n_invalidates=0):
@@ -490,13 +581,14 @@ async def _stress(cache, n_reads, n_writes, n_invalidates=0):
 
     while r or w or inv:
         total = r + w + inv
-        roll  = rng.randrange(total)
+        roll = rng.randrange(total)
 
         if roll < r:
-            addr   = rng.randrange(MEM_SIZE)
+            addr = rng.randrange(MEM_SIZE)
             result = await cache.read(addr)
-            assert result == ref[addr], \
-                f"read[{addr}]: got {result:#010x}, expected {ref[addr]:#010x}"
+            assert (
+                result == ref[addr]
+            ), f"read[{addr}]: got {result:#010x}, expected {ref[addr]:#010x}"
             r -= 1
         elif roll < r + w:
             addr = rng.randrange(MEM_SIZE)
@@ -514,8 +606,9 @@ async def _stress(cache, n_reads, n_writes, n_invalidates=0):
 
     for addr in range(MEM_SIZE):
         result = await cache.read(addr)
-        assert result == ref[addr], \
-            f"final check[{addr}]: got {result:#010x}, expected {ref[addr]:#010x}"
+        assert (
+            result == ref[addr]
+        ), f"final check[{addr}]: got {result:#010x}, expected {ref[addr]:#010x}"
 
 
 @cocotb.test()

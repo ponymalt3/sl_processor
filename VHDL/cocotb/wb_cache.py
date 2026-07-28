@@ -5,6 +5,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 import cocotb.utils
 
+from wb_master import WbMaster
 from wb_memory import WbMemoryModel
 
 CLK_PERIOD_NS = 20
@@ -133,3 +134,54 @@ class BypassCache(_CacheBase):
 
     def __init__(self, dut):
         super().__init__(dut, prefix="byp_", write_delay=0)
+
+
+class CacheThroughArbiter:
+    """Write-back cache instance (ix_* ports) reached through a real
+    single-master wb_ixs, exactly like sl_system.vhd's
+    debug_ctrl -> wb_ixs_1 -> sdram_cache_1 path -- wb_ixs_arbiter.vhd's
+    registered master-select mux forwards a newly granted master's address
+    on the same falling edge wb_cache's tag DPRAM (mem_clk_i = not clk_i)
+    samples on. The flat wb_*/wt_*/byp_*/sd_* ports never route through an
+    arbiter at all, so they cannot expose whatever timing race that
+    specific path has.
+    """
+
+    def __init__(self, dut):
+        self._dut = dut
+        self._clk = dut.clk_i
+        self._master = WbMaster(dut, prefix="ix_")
+        self._mem_model = WbMemoryModel(dut, prefix="ix_", write_delay=1)
+
+    @property
+    def mem(self):
+        return self._mem_model.mem
+
+    @staticmethod
+    def start_clock(dut):
+        cocotb.start_soon(Clock(dut.clk_i, CLK_PERIOD_NS, unit="ns").start())
+
+    def start(self):
+        self._master.idle()
+        self._mem_model.start()
+
+    async def reset(self):
+        self._dut.reset_n_i.value = 0
+        self._master.idle()
+        await Timer(33, unit="ns")
+        self._dut.reset_n_i.value = 1
+        await Timer(500, unit="ns")
+
+    async def write(self, addr: int, data: int):
+        await self._master.write(addr, data)
+
+    async def read(self, addr: int) -> int:
+        return await self._master.read(addr)
+
+    async def flush_line(self, addr: int):
+        await self.read((addr + 64) % 256)
+        await Timer(200, unit="ns")
+
+    @staticmethod
+    def sim_time_ns() -> float:
+        return cocotb.utils.get_sim_time(unit="ns")

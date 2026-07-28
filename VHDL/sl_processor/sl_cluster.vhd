@@ -102,6 +102,27 @@ begin  -- architecture rtl
     signal code_cache_out : wb_slave_ifc_out_t;
     signal ext_master_out : wb_master_ifc_out_t;
     signal ext_master_in : wb_master_ifc_in_t;
+
+    -- code_cache_1's flat request/ack side (no settle delay: core_en_i(i)
+    -- and code_addr are the core's own directly-wired combinational
+    -- signals, never routed through wb_ixs_arbiter.vhd)
+    signal code_cache_addr     : unsigned(31 downto 0);
+    signal code_cache_wdata    : std_ulogic_vector(31 downto 0);
+    signal code_cache_rdata    : std_ulogic_vector(31 downto 0);
+    signal code_cache_en       : std_ulogic;
+    signal code_cache_we       : std_ulogic;
+    signal code_cache_complete : std_ulogic;
+    signal code_cache_err      : std_ulogic;
+
+    -- data_cache_1's flat request/ack side (same: sl_processor's
+    -- ext_master_o is wired directly, not through wb_ixs_arbiter.vhd)
+    signal data_cache_addr     : unsigned(31 downto 0);
+    signal data_cache_wdata    : std_ulogic_vector(31 downto 0);
+    signal data_cache_rdata    : std_ulogic_vector(31 downto 0);
+    signal data_cache_en       : std_ulogic;
+    signal data_cache_we       : std_ulogic;
+    signal data_cache_complete : std_ulogic;
+    signal data_cache_err      : std_ulogic;
   begin
     local_reset(i) <= reset_n_i and core_reset_n_i(i);
     code_stall <= not code_cache_out.ack;
@@ -117,6 +138,21 @@ begin  -- architecture rtl
     -- halfword PC selects which half of the fetched word is the instruction
     code_data <= code_cache_out.dat(31 downto 16) when code_addr(0) = '1' else code_cache_out.dat(15 downto 0);
 
+    wb_cache_adapter_code: entity work.wb_cache_adapter
+      generic map (IsConnectedToIXS => false)
+      port map (
+        clk_i      => clk_i,
+        reset_n_i  => reset_n_i,
+        addr_o     => code_cache_addr,
+        din_i      => code_cache_rdata,
+        dout_o     => code_cache_wdata,
+        en_o       => code_cache_en,
+        we_o       => code_cache_we,
+        complete_i => code_cache_complete,
+        err_i      => code_cache_err,
+        slave_i    => code_cache_in,
+        slave_o    => code_cache_out);
+
     wb_cache_1: entity work.wb_cache
       generic map (
         WordsPerLine  => CacheWordsPerLine,
@@ -127,12 +163,32 @@ begin  -- architecture rtl
         clk_i           => clk_i,
         mem_clk_i       => mem_clk_i,
         reset_n_i       => reset_n_i,
-        slave_i         => code_cache_in,
-        slave_o         => code_cache_out,
+        addr_i          => code_cache_addr,
+        din_i           => code_cache_wdata,
+        dout_o          => code_cache_rdata,
+        en_i            => code_cache_en,
+        we_i            => code_cache_we,
+        complete_o      => code_cache_complete,
+        err_o           => code_cache_err,
         snooping_addr_i => snoop_addr_i,
         snooping_en_i   => snoop_en_i,
         master_out_i    => master_in(i),
         master_out_o    => master_out(i));
+
+    wb_cache_adapter_data: entity work.wb_cache_adapter
+      generic map (IsConnectedToIXS => false)
+      port map (
+        clk_i      => clk_i,
+        reset_n_i  => reset_n_i,
+        addr_o     => data_cache_addr,
+        din_i      => data_cache_rdata,
+        dout_o     => data_cache_wdata,
+        en_o       => data_cache_en,
+        we_o       => data_cache_we,
+        complete_i => data_cache_complete,
+        err_i      => data_cache_err,
+        slave_i    => ext_master_out,
+        slave_o    => ext_master_in);
 
     data_cache_1: entity work.wb_cache
       generic map (
@@ -146,10 +202,15 @@ begin  -- architecture rtl
         clk_i           => clk_i,
         mem_clk_i       => mem_clk_i,
         reset_n_i       => reset_n_i,
+        addr_i          => data_cache_addr,
+        din_i           => data_cache_wdata,
+        dout_o          => data_cache_rdata,
+        en_i            => data_cache_en,
+        we_i            => data_cache_we,
+        complete_o      => data_cache_complete,
+        err_o           => data_cache_err,
         snooping_addr_i => snoop_addr_i-to_unsigned(CodeMemSize, 32),
         snooping_en_i   => snoop_en_i,
-        slave_i         => ext_master_out,
-        slave_o         => ext_master_in,
         master_out_i    => master_in(4+i),
         master_out_o    => master_out(4+i));
 

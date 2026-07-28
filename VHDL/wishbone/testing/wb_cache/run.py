@@ -17,7 +17,11 @@ VHDL_SOURCES = [
     VHDL_ROOT / "sl_dpram.vhd",
     VHDL_ROOT / "wishbone" / "wishbone_p.vhd",
     VHDL_ROOT / "wishbone" / "wb_master.vhd",
+    VHDL_ROOT / "wishbone" / "wb_ixs_decode.vhd",
+    VHDL_ROOT / "wishbone" / "wb_ixs_arbiter.vhd",
+    VHDL_ROOT / "wishbone" / "wb_ixs.vhd",
     VHDL_ROOT / "wishbone" / "wb_cache.vhd",
+    VHDL_ROOT / "wishbone" / "adapter" / "wb_cache_adapter.vhd",
     SCRIPT_DIR / "wrapper.vhd",
 ]
 

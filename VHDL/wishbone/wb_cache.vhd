@@ -19,8 +19,13 @@ entity wb_cache is
     mem_clk_i  : in    std_ulogic;
     reset_n_i  : in    std_ulogic;
 
-    slave_i : in  wb_slave_ifc_in_t;
-    slave_o : out wb_slave_ifc_out_t;
+    addr_i     : in    unsigned(31 downto 0);
+    din_i      : in    std_ulogic_vector(31 downto 0);
+    dout_o     : out   std_ulogic_vector(31 downto 0);
+    en_i       : in    std_ulogic;
+    we_i       : in    std_ulogic;
+    complete_o : out   std_ulogic;
+    err_o      : out   std_ulogic;
 
     snooping_addr_i : in unsigned(31 downto 0);
     snooping_en_i : std_ulogic;
@@ -46,16 +51,6 @@ architecture rtl of wb_cache is
   constant TagAddrHi : natural := sel(NarrowTag, WordIndexBits+15, 31);
   constant TagAddrLo : natural := sel(NarrowTag, WordIndexBits, 2);
   constant TagLow : natural := WordIndexBits-TagAddrLo+2;
-
-  alias addr_i : unsigned(31 downto 0) is slave_i.adr;
-  alias din_i  : std_ulogic_vector(31 downto 0) is slave_i.dat;
-  alias we_i   : std_ulogic is slave_i.we;
-  alias dout_o     : std_ulogic_vector(31 downto 0) is slave_o.dat;
-  alias complete_o : std_ulogic is slave_o.ack;
-  alias err_o : std_ulogic is slave_o.err;
-  alias stall_o : std_ulogic is slave_o.stall;
-
-  signal req  : std_ulogic;
 
   type state_t is (ST_IDLE,ST_WRITE_TROUGH,ST_FETCH,ST_FETCH_AFTER_WB,ST_WRITEBACK_PRE,ST_WRITEBACK,ST_WRITEBACK_WAIT);
 
@@ -124,8 +119,7 @@ begin
 
   bypass <= '1' when EnableBypass and addr_i >= to_unsigned(BypassBaseAddr,32) else '0';
 
-  wb_hold <= bypass and slave_i.cyc;
-  req <= slave_i.stb and slave_i.cyc;
+  wb_hold <= bypass and en_i;
 
   sl_dpram_1: entity work.sl_dpram
     generic map (
@@ -336,7 +330,7 @@ begin
   end process;
 
   process (active_line_addr, addr_i, addr_ov_bit, bypass, bypass_active, bypass_pending, cache_hit, count,
-           din_i, en, en_and_line_inactive, req, mem1_addr(WordIndexBits-1 downto 0),
+           din_i, en, en_and_line_inactive, en_i, mem1_addr(WordIndexBits-1 downto 0),
            mem1_addr_ov_bit, mem1_dout, mem1_write_en, mem_write_en,
            pending_write, pending_write_1d, snooping_en_i, state, tag_in(0),
            tag_in(1), tag_in(TagWidth-1 downto TagLow), tag_index,
@@ -344,7 +338,7 @@ begin
            line_addr_conflict) is
   begin  -- process
 
-    en <= req and not bypass;
+    en <= en_i and not bypass;
     snooping_en <= snooping_en_i and '1';--tag_init_complete;
 
     mem_addr <= tag_index & addr_i(WordIndexBits-1 downto 0);
@@ -373,7 +367,7 @@ begin
       wb_addr <= addr_i;
       wb_din <= din_i;
       if state = ST_IDLE and bypass_pending = '0' and wb_complete = '0' then
-        wb_en <= req;
+        wb_en <= en_i;
       end if;
     elsif WriteThrough and en = '1' and we_i = '1' then
       -- pass through
@@ -434,24 +428,15 @@ begin
     end if;
 
     complete_o <= '0';
-    stall_o <= '1';
-
-    --if tag_we = '1' and count = MaxCount-1 and pending_write = '0' and (state = ST_FETCH or state = ST_FETCH_AFTER_WB) then
-    --  complete_o <= '1';
-    --  stall_o <= '0';
-    --end if;
 
     if bypass_active = '1' then
       complete_o <= wb_complete;
-      stall_o <= not wb_complete;
     elsif not WriteThrough and en_and_line_inactive = '1' and cache_hit = '1' and
       (we_1d = '0' or state = ST_IDLE or mem_write_en = '1') and pending_write = '0' then
       complete_o <= '1';
-      stall_o <= '0';
     elsif WriteThrough and en_and_line_inactive = '1'
       and ((we_1d = '0' and cache_hit = '1' and pending_write = '0') or (we_1d = '1' and state = ST_IDLE)) then
       complete_o <= '1';
-      stall_o <= '0';
     end if;
     
   end process;

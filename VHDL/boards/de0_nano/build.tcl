@@ -33,6 +33,7 @@ foreach f {
     ../../wishbone/wb_ixs.vhd
     ../../wishbone/wb_master.vhd
     ../../wishbone/wb_cache.vhd
+    ../../wishbone/adapter/wb_cache_adapter.vhd
     ../../wishbone/wb_mem.vhd
     ../../wishbone/adapter/wb_abp_bridge.vhd
     ../../wishbone/wb_sdram.vhd
