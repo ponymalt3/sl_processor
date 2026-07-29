@@ -375,7 +375,7 @@ begin
       wb_we <= '1';
       wb_addr <= addr_i;
       wb_din <= din_i;
-    elsif not WriteThrough and wb_writeback = '1' and state = ST_WRITEBACK_PRE then
+    elsif not WriteThrough and state = ST_WRITEBACK_PRE then
       -- trigger writeback
       wb_en <= '1';
       wb_we <= '1';

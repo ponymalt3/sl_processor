@@ -2,7 +2,7 @@
 
 import random
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge, Timer, with_timeout
 from wb_cache import WriteBackCache, WriteThroughCache, BypassCache, CacheThroughArbiter
 
 # ---------------------------------------------------------------------------
@@ -79,20 +79,32 @@ async def writeback_trigger_needs_stable_en_for_two_cycles(dut):
     """Regression: wb_cache.vhd's ST_IDLE -> ST_WRITEBACK_PRE transition
     (triggered when wb_writeback='1', i.e. en=1 on a dirty-but-missed line)
     is unconditional once entered: ST_WRITEBACK_PRE always advances to
-    ST_WRITEBACK on the next cycle regardless of anything. But the actual
-    wb_en pulse that kicks off the real downstream eviction is gated by
+    ST_WRITEBACK on the next cycle regardless of anything. The actual wb_en
+    pulse that kicks off the real downstream eviction used to be gated by
     wb_writeback again, one cycle later, in ST_WRITEBACK_PRE itself -- which
-    recomputes from whatever en/cache_hit/tag_in look like THEN, not what
-    they were in ST_IDLE. If the upstream en/we pulse is held for only a
-    single cycle (as e.g. a one-cycle glitch from an arbiter would, rather
-    than a Python driver holding it stable), wb_writeback has already gone
-    back to 0 by ST_WRITEBACK_PRE, so wb_en never fires -- yet the FSM has
-    already committed to ST_WRITEBACK, where it now waits forever for a
-    wb_dready/wb_complete from a downstream transaction that was never
-    started. Every other test in this file drives the cache through
-    WriteBackCache.write(), which holds en_i until complete_o -- this is
-    the one test that pokes a single-cycle pulse directly, matching what a
-    one-cycle upstream glitch looks like."""
+    recomputed from whatever en/cache_hit/tag_in looked like THEN, not what
+    they were in ST_IDLE. If the upstream en pulse is held for only a single
+    cycle (exactly what wb_cache_adapter.vhd's en_o/addr_o desync used to
+    produce at the tail of an IXS-routed transaction: a stray en=1,we=0,
+    addr=0 for one cycle -- see the adapter's own fix), wb_writeback had
+    already gone back to 0 by ST_WRITEBACK_PRE, so wb_en never fired -- yet
+    the FSM had already committed to ST_WRITEBACK, where it then waited
+    forever for a wb_dready/wb_complete from a downstream transaction that
+    was never started, permanently wedging the cache. This test pokes that
+    exact one-cycle en-only glitch (we=0, matching the real adapter-glitch
+    shape -- a write-type glitch is a separate, narrower issue: the cache
+    only re-applies a held write once the refetched line goes ready, so a
+    one-cycle we=1 glitch loses its own write data on top of the FSM
+    stranding; not what production actually produced, and not what this
+    test targets).
+
+    Note: complete_o itself can never pulse for the glitched transaction --
+    its own condition requires en_i to still be held when the line becomes
+    ready, which a one-cycle glitch by definition doesn't do. That's fine:
+    nothing was actually waiting on that phantom request's completion. What
+    matters is that the cache's FSM doesn't get permanently stuck -- so this
+    checks that a normal, real request placed right after the glitch still
+    completes, and that the refetched line landed correctly."""
     cache = _setup_wb(dut)
     await cache.reset()
 
@@ -101,29 +113,27 @@ async def writeback_trigger_needs_stable_en_for_two_cycles(dut):
 
     # addr=9+64 aliases the SAME cache line (tag_index) as addr=9 with a
     # DIFFERENT tag, so accessing it must evict the dirty line above --
-    # poked directly, held for exactly one clock cycle
+    # poked directly as a one-cycle en-only pulse (we=0), matching the
+    # adapter glitch's actual shape
     dut.wb_addr_i.value = 9 + 64
-    dut.wb_din_i.value = 0x12345678
-    dut.wb_we_i.value = 1
+    dut.wb_din_i.value = 0
+    dut.wb_we_i.value = 0
     dut.wb_en_i.value = 1
     await RisingEdge(dut.clk_i)
     dut.wb_en_i.value = 0
-    dut.wb_we_i.value = 0
 
-    for _ in range(100):
+    # give the glitched writeback+refill enough cycles to run its course
+    for _ in range(20):
         await RisingEdge(dut.clk_i)
-        cocotb.log.info(
-            f"PROBE {cocotb.utils.get_sim_time('ns')}ns "
-            f"wb_en={dut.DUT_WB.wb_en.value} wb_we={dut.DUT_WB.wb_we.value} "
-            f"wb_dready={dut.DUT_WB.wb_dready.value} wb_complete={dut.DUT_WB.wb_complete.value} "
-            f"wb_writeback={dut.DUT_WB.wb_writeback.value}")
-        if dut.wb_complete_o.value == 1:
-            break
 
-    assert dut.wb_complete_o.value == 1, (
-        "cache never completed -- a one-cycle en/we pulse triggered "
-        "ST_WRITEBACK_PRE (unconditional) but wb_en (gated on wb_writeback "
-        "again, one cycle later) never fired, stranding the cache forever"
+    # the cache must have recovered to ST_IDLE, refetched the new line
+    # correctly (backing memory's default content, never written), and
+    # accept a normal request
+    result = await with_timeout(cache.read(9 + 64), 2000, "ns")
+    assert result == 0xFFFF_FFFF, (
+        f"expected 0xffffffff (untouched backing memory default), got "
+        f"{result:#010x} -- the glitched writeback/refetch left stale or "
+        "corrupted data in the cache line, or the cache is still stuck"
     )
 
 

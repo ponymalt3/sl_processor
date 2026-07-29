@@ -27,8 +27,9 @@ end entity wb_cache_adapter;
 
 architecture rtl of wb_cache_adapter is
 
-  signal req   : std_ulogic;
-  signal req_1d : std_ulogic;
+  signal req     : std_ulogic;
+  signal req_1d  : std_ulogic;
+  signal stall   : std_ulogic;
 
 begin
 
@@ -44,10 +45,12 @@ begin
     end if;
   end process;
 
+  stall <= ((req and not req_1d) or not complete_i) when IsConnectedToIXS else not complete_i;
+
   addr_o  <= slave_i.adr;
   dout_o  <= slave_i.dat;
   we_o    <= slave_i.we;
-  en_o    <= req_1d when IsConnectedToIXS else req;
-  slave_o <= (din_i, complete_i, err_i, not complete_i);
+  en_o    <= (req and req_1d) when IsConnectedToIXS else req;
+  slave_o <= (din_i, complete_i, err_i, stall);
 
 end architecture rtl;
