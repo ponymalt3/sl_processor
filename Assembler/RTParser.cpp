@@ -677,8 +677,16 @@ void RTParser::parseLoopStatement(Stream& stream)
 
   beg.setLabel();
 
+  uint32_t bodyStartAddr = codeGen_.getCurCodeAddr();
+
   parseStatements(stream);
   stream.skipWhiteSpaces();
+
+  if(codeGen_.getCurCodeAddr() == bodyStartAddr)
+  {
+    codeGen_.instrNop();
+    Error::info() << "add NOP to empty loop" << stream;
+  }
 
   if(codeGen_.isLoopFrameComplex() == false)
   {
@@ -1131,7 +1139,9 @@ void RTParser::parseFunctionDecl(Stream& stream)
 
   // pad to 8-word aligned code mem addr
   while(codeGen_.getCurCodeAddr() & 7)
+  {
     codeGen_.instrNop();
+  }
 
   // SymbolMap curSymbols(stream,codeGen_.getCurCodeAddr());
   CodeGen::_FunctionInfo& fi = codeGen_.addFunctionAtCurrentAddr(name.getName(stream));

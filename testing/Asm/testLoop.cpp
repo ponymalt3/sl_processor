@@ -227,6 +227,25 @@ MTEST(testLoop, test_that_loop_with_zero_loop_count_executes_one_time)
   tester.expectSymbol("v", 1);
 }
 
+MTEST(testLoop, test_that_empty_loop_is_rejected)
+{
+  RTProg testCode = R"asm(
+    v=0;
+    loop(300)
+    end
+    v=v
+  )asm";
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  EXPECT(tester.getProcessor().readMemory(tester.getIRSAddrOfSymbol("v")) == qfp32_t(0).toRaw());
+  tester.expectSymbol("v", 0);
+}
+
 MTEST(testLoop, test_that_operation_with_loop_index_and_array_base_and_irs_works)
 {
   RTProg testCode = R"(
