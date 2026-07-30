@@ -117,6 +117,10 @@ architecture rtl of wb_cache is
 
 begin
 
+  assert WordsPerLine <= 64
+    report "wb_cache: WordsPerLine > 64 overflows BurstSize"
+    severity failure;
+
   bypass <= '1' when EnableBypass and addr_i >= to_unsigned(BypassBaseAddr,32) else '0';
 
   wb_hold <= bypass and en_i;

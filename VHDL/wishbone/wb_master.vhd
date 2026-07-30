@@ -32,9 +32,9 @@ architecture rtl of wb_master is
   signal state : fsm_t;
 
   signal master_out : wb_master_ifc_out_t;
-  signal count : unsigned(2 downto 0);
-  signal count_ack : unsigned(2 downto 0);
-  signal mask : unsigned(2 downto 0);
+  signal count : unsigned(5 downto 0);
+  signal count_ack : unsigned(5 downto 0);
+  signal mask : unsigned(5 downto 0);
 
 begin  -- architecture rtl
 
@@ -47,8 +47,8 @@ begin  -- architecture rtl
       complete_o <= '0';
       err_o <= '0';
       dready_o <= '0';
-      count <= to_unsigned(0,3);
-      mask <= to_unsigned(0,3);
+      count <= to_unsigned(0,6);
+      mask <= to_unsigned(0,6);
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       complete_o <= '0';
       err_o <= master_out_i.err;
@@ -56,9 +56,9 @@ begin  -- architecture rtl
       
       if en_i = '1' and state = ST_IDLE then
         state <= ST_PENDING;
-        count <= burst_i(2 downto 0);
-        count_ack <= burst_i(2 downto 0);
-        mask <= burst_i(2 downto 0);
+        count <= burst_i;
+        count_ack <= burst_i;
+        mask <= burst_i;
         dready_o <= we_i;
         master_out.adr <= addr_i;
         master_out.dat <= din_i;
@@ -69,8 +69,8 @@ begin  -- architecture rtl
       elsif state = ST_PENDING then
         if master_out_i.stall = '0' then
           master_out.dat <= din_i;
-          master_out.adr(2 downto 0) <= (master_out.adr(2 downto 0) and not mask) or ((master_out.adr(2 downto 0)+1) and mask);
-          if count = to_unsigned(0,3) then
+          master_out.adr(5 downto 0) <= (master_out.adr(5 downto 0) and not mask) or ((master_out.adr(5 downto 0)+1) and mask);
+          if count = to_unsigned(0,6) then
             master_out.stb <= '0';
           else
             if master_out.we = '1' then
@@ -88,7 +88,7 @@ begin  -- architecture rtl
           dout_o <= master_out_i.dat;
         end if;
         
-        if (master_out_i.ack = '1' and count_ack = to_unsigned(0,3)) or master_out_i.err = '1' then
+        if (master_out_i.ack = '1' and count_ack = to_unsigned(0,6)) or master_out_i.err = '1' then
           state <= ST_IDLE;
           master_out.stb <= '0';
           master_out.cyc <= hold_i;
