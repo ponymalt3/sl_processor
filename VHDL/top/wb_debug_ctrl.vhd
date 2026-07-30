@@ -56,7 +56,7 @@ architecture rtl of wb_debug_ctrl is
   signal wb_addr     : unsigned(31 downto 0);
   signal wb_complete : std_ulogic;
 
-  signal addr   : unsigned(15 downto 0);
+  signal addr   : unsigned(31 downto 0);
   signal len    : unsigned(15 downto 0);
   signal state  : integer;
   signal cmd    : std_ulogic_vector(7 downto 0);
@@ -102,7 +102,7 @@ begin  -- architecture rtl
   process (clk_i, reset_n_i) is
   begin  -- process
     if reset_n_i = '0' then             -- asynchronous reset (active low)
-      addr <= to_unsigned(0,16);
+      addr <= to_unsigned(0,32);
       len <= to_unsigned(0,16);
       rdata <= (others => '0');
       rstate <= "0000";
@@ -113,7 +113,7 @@ begin  -- architecture rtl
       state <= ST_IDLE;
       cmd <= X"00";
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
-      if uart_rx_valid = '1' then
+      if uart_rx_valid = '1' and rstate /= "1111" then
         rdata <= rdata(23 downto 0) & uart_rx_data;
         rstate <= rstate(2 downto 0) & '1';
       end if;
@@ -135,8 +135,8 @@ begin  -- architecture rtl
             end if;
           end if;
         when ST_ADDR =>
-          if rstate(1 downto 0) = "11" then
-            addr <= unsigned(rdata(15 downto 0));
+          if rstate = "1111" then
+            addr <= unsigned(rdata);
             state <= ST_LEN;
             rstate <= "0000";
           end if;
@@ -165,7 +165,7 @@ begin  -- architecture rtl
         when others => null;
       end case;
 
-      if (wb_re = '1' and wb_complete = '1') or wb_we = '1' then
+      if (wb_re = '1' or wb_we = '1') and wb_complete = '1' then
         addr <= addr+1;
         len <= len-1;
         if len = to_unsigned(1,16) then
@@ -173,7 +173,7 @@ begin  -- architecture rtl
         end if;
       end if;
 
-      if wb_we = '1' then
+      if wb_we = '1' and wb_complete = '1' then
         rstate <= "0000";
       end if;
 
@@ -187,8 +187,8 @@ begin  -- architecture rtl
 
   wb_re <= '1' when wstate = "0000" and state = ST_READ else '0';
   wb_we <= '1' when rstate = "1111" and state = ST_WRITE else '0';
-  wb_en <= wb_re or wb_we;
-  wb_addr <= to_unsigned(0,16) & addr;
+  wb_en <= (wb_re or wb_we) and not wb_complete;
+  wb_addr <= addr;
 
   uart_tx_en <= '1' when uart_tx_busy = '0' and wstate /= "0000" else '0';
   uart_tx_data <= wdata(31 downto 24);

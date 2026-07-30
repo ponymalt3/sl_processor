@@ -52,7 +52,7 @@ public:
     uint8_t buffer[]=
     {
       CMD_WRITE,
-      (addr>>8)&0xFF,addr&0xFF,
+      (addr>>24)&0xFF,(addr>>16)&0xFF,(addr>>8)&0xFF,addr&0xFF,
       (size>>8)&0xFF,size&0xFF
     };
     
@@ -71,7 +71,7 @@ public:
     uint8_t buffer[]=
     {
       CMD_READ,
-      (addr>>8)&0xFF,addr&0xFF,
+      (addr>>24)&0xFF,(addr>>16)&0xFF,(addr>>8)&0xFF,addr&0xFF,
       (size>>8)&0xFF,size&0xFF
     };
     
