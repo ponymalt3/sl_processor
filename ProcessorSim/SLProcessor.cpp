@@ -461,7 +461,7 @@ _StallCtrl SLProcessor::control(uint32_t stallDecEx,uint32_t stallExec,uint32_t 
   return {stallDecEx,stallExec,flushPipeline,enNext};
 }
 
-_State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext,uint32_t setPcEnable,uint32_t pcValue) const
+_State SLProcessor::updateState(const _Decode &decComb,const _Exec &execNext) const
 {
   _State stateNext;
 
@@ -614,7 +614,7 @@ _Exec SLProcessor::execute(uint32_t extMemStall,const _Decode &decComb)  //after
   return exec;
 }
 
-void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue)
+void SLProcessor::update(uint32_t extMemStall,uint32_t codeStall)
 {
   ++cycleCount_;
 
@@ -636,9 +636,8 @@ void SLProcessor::update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcVa
   _MemFetch2 mem2=memFetch2(decodeNext);
   _DecodeEx decExNext=decodeEx(decodeNext,mem1Next,mem2,extMemStall);
 
-  //controls
-  _StallCtrl stall=control(decExNext.stall_,execNext.stall_,execNext.execNext_,execNext.flush_);
-  _State stateNext=updateState(decodeNext,execNext,setPcEnable,pcValue);
+  _StallCtrl stall=control(decExNext.stall_||codeStall,execNext.stall_,execNext.execNext_,execNext.flush_);
+  _State stateNext=updateState(decodeNext,execNext);
 
   portExt_.update();
   portR0_.update();

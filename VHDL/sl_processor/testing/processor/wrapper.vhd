@@ -14,6 +14,7 @@ entity testing_wrapper is
     enable_core_i        : in  std_ulogic;
     core_reset_n_i       : in  std_ulogic;
     ext_mem_stall_i      : in  std_ulogic;
+    code_stall_i         : in  std_ulogic;
     force_proc_bus_off_i : in  std_ulogic;
 
     mem_addr_i     : in  unsigned(15 downto 0);
@@ -74,7 +75,7 @@ begin
       core_en_i       => enable_core_i,
       core_reset_n_i  => core_reset_n_i,
       code_addr_o     => code_addr,
-      code_stall_i    => '0',
+      code_stall_i    => code_stall_i,
       code_data_i     => code_word,
       ext_master_i    => master_in(0),
       ext_master_o    => proc_master_out,

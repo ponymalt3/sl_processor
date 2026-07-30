@@ -127,7 +127,7 @@ public:
   bool isRunning();
   void reset();
 
-  void update(uint32_t extMemStall,uint32_t setPcEnable,uint32_t pcValue);
+  void update(uint32_t extMemStall,uint32_t codeStall);
   
   uint32_t getExecutedAddr();
   
@@ -148,7 +148,7 @@ protected:
   _Exec execute(uint32_t extMemStall,const _Decode &decComb);
 
   _StallCtrl control(uint32_t stallDecEx,uint32_t stallExec,uint32_t condExec,uint32_t flushPipeline) const;
-  _State updateState(const _Decode &decComb,const _Exec &execNext,uint32_t setPcEnable,uint32_t pcValue) const;
+  _State updateState(const _Decode &decComb,const _Exec &execNext) const;
 
   SLArithUnit arithUnint_;
 

@@ -12,6 +12,7 @@ Vector entry types:
   0003 <hex32>        — run until executed_addr >= value
   0004 <addr32> <dat32> — write data to memory address
   0005 <hex32>        — run N cycles with ext_mem_stall asserted
+  0006 <hex32>        — run N cycles with code_stall asserted
   000F <addr32> <dat32> — read memory and assert result == expected
   0011 <0|1>          — bus lock probe (see expectBusLocked in SLProcessorTest.h):
                           1 = start a concurrent write to a scratch ext_mem address
@@ -101,6 +102,7 @@ async def test_from_vector(dut):
     dut.enable_core_i.value        = 0
     dut.core_reset_n_i.value       = 1
     dut.ext_mem_stall_i.value      = 0
+    dut.code_stall_i.value         = 0
     dut.force_proc_bus_off_i.value = 0
 
     await Timer(33, unit="ns")
@@ -182,14 +184,16 @@ async def test_from_vector(dut):
             cocotb.log.info(f"  {len(words)} code words loaded")
             dut.enable_core_i.value = 1
 
-        elif entry_type in (0x0002, 0x0005):
+        elif entry_type in (0x0002, 0x0005, 0x0006):
             current_test_lines.append(line)
             n = int(rest[0], 16)
             cocotb.log.info(f"  run {n} cycles")
             dut.ext_mem_stall_i.value = 1 if entry_type == 0x0005 else 0
+            dut.code_stall_i.value    = 1 if entry_type == 0x0006 else 0
             for _ in range(n):
                 await RisingEdge(dut.clk_i)
             dut.ext_mem_stall_i.value = 0
+            dut.code_stall_i.value    = 0
 
         elif entry_type == 0x0003:
             current_test_lines.append(line)

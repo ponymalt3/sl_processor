@@ -53,6 +53,14 @@ public:
     }
   }
 
+  void runCyclesWithCodeStall(uint32_t cycles)
+  {
+    if(file_.is_open())
+    {
+      file_ << "0006" << " " << std::setw(8) << (cycles) << "\n";
+    }
+  }
+
   void runUntilAddr(uint32_t addr)
   {
     if(file_.is_open())
@@ -211,7 +219,7 @@ public:
   void execute(uint32_t cycles)
   {
     for(uint32_t i = 0; i < cycles; ++i)
-      processor_.update(0, 0, 0);
+      processor_.update(0, 0);
 
     getVdhlTestGenerator().runCycles(cycles);
   }
@@ -219,7 +227,7 @@ public:
   void executeWithMemExtStall(uint32_t cycles)
   {
     for(uint32_t i = 0; i < cycles; ++i)
-      processor_.update(1, 0, 0);
+      processor_.update(1, 0);
 
     getVdhlTestGenerator().runCycles(cycles, true);
   }
@@ -227,9 +235,9 @@ public:
   void executeWithCodeStall(uint32_t cycles)
   {
     for(uint32_t i = 0; i < cycles; ++i)
-      processor_.update(0, 0, 0);
+      processor_.update(0, 1);
 
-    // getVdhlTestGenerator().runCycles(cycles,false,true);
+    getVdhlTestGenerator().runCyclesWithCodeStall(cycles);
   }
 
   uint32_t executeUntilAddr(uint32_t addr)
@@ -238,7 +246,7 @@ public:
 
     while(processor_.getExecutedAddr() == 0xFFFFFFFF || processor_.getExecutedAddr() < addr)
     {
-      processor_.update(0, 0, 0);
+      processor_.update(0, 0);
       ++cycles;
     }
 
