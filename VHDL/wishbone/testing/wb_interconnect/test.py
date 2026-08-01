@@ -1,16 +1,21 @@
 """
 cocotb tests for wb_ixs — translated from wb_interconnect_tb.vhd.
 
-Slaves are VHDL processes inside the wrapper (no Python slave model needed).
-Verification is done by write-then-read-back through the masters.
+Masters are driven by the shared WbMaster helper, the three slaves by the
+shared WbMemoryModel. The wrapper is pure wiring, so wait states are not
+baked into the bench: pass per_beat_stall_cycles to _setup() to ask for them
+explicitly. Verification is done by write-then-read-back through the masters,
+and the slaves' backing stores are reachable directly via slaves[i].mem.
 """
 
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from wb_master import WbMaster
+from wb_memory import WbMemoryModel
 
 CLK_PERIOD_NS = 20
+NUM_SLAVES = 3
 
 
 def _create_masters(dut):
@@ -21,21 +26,28 @@ def _create_masters(dut):
     return masters
 
 
-async def _setup(dut):
+async def _setup(dut, per_beat_stall_cycles: int = 0):
     masters = _create_masters(dut)
+    slaves = [WbMemoryModel(dut, prefix=f"s{i}_", init_value=0,
+                            per_beat_stall_cycles=per_beat_stall_cycles)
+              for i in range(NUM_SLAVES)]
     dut.reset_n_i.value = 0
     for m in masters:
         m.idle()
+    for sl in slaves:
+        sl.idle()
     await Timer(33, unit="ns")
     dut.reset_n_i.value = 1
+    for sl in slaves:
+        sl.start()
     await Timer(200, unit="ns")
-    return masters
+    return masters, slaves
 
 
 @cocotb.test()
 async def test_slave_boundaries(dut):
     """Write to boundary addresses of each slave and read back."""
-    masters = await _setup(dut)
+    masters, slaves = await _setup(dut)
     m0 = masters[0]
 
     await m0.write(0, 0x0000_BEEF)
@@ -58,7 +70,7 @@ async def test_slave_boundaries(dut):
 @cocotb.test()
 async def test_master_slave_access(dut):
     """Each master writes through its allowed slaves, then read back via m0."""
-    masters = await _setup(dut)
+    masters, slaves = await _setup(dut)
     m0, m1, m2 = masters
 
     # m0 can access all three slaves
@@ -85,7 +97,7 @@ async def test_master_slave_access(dut):
 @cocotb.test()
 async def test_parallel_different_slaves(dut):
     """3 masters write to 3 different slaves simultaneously."""
-    masters = await _setup(dut)
+    masters, slaves = await _setup(dut)
     m0, m1, m2 = masters
 
     t0 = cocotb.start_soon(m0.write(4, 0x0000_B123))
@@ -103,7 +115,7 @@ async def test_parallel_different_slaves(dut):
 @cocotb.test()
 async def test_sequential_arbitration(dut):
     """3 masters compete for mem0 — arbiter serialises them."""
-    masters = await _setup(dut)
+    masters, slaves = await _setup(dut)
     m0, m1, m2 = masters
 
     t0 = cocotb.start_soon(m0.write(133, 0x0000_B999))
@@ -121,7 +133,7 @@ async def test_sequential_arbitration(dut):
 @cocotb.test()
 async def test_burst_write_read(dut):
     """Burst-write 8 words into mem0, then burst-read them back."""
-    masters = await _setup(dut)
+    masters, slaves = await _setup(dut)
     m0 = masters[0]
 
     write_data = [i for i in range(8)]

@@ -58,9 +58,11 @@ begin
 
   DUT : entity work.sl_cluster
     generic map (
-      LocalMemSizeInKB => 2,
-      ExtMemSizeInKB   => 16,
-      CodeMemSizeInKB  => 8)
+      LocalMemSizeInKB  => 2,
+      ExtMemSizeInKB    => 16,
+      CodeMemSizeInKB   => 8,
+      CodeCacheSizeInKB => 1,
+      DataCacheSizeInKB => 1)
     port map (
       clk_i          => clk_i,
       mem_clk_i      => mem_clk,

@@ -123,7 +123,10 @@ begin  -- architecture rtl
     signal data_cache_we       : std_ulogic;
     signal data_cache_complete : std_ulogic;
     signal data_cache_err      : std_ulogic;
+
+    signal pc_probe : unsigned(15 downto 0);
   begin
+
     local_reset(i) <= reset_n_i and core_reset_n_i(i);
     code_stall <= not code_cache_out.ack;
     code_cache_in.adr(14 downto 0)  <= code_addr(15 downto 1);
@@ -139,7 +142,6 @@ begin  -- architecture rtl
     code_data <= code_cache_out.dat(31 downto 16) when code_addr(0) = '1' else code_cache_out.dat(15 downto 0);
 
     wb_cache_adapter_code: entity work.wb_cache_adapter
-      generic map (IsConnectedToIXS => false)
       port map (
         clk_i      => clk_i,
         reset_n_i  => reset_n_i,
@@ -176,7 +178,6 @@ begin  -- architecture rtl
         master_out_o    => master_out(i));
 
     wb_cache_adapter_data: entity work.wb_cache_adapter
-      generic map (IsConnectedToIXS => false)
       port map (
         clk_i      => clk_i,
         reset_n_i  => reset_n_i,
@@ -231,7 +232,8 @@ begin  -- architecture rtl
         ext_master_o    => ext_master_out,
         debug_slave_i   => (to_unsigned(0,32),(others => '0'),'0',(others => '0'),'0','0'),
         debug_slave_o   => open,
-        executed_addr_o => open);
+        executed_addr_o => pc_probe);
+
   end generate proc;
 
 end architecture rtl;

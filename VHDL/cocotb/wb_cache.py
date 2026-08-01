@@ -12,7 +12,7 @@ CLK_PERIOD_NS = 20
 
 
 class _CacheBase:
-    def __init__(self, dut, prefix: str, write_delay: int):
+    def __init__(self, dut, prefix: str, per_beat_stall_cycles: int = 0):
         self._dut = dut
         self._clk = dut.clk_i
 
@@ -24,7 +24,7 @@ class _CacheBase:
         self._complete = getattr(dut, f"{prefix}complete_o")
 
         self._mem_model = WbMemoryModel(dut, prefix=prefix,
-                                        write_delay=write_delay)
+                                        per_beat_stall_cycles=per_beat_stall_cycles)
 
     @property
     def mem(self):
@@ -91,15 +91,16 @@ class _CacheBase:
 class WriteBackCache(_CacheBase):
     """Interface to the write-back cache instance (wb_* ports)."""
 
-    def __init__(self, dut):
-        super().__init__(dut, prefix="wb_", write_delay=1)
+    def __init__(self, dut, per_beat_stall_cycles: int = 0):
+        super().__init__(dut, prefix="wb_",
+                         per_beat_stall_cycles=per_beat_stall_cycles)
 
 
 class WriteThroughCache(_CacheBase):
     """Interface to the write-through cache instance (wt_* ports)."""
 
     def __init__(self, dut):
-        super().__init__(dut, prefix="wt_", write_delay=0)
+        super().__init__(dut, prefix="wt_")
         self._inv_addr = dut.wt_inv_addr_i
         self._inv_en   = dut.wt_inv_en_i
 
@@ -133,25 +134,42 @@ class BypassCache(_CacheBase):
     BYPASS_BASE_ADDR = 48
 
     def __init__(self, dut):
-        super().__init__(dut, prefix="byp_", write_delay=0)
+        super().__init__(dut, prefix="byp_")
+
+
+class NarrowTagCache(_CacheBase):
+    """Write-back cache with NarrowTag and 8 words/line (nt_* ports) -- the tag
+    geometry sl_cluster.vhd's L1s run with. NarrowTag changes TagWidth and the
+    TagAddrHi/TagAddrLo/TagLow slices, i.e. the tag compare, the tag update and
+    the address the write-back is issued to."""
+
+    WORDS_PER_LINE = 8
+    NUM_LINES = 16
+    LINE_ALIAS = WORDS_PER_LINE * NUM_LINES  # same index, different tag
+
+    def __init__(self, dut, per_beat_stall_cycles: int = 0):
+        super().__init__(dut, prefix="nt_",
+                         per_beat_stall_cycles=per_beat_stall_cycles)
+
+    async def flush_line(self, addr: int):
+        await self.read(addr + self.LINE_ALIAS)
+        await Timer(400, unit="ns")
 
 
 class CacheThroughArbiter:
     """Write-back cache instance (ix_* ports) reached through a real
-    single-master wb_ixs, exactly like sl_system.vhd's
-    debug_ctrl -> wb_ixs_1 -> sdram_cache_1 path -- wb_ixs_arbiter.vhd's
-    registered master-select mux forwards a newly granted master's address
-    on the same falling edge wb_cache's tag DPRAM (mem_clk_i = not clk_i)
-    samples on. The flat wb_*/wt_*/byp_*/sd_* ports never route through an
-    arbiter at all, so they cannot expose whatever timing race that
-    specific path has.
+    single-master wb_ixs plus wb_cache_adapter(IsConnectedToIXS=true), the
+    same topology as sl_system.vhd's debug_ctrl -> wb_ixs_1 -> sdram_cache_1.
+    The flat wb_*/wt_*/byp_* ports bypass the arbiter and adapter entirely,
+    so only this path exercises their effect on the cache's request timing.
     """
 
-    def __init__(self, dut):
+    def __init__(self, dut, per_beat_stall_cycles: int = 0):
         self._dut = dut
         self._clk = dut.clk_i
         self._master = WbMaster(dut, prefix="ix_")
-        self._mem_model = WbMemoryModel(dut, prefix="ix_", write_delay=1)
+        self._mem_model = WbMemoryModel(dut, prefix="ix_",
+                                        per_beat_stall_cycles=per_beat_stall_cycles)
 
     @property
     def mem(self):

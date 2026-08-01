@@ -193,6 +193,10 @@ begin
       pending_write_1d <= pending_write;
       mem_din <= din_i;
 
+      -- leaving ST_WRITEBACK_PRE depends on dready; without it the fsm sticks
+      assert not (state = ST_WRITEBACK_PRE and wb_dready = '0')
+        report "wb_cache: no dready in ST_WRITEBACK_PRE" severity failure;
+
       if bypass = '1' and wb_complete = '1' then
         bypass_pending <= '1';
       else
@@ -232,8 +236,6 @@ begin
         end if;
       elsif state = ST_WRITE_TROUGH and wb_complete = '1' then
         state <= ST_IDLE;
-      elsif state = ST_WRITEBACK_PRE then
-        state <= ST_WRITEBACK;
       elsif state = ST_WRITEBACK_WAIT and wb_complete = '1' then
         state <= ST_FETCH_AFTER_WB;
       elsif wb_dready = '1' then -- state /= ST_IDLE
@@ -241,6 +243,9 @@ begin
         mem1_addr_word_next := ('0' & mem1_addr(WordIndexBits-1 downto 0))+1;
         mem1_addr_ov_bit <= mem1_addr_ov_bit or mem1_addr_word_next(WordIndexBits);
         mem1_addr(WordIndexBits-1 downto 0) <= mem1_addr_word_next(WordIndexBits-1 downto 0);
+        if state = ST_WRITEBACK_PRE then
+          state <= ST_WRITEBACK;
+        end if;
         if (state = ST_FETCH or state = ST_FETCH_AFTER_WB) and fetch_ignore_counter /= to_unsigned(0,WordIndexBits) then
           fetch_ignore_counter <= fetch_ignore_counter-1;
         end if;        

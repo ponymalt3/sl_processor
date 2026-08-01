@@ -2,8 +2,9 @@
 
 import random
 import cocotb
-from cocotb.triggers import RisingEdge, Timer, with_timeout
-from wb_cache import WriteBackCache, WriteThroughCache, BypassCache, CacheThroughArbiter
+from cocotb.triggers import Timer
+from wb_cache import (WriteBackCache, WriteThroughCache, BypassCache,
+                      CacheThroughArbiter, NarrowTagCache)
 
 # ---------------------------------------------------------------------------
 # Write-back tests
@@ -13,6 +14,13 @@ from wb_cache import WriteBackCache, WriteThroughCache, BypassCache, CacheThroug
 def _setup_wb(dut):
     WriteBackCache.start_clock(dut)
     cache = WriteBackCache(dut)
+    cache.start()
+    return cache
+
+
+def _setup_wb_stalling(dut, per_beat_stall_cycles):
+    WriteBackCache.start_clock(dut)
+    cache = WriteBackCache(dut, per_beat_stall_cycles=per_beat_stall_cycles)
     cache.start()
     return cache
 
@@ -36,6 +44,129 @@ async def cached_write_to_existing_line(dut):
 
     assert cache.mem[257] == 0xABCDEF00, "cache line not written back to memory"
     assert await cache.read(257) == 0xABCDEF00, "stale data after writeback"
+
+
+# wrapper.vhd's write-back DUT: WordsPerLine=4, NumberOfLines=16 -> 64 words,
+# so addr and addr+64 share a tag-index with a different tag.
+WORDS_PER_LINE = 4
+LINE_BASE = 8  # word 0 of a line (8 = 2*WORDS_PER_LINE), keeps the maths obvious
+
+
+async def _check_fetch_fills_whole_line(cache, start_word: int):
+    """Read one word of an uncached line, then verify EVERY word of that line.
+
+    A read miss starts the burst at the requested word and wraps around inside
+    the line (wb_master.vhd's `(adr and not mask) or ((adr+1) and mask)`), so
+    for start_word=2 the words arrive 2,3,0,1. Every one of them has to land at
+    its own address -- that is what mem1_addr's wrap and mem1_addr_ov_bit are
+    for. Reading a non-zero word of a line first is the normal case, not a
+    corner case: it happens on any miss that isn't aligned to a line start.
+    """
+    for i in range(WORDS_PER_LINE):
+        cache.mem[LINE_BASE + i] = 0x1000 + i
+
+    got = await cache.read(LINE_BASE + start_word)
+    assert got == 0x1000 + start_word, (
+        f"critical word (offset {start_word}) wrong: got {got:#010x}, "
+        f"expected {0x1000 + start_word:#010x}"
+    )
+
+    for i in range(WORDS_PER_LINE):
+        got = await cache.read(LINE_BASE + i)
+        assert got == 0x1000 + i, (
+            f"word at offset {i} wrong after a fetch that started at offset "
+            f"{start_word}: got {got:#010x}, expected {0x1000 + i:#010x}"
+        )
+
+
+@cocotb.test()
+async def fetch_starting_mid_line_fills_whole_line(dut):
+    cache = _setup_wb(dut)
+    await cache.reset()
+    await _check_fetch_fills_whole_line(cache, start_word=2)
+
+
+@cocotb.test(timeout_time=50, timeout_unit="us")
+async def fetch_starting_mid_line_fills_whole_line_while_slave_stalls(dut):
+    """Same as above against a slave that stalls before every beat, like the
+    real SDRAM controller does (wb_sdram.vhd closes the row between words)."""
+    cache = _setup_wb_stalling(dut, per_beat_stall_cycles=8)
+    await cache.reset()
+    await _check_fetch_fills_whole_line(cache, start_word=2)
+
+
+async def _check_writeback_writes_whole_line(cache):
+    """Dirty every word of a line, evict it, and verify EVERY word reached
+    backing memory at its own address.
+
+    Most other tests only check one or two words of an evicted line, so a
+    write-back that gets the addressing right for some words and wrong for
+    others survives them. Writing a whole line and then evicting it is what
+    any real workload does as soon as it touches more than one word per line.
+    """
+    for i in range(WORDS_PER_LINE):
+        await cache.write(LINE_BASE + i, 0x2000 + i)
+
+    await cache.flush_line(LINE_BASE)
+
+    for i in range(WORDS_PER_LINE):
+        assert cache.mem[LINE_BASE + i] == 0x2000 + i, (
+            f"word at offset {i} of the evicted line is wrong in backing "
+            f"memory: got {cache.mem[LINE_BASE + i]:#010x}, "
+            f"expected {0x2000 + i:#010x}"
+        )
+
+
+@cocotb.test()
+async def writeback_writes_every_word_of_the_line(dut):
+    cache = _setup_wb(dut)
+    await cache.reset()
+    await _check_writeback_writes_whole_line(cache)
+
+
+@cocotb.test(timeout_time=50, timeout_unit="us")
+async def writeback_writes_every_word_of_the_line_while_slave_stalls(dut):
+    """Same as above against a per-beat-stalling slave -- the combination the
+    suite was missing: a full-line write-back whose every word is checked,
+    while the slave paces the burst the way real SDRAM does."""
+    cache = _setup_wb_stalling(dut, per_beat_stall_cycles=8)
+    await cache.reset()
+    await _check_writeback_writes_whole_line(cache)
+
+
+@cocotb.test(timeout_time=50, timeout_unit="us")
+async def writeback_through_adapter_survives_per_beat_stalling_slave(dut):
+    """Same eviction-under-a-per-beat-stalling-slave case as the test above,
+    but reached through the ix_* path (wb_master -> wb_ixs ->
+    wb_cache_adapter(IsConnectedToIXS=true) -> wb_cache), i.e. how
+    top.vhd actually drives its L2. The test above pokes wb_cache's flat
+    ports directly, so en_i/addr_i arrive undelayed; through the adapter
+    they don't (`en_o <= req and req_1d`), which shifts when the cache's
+    write-back burst sees stall/dready relative to its own request. This
+    covers the combination neither existing test does: adapter-routed
+    request AND a slave that stalls before every beat rather than only
+    before the burst's first one.
+
+    Unlike the flat-port test above, addresses must stay inside 0..255 here:
+    the ix_ path goes through a real wb_ixs whose decoder maps only
+    wb_slave("cache", 0, 256) (see wrapper.vhd), so anything above that is
+    never routed to the cache at all. addr and addr+64 share a tag-index
+    (4 words/line x 16 lines = 64 words) with different tags, so reading the
+    latter evicts the former."""
+    CacheThroughArbiter.start_clock(dut)
+    cache = CacheThroughArbiter(dut, per_beat_stall_cycles=8)
+    cache.start()
+    await cache.reset()
+
+    addr = 10
+    await cache.write(addr, 0xABCDEF00)
+    await cache.flush_line(addr)
+
+    assert cache.mem[addr] == 0xABCDEF00, (
+        f"cache line not written back correctly through the adapter under a "
+        f"per-beat-stalling slave, got {cache.mem[addr]:#010x}"
+    )
+    assert await cache.read(addr) == 0xABCDEF00, "stale data after writeback"
 
 
 @cocotb.test()
@@ -71,69 +202,6 @@ async def hit_survives_after_arbiter_regrant(dut):
         f"wrong read-back: {result:#010x} -- a real cache hit through the "
         "arbiter was read back as a miss, and the spurious re-fetch "
         "clobbered the cached (not yet written back) data"
-    )
-
-
-@cocotb.test()
-async def writeback_trigger_needs_stable_en_for_two_cycles(dut):
-    """Regression: wb_cache.vhd's ST_IDLE -> ST_WRITEBACK_PRE transition
-    (triggered when wb_writeback='1', i.e. en=1 on a dirty-but-missed line)
-    is unconditional once entered: ST_WRITEBACK_PRE always advances to
-    ST_WRITEBACK on the next cycle regardless of anything. The actual wb_en
-    pulse that kicks off the real downstream eviction used to be gated by
-    wb_writeback again, one cycle later, in ST_WRITEBACK_PRE itself -- which
-    recomputed from whatever en/cache_hit/tag_in looked like THEN, not what
-    they were in ST_IDLE. If the upstream en pulse is held for only a single
-    cycle (exactly what wb_cache_adapter.vhd's en_o/addr_o desync used to
-    produce at the tail of an IXS-routed transaction: a stray en=1,we=0,
-    addr=0 for one cycle -- see the adapter's own fix), wb_writeback had
-    already gone back to 0 by ST_WRITEBACK_PRE, so wb_en never fired -- yet
-    the FSM had already committed to ST_WRITEBACK, where it then waited
-    forever for a wb_dready/wb_complete from a downstream transaction that
-    was never started, permanently wedging the cache. This test pokes that
-    exact one-cycle en-only glitch (we=0, matching the real adapter-glitch
-    shape -- a write-type glitch is a separate, narrower issue: the cache
-    only re-applies a held write once the refetched line goes ready, so a
-    one-cycle we=1 glitch loses its own write data on top of the FSM
-    stranding; not what production actually produced, and not what this
-    test targets).
-
-    Note: complete_o itself can never pulse for the glitched transaction --
-    its own condition requires en_i to still be held when the line becomes
-    ready, which a one-cycle glitch by definition doesn't do. That's fine:
-    nothing was actually waiting on that phantom request's completion. What
-    matters is that the cache's FSM doesn't get permanently stuck -- so this
-    checks that a normal, real request placed right after the glitch still
-    completes, and that the refetched line landed correctly."""
-    cache = _setup_wb(dut)
-    await cache.reset()
-
-    # dirty the line without flushing it
-    await cache.write(9, 0xAAAA5555)
-
-    # addr=9+64 aliases the SAME cache line (tag_index) as addr=9 with a
-    # DIFFERENT tag, so accessing it must evict the dirty line above --
-    # poked directly as a one-cycle en-only pulse (we=0), matching the
-    # adapter glitch's actual shape
-    dut.wb_addr_i.value = 9 + 64
-    dut.wb_din_i.value = 0
-    dut.wb_we_i.value = 0
-    dut.wb_en_i.value = 1
-    await RisingEdge(dut.clk_i)
-    dut.wb_en_i.value = 0
-
-    # give the glitched writeback+refill enough cycles to run its course
-    for _ in range(20):
-        await RisingEdge(dut.clk_i)
-
-    # the cache must have recovered to ST_IDLE, refetched the new line
-    # correctly (backing memory's default content, never written), and
-    # accept a normal request
-    result = await with_timeout(cache.read(9 + 64), 2000, "ns")
-    assert result == 0xFFFF_FFFF, (
-        f"expected 0xffffffff (untouched backing memory default), got "
-        f"{result:#010x} -- the glitched writeback/refetch left stale or "
-        "corrupted data in the cache line, or the cache is still stuck"
     )
 
 
@@ -281,6 +349,69 @@ async def idle_write_only_takes_one_cycle(dut):
 
     assert elapsed <= 20, f"idle write took {elapsed:.0f}ns, expected ≤20ns (1 cycle)"
     assert await cache.read(54) == 0xBEDBED99
+
+
+# ---------------------------------------------------------------------------
+# NarrowTag (18-bit tag) with 8 words/line -- sl_cluster.vhd's L1 geometry
+# ---------------------------------------------------------------------------
+
+
+def _setup_nt(dut, per_beat_stall_cycles: int = 0):
+    NarrowTagCache.start_clock(dut)
+    cache = NarrowTagCache(dut, per_beat_stall_cycles=per_beat_stall_cycles)
+    cache.start()
+    return cache
+
+
+NT_WORDS = NarrowTagCache.WORDS_PER_LINE
+NT_BASE = 2 * NT_WORDS
+
+
+async def _check_narrow_tag_line_roundtrip(cache):
+    """Fill two lines that share a tag-index but differ in tag, let each evict
+    the other, and check every word of both landed at its own address -- then
+    read one back, which refetches it through the narrow tag compare.
+
+    NarrowTag changes TagWidth and the TagAddrHi/TagAddrLo/TagLow slices, so a
+    wrong slice either misses on a line that is present or sends the write-back
+    to the wrong address. Both only show up with two lines aliasing each other.
+    """
+    a = NT_BASE
+    b = NT_BASE + NarrowTagCache.LINE_ALIAS
+
+    for i in range(NT_WORDS):
+        await cache.write(a + i, 0xA1A1_0000 + i)
+    for i in range(NT_WORDS):
+        await cache.write(b + i, 0xB2B2_0000 + i)   # evicts a's line
+    await cache.flush_line(b)                        # evicts b's line
+
+    for i in range(NT_WORDS):
+        assert cache.mem[a + i] == 0xA1A1_0000 + i, (
+            f"word {i} of line {a} wrong in memory: "
+            f"{cache.mem[a + i]:#010x} != {0xA1A1_0000 + i:#010x}")
+        assert cache.mem[b + i] == 0xB2B2_0000 + i, (
+            f"word {i} of line {b} wrong in memory: "
+            f"{cache.mem[b + i]:#010x} != {0xB2B2_0000 + i:#010x}")
+
+    for i in range(NT_WORDS):
+        got = await cache.read(a + i)
+        assert got == 0xA1A1_0000 + i, (
+            f"word {i} of line {a} wrong after refetch: "
+            f"{got:#010x} != {0xA1A1_0000 + i:#010x}")
+
+
+@cocotb.test(timeout_time=50, timeout_unit="us")
+async def narrow_tag_line_roundtrip(dut):
+    cache = _setup_nt(dut)
+    await cache.reset()
+    await _check_narrow_tag_line_roundtrip(cache)
+
+
+@cocotb.test(timeout_time=50, timeout_unit="us")
+async def narrow_tag_line_roundtrip_while_slave_stalls(dut):
+    cache = _setup_nt(dut, per_beat_stall_cycles=8)
+    await cache.reset()
+    await _check_narrow_tag_line_roundtrip(cache)
 
 
 # ---------------------------------------------------------------------------

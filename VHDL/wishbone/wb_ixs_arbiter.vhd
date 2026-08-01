@@ -28,7 +28,7 @@ architecture rtl of wb_ixs_arbiter is
   signal master_sel_reg : unsigned(4 downto 0);
   signal master_sel_valid : std_ulogic;
   signal master_sel_valid_reg : std_ulogic;
-  
+
 begin  -- architecture rtl
 
   process (clk_i, reset_n_i) is
@@ -37,14 +37,14 @@ begin  -- architecture rtl
       mask <= (others => '1');
       master_sel_reg <= to_unsigned(0,5);
       master_sel_valid_reg <= '0';
-    elsif falling_edge(clk_i) then  -- falling clock edge
+    elsif rising_edge(clk_i) then
 
       master_sel_valid_reg <= master_sel_valid;
 
       if master_sel_valid_reg = '0' or master_in_i(to_integer(master_sel_reg)).cyc = '0' then
         master_sel_reg <= master_sel;
       end if;
-      
+
       if master_sel /= master_sel_reg then
         if master_sel_valid_reg = '1' then
           mask(to_integer(master_sel_reg)) <= '0';
@@ -89,7 +89,7 @@ begin  -- architecture rtl
       master_out_o <= master_in_i(to_integer(master_sel_reg));
       master_in_o(to_integer(master_sel_reg)) <= master_out_i;
     end if;
-    
+
   end process;
 
 end architecture rtl;

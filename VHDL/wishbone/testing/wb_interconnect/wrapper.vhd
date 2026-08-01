@@ -45,7 +45,37 @@ entity wb_ixs_wrapper is
     m2_we_i       : in  std_ulogic;
     m2_dready_o   : out std_ulogic;
     m2_complete_o : out std_ulogic;
-    m2_err_o      : out std_ulogic
+    m2_err_o      : out std_ulogic;
+    -- Slave 0: driven by a Python WbMemoryModel(prefix="s0_")
+    s0_m_dat_i   : in  std_ulogic_vector(31 downto 0);
+    s0_m_ack_i   : in  std_ulogic;
+    s0_m_err_i   : in  std_ulogic;
+    s0_m_stall_i : in  std_ulogic;
+    s0_m_adr_o   : out unsigned(31 downto 0);
+    s0_m_dat_o   : out std_ulogic_vector(31 downto 0);
+    s0_m_we_o    : out std_ulogic;
+    s0_m_stb_o   : out std_ulogic;
+    s0_m_cyc_o   : out std_ulogic;
+    -- Slave 1: driven by a Python WbMemoryModel(prefix="s1_")
+    s1_m_dat_i   : in  std_ulogic_vector(31 downto 0);
+    s1_m_ack_i   : in  std_ulogic;
+    s1_m_err_i   : in  std_ulogic;
+    s1_m_stall_i : in  std_ulogic;
+    s1_m_adr_o   : out unsigned(31 downto 0);
+    s1_m_dat_o   : out std_ulogic_vector(31 downto 0);
+    s1_m_we_o    : out std_ulogic;
+    s1_m_stb_o   : out std_ulogic;
+    s1_m_cyc_o   : out std_ulogic;
+    -- Slave 2: driven by a Python WbMemoryModel(prefix="s2_")
+    s2_m_dat_i   : in  std_ulogic_vector(31 downto 0);
+    s2_m_ack_i   : in  std_ulogic;
+    s2_m_err_i   : in  std_ulogic;
+    s2_m_stall_i : in  std_ulogic;
+    s2_m_adr_o   : out unsigned(31 downto 0);
+    s2_m_dat_o   : out std_ulogic_vector(31 downto 0);
+    s2_m_we_o    : out std_ulogic;
+    s2_m_stb_o   : out std_ulogic;
+    s2_m_cyc_o   : out std_ulogic
   );
 end entity wb_ixs_wrapper;
 
@@ -73,7 +103,6 @@ architecture rtl of wb_ixs_wrapper is
   signal ixs_sout_i : wb_master_ifc_in_array_t(2 downto 0);
   signal ixs_sout_o : wb_master_ifc_out_array_t(2 downto 0);
 
-  type slave_mem_t is array (0 to 31) of std_ulogic_vector(31 downto 0);
 
 begin
 
@@ -108,29 +137,35 @@ begin
   m1_wb_in <= ixs_min_o(1);
   m2_wb_in <= ixs_min_o(2);
 
-  -- VHDL slave processes (matching original wb_interconnect_tb.vhd)
-  slave_gen: for i in 0 to 2 generate
-  begin
-    process is
-      variable slave_data : slave_mem_t := (others => (others => '0'));
-      variable idx : natural;
-    begin
-      ixs_sout_i(i).dat   <= (others => '0');
-      ixs_sout_i(i).ack   <= '0';
-      ixs_sout_i(i).stall <= '1';
-      ixs_sout_i(i).err   <= '0';
-      wait until rising_edge(clk_i) and ixs_sout_o(i).cyc = '1' and ixs_sout_o(i).stb = '1';
-      idx := to_integer(ixs_sout_o(i).adr(4 downto 0));
-      ixs_sout_i(i).ack   <= '1';
-      ixs_sout_i(i).stall <= '0';
-      if ixs_sout_o(i).we = '1' then
-        slave_data(idx) := ixs_sout_o(i).dat;
-      else
-        ixs_sout_i(i).dat <= slave_data(idx);
-      end if;
-      wait until rising_edge(clk_i);
-    end process;
-  end generate slave_gen;
+-- Slave side is plain wiring; the memories live in the test as
+  -- WbMemoryModel instances, so any wait states are driven explicitly there.
+  s0_m_adr_o <= ixs_sout_o(0).adr;
+  s0_m_dat_o <= ixs_sout_o(0).dat;
+  s0_m_we_o  <= ixs_sout_o(0).we;
+  s0_m_stb_o <= ixs_sout_o(0).stb;
+  s0_m_cyc_o <= ixs_sout_o(0).cyc;
+  ixs_sout_i(0).dat   <= s0_m_dat_i;
+  ixs_sout_i(0).ack   <= s0_m_ack_i;
+  ixs_sout_i(0).err   <= s0_m_err_i;
+  ixs_sout_i(0).stall <= s0_m_stall_i;
+  s1_m_adr_o <= ixs_sout_o(1).adr;
+  s1_m_dat_o <= ixs_sout_o(1).dat;
+  s1_m_we_o  <= ixs_sout_o(1).we;
+  s1_m_stb_o <= ixs_sout_o(1).stb;
+  s1_m_cyc_o <= ixs_sout_o(1).cyc;
+  ixs_sout_i(1).dat   <= s1_m_dat_i;
+  ixs_sout_i(1).ack   <= s1_m_ack_i;
+  ixs_sout_i(1).err   <= s1_m_err_i;
+  ixs_sout_i(1).stall <= s1_m_stall_i;
+  s2_m_adr_o <= ixs_sout_o(2).adr;
+  s2_m_dat_o <= ixs_sout_o(2).dat;
+  s2_m_we_o  <= ixs_sout_o(2).we;
+  s2_m_stb_o <= ixs_sout_o(2).stb;
+  s2_m_cyc_o <= ixs_sout_o(2).cyc;
+  ixs_sout_i(2).dat   <= s2_m_dat_i;
+  ixs_sout_i(2).ack   <= s2_m_ack_i;
+  ixs_sout_i(2).err   <= s2_m_err_i;
+  ixs_sout_i(2).stall <= s2_m_stall_i;
 
   DUT : entity work.wb_ixs
     generic map (MasterConfig => MasterConfig, SlaveMap => SlaveMap)

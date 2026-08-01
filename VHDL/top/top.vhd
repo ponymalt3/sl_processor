@@ -156,7 +156,6 @@ begin  -- architecture rtl
   snoop_active <= '1' when sdram_cache_slave_in.cyc = '1' and sdram_cache_slave_in.we = '1' and sdram_cache_slave_out.ack = '1' else '0';
 
   wb_cache_adapter_sdram: entity work.wb_cache_adapter
-    generic map (IsConnectedToIXS => true)
     port map (
       clk_i      => clk_i,
       reset_n_i  => reset_n_i,
@@ -172,9 +171,9 @@ begin  -- architecture rtl
 
   sdram_cache_1: entity work.wb_cache
     generic map (
-      WordsPerLine  => SdramCacheWordsPerLine,
-      NumberOfLines => SdramCacheLines,
-      WriteThrough  => false)
+      WordsPerLine    => SdramCacheWordsPerLine,
+      NumberOfLines   => SdramCacheLines,
+      WriteThrough    => false)
     port map (
       clk_i           => clk_i,
       mem_clk_i       => mem_clk_i,

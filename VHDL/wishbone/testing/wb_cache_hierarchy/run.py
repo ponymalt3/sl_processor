@@ -31,7 +31,7 @@ GHDL_ARGS      = ["--std=08", "-frelaxed"]
 GHDL_PLUSARGS  = ["--ieee-asserts=disable"]
 
 
-def run(modules: list, build_dir: Path, waves: bool = False):
+def run(modules: list, build_dir: Path, waves: bool = False, generics: dict = None):
     os.environ.setdefault("GHDL_BACKEND", "gcc")
     for p in (COCOTB_LIB, SCRIPT_DIR):
         if str(p) not in sys.path:
@@ -46,6 +46,7 @@ def run(modules: list, build_dir: Path, waves: bool = False):
         hdl_library="work",
         hdl_toplevel="wb_cache_hierarchy_wrapper",
         build_dir=build_dir,
+        parameters=generics or {},
     )
     runner.test(
         test_module=modules,

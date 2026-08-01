@@ -35,8 +35,20 @@ architecture rtl of wb_master is
   signal count : unsigned(5 downto 0);
   signal count_ack : unsigned(5 downto 0);
   signal mask : unsigned(5 downto 0);
+  signal dready_rd : std_ulogic;
 
 begin  -- architecture rtl
+
+  process (en_i, we_i, state, count, master_out, master_out_i, dready_rd)
+  begin  -- process
+    dready_o <= dready_rd;
+
+    if we_i = '1' and state = ST_IDLE then
+      dready_o <= en_i;
+    elsif master_out.we = '1' and state = ST_PENDING and count /= to_unsigned(0,6) then
+      dready_o <= not master_out_i.stall;
+    end if;
+  end process;
 
   process (clk_i, reset_n_i) is
   begin  -- process
@@ -46,20 +58,19 @@ begin  -- architecture rtl
       dout_o <= (others => '0');
       complete_o <= '0';
       err_o <= '0';
-      dready_o <= '0';
+      dready_rd <= '0';
       count <= to_unsigned(0,6);
       mask <= to_unsigned(0,6);
     elsif clk_i'event and clk_i = '1' then  -- rising clock edge
       complete_o <= '0';
       err_o <= master_out_i.err;
-      dready_o <= '0';
+      dready_rd <= '0';
       
       if en_i = '1' and state = ST_IDLE then
         state <= ST_PENDING;
         count <= burst_i;
         count_ack <= burst_i;
         mask <= burst_i;
-        dready_o <= we_i;
         master_out.adr <= addr_i;
         master_out.dat <= din_i;
         master_out.sel <= (others => '1');
@@ -73,9 +84,6 @@ begin  -- architecture rtl
           if count = to_unsigned(0,6) then
             master_out.stb <= '0';
           else
-            if master_out.we = '1' then
-              dready_o <= '1';
-            end if;
             count <= count-1;
           end if;
         end if;
@@ -83,7 +91,7 @@ begin  -- architecture rtl
         if master_out_i.ack = '1' then
           count_ack <= count_ack-1;
           if master_out.we = '0' then
-            dready_o <= '1';
+            dready_rd <= '1';
           end if;
           dout_o <= master_out_i.dat;
         end if;
@@ -94,7 +102,7 @@ begin  -- architecture rtl
           master_out.cyc <= hold_i;
           master_out.we <= '0';
           complete_o <= '1';
-          dready_o <= not master_out.we;
+          dready_rd <= not master_out.we;
         end if;
       elsif state = ST_IDLE and hold_i = '0' then
         master_out.cyc <= '0';

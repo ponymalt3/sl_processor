@@ -1,7 +1,7 @@
 -- Flat-port wrapper around wb_cache for cocotb.
 -- wb_/wt_/byp_ wire straight into wb_cache's flat interface. ix_ goes
--- through a real wb_master -> wb_ixs -> wb_cache_adapter (IsConnectedToIXS
--- => true), the one variant that exercises a real wb_ixs.
+-- through a real wb_master -> wb_ixs -> wb_cache_adapter, the one variant
+-- that exercises a real wb_ixs.
 -- mem_clk is generated here as NOT clk so the test side only sees one clock.
 
 library ieee;
@@ -105,7 +105,27 @@ entity wb_cache_wrapper is
     ix_m_dat_o : out std_ulogic_vector(31 downto 0);
     ix_m_we_o  : out std_ulogic;
     ix_m_stb_o : out std_ulogic;
-    ix_m_cyc_o : out std_ulogic
+    ix_m_cyc_o : out std_ulogic;
+
+    -- Write-back cache with NarrowTag and 8 words/line -- the tag geometry
+    -- (TagWidth/TagAddrHi/TagAddrLo/TagLow) that sl_cluster.vhd's L1s use.
+    nt_addr_i     : in  unsigned(31 downto 0);
+    nt_din_i      : in  std_ulogic_vector(31 downto 0);
+    nt_dout_o     : out std_ulogic_vector(31 downto 0);
+    nt_en_i       : in  std_ulogic;
+    nt_we_i       : in  std_ulogic;
+    nt_complete_o : out std_ulogic;
+
+    nt_m_dat_i   : in  std_ulogic_vector(31 downto 0);
+    nt_m_ack_i   : in  std_ulogic;
+    nt_m_err_i   : in  std_ulogic;
+    nt_m_stall_i : in  std_ulogic;
+
+    nt_m_adr_o : out unsigned(31 downto 0);
+    nt_m_dat_o : out std_ulogic_vector(31 downto 0);
+    nt_m_we_o  : out std_ulogic;
+    nt_m_stb_o : out std_ulogic;
+    nt_m_cyc_o : out std_ulogic
   );
 end entity wb_cache_wrapper;
 
@@ -119,6 +139,8 @@ architecture rtl of wb_cache_wrapper is
   signal wt_m_out : wb_master_ifc_out_t;
   signal byp_m_in  : wb_master_ifc_in_t;
   signal byp_m_out : wb_master_ifc_out_t;
+  signal nt_m_in   : wb_master_ifc_in_t;
+  signal nt_m_out  : wb_master_ifc_out_t;
 
   constant IxMasterConfig : wb_master_config_array_t := (0 => wb_master("cache"));
   constant IxSlaveMap     : wb_slave_config_array_t  := (0 => wb_slave("cache", 0, 256));
@@ -177,6 +199,16 @@ begin
   byp_m_stb_o    <= byp_m_out.stb;
   byp_m_cyc_o    <= byp_m_out.cyc;
 
+  nt_m_in.dat   <= nt_m_dat_i;
+  nt_m_in.ack   <= nt_m_ack_i;
+  nt_m_in.err   <= nt_m_err_i;
+  nt_m_in.stall <= nt_m_stall_i;
+  nt_m_adr_o    <= nt_m_out.adr;
+  nt_m_dat_o    <= nt_m_out.dat;
+  nt_m_we_o     <= nt_m_out.we;
+  nt_m_stb_o    <= nt_m_out.stb;
+  nt_m_cyc_o    <= nt_m_out.cyc;
+
   ix_m_in.dat   <= ix_m_dat_i;
   ix_m_in.ack   <= ix_m_ack_i;
   ix_m_in.err   <= ix_m_err_i;
@@ -219,7 +251,6 @@ begin
       slave_out_o => ix_cache_req);
 
   wb_cache_adapter_ix: entity work.wb_cache_adapter
-    generic map (IsConnectedToIXS => true)
     port map (
       clk_i      => clk_i,
       reset_n_i  => reset_n_i,
@@ -250,6 +281,25 @@ begin
       snooping_en_i   => '0',
       master_out_i    => ix_m_in,
       master_out_o    => ix_m_out);
+
+  DUT_NT : entity work.wb_cache
+    generic map (WordsPerLine => 8, NumberOfLines => 16,
+                 WriteThrough => false, NarrowTag => true)
+    port map (
+      clk_i           => clk_i,
+      mem_clk_i       => mem_clk,
+      reset_n_i       => reset_n_i,
+      addr_i          => nt_addr_i,
+      din_i           => nt_din_i,
+      dout_o          => nt_dout_o,
+      en_i            => nt_en_i,
+      we_i            => nt_we_i,
+      complete_o      => nt_complete_o,
+      err_o           => open,
+      snooping_addr_i => to_unsigned(0, 32),
+      snooping_en_i   => '0',
+      master_out_i    => nt_m_in,
+      master_out_o    => nt_m_out);
 
   DUT_WB : entity work.wb_cache
     generic map (WordsPerLine => 4, NumberOfLines => 16, WriteThrough => false)

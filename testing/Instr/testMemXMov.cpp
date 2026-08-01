@@ -55,7 +55,9 @@ MTEST(TestMemXMov, test_that_mov_to_AD1_from_Result_works)
 
   proc.writeMemory(ad1, 0U);
 
-  proc.run(7);
+  // +1 cycle vs. the simulator: in VHDL the external mem access needs one
+  // extra cycle for bus arbitration
+  proc.run(8);
 
   EXPECT(proc.readMemory(ad1) == value.toRaw());
   proc.expectThatMemIs(ad1, value);
@@ -85,7 +87,9 @@ MTEST(TestMemXMov, test_that_mov_to_Result_from_AD1_with_inc_works)
   proc.writeMemory(ad1, value.toRaw());
   proc.writeMemory(ad1 + 1, 0U);
 
-  proc.run(9);
+  // +1 cycle vs. the simulator: in VHDL the external mem access needs one
+  // extra cycle for bus arbitration
+  proc.run(10);
 
   EXPECT(proc.readMemory(5) == value.toRaw());
   EXPECT(proc.readMemory(ad1 + 1) == value.toRaw());
@@ -115,7 +119,9 @@ MTEST(TestMemXMov, test_that_mov_to_AD1_from_Result_with_inc_works)
   proc.writeMemory(ad1, 0U);
   proc.writeMemory(ad1 + 1, 0U);
 
-  proc.run(9);
+  // +2 cycles vs. the simulator: in VHDL each of the two external mem accesses needs one
+  // extra cycle for bus arbitration
+  proc.run(11);
 
   EXPECT(proc.readMemory(ad1) == value.toRaw());
   EXPECT(proc.readMemory(ad1 + 1) == value.toRaw());

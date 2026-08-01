@@ -1,6 +1,6 @@
 """WbMaster — drives wb_master.vhd's high-level interface ports."""
 
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, FallingEdge
 
 
 class WbMaster:
@@ -57,6 +57,14 @@ class WbMaster:
         return result
 
     async def write_burst(self, addr: int, data: list):
+        """Feed a write burst, reacting to dready one cycle later.
+
+        dready announces that the master will consume din_i on the upcoming
+        edge, so the next word has to be in place for the edge after that --
+        exactly what a source that goes through a register does (wb_cache
+        drives din_i out of its dpram). Answering in the same cycle would put
+        each word one position too early.
+        """
         n = len(data)
         self._addr.value  = addr
         self._din.value   = data[0]
@@ -67,10 +75,11 @@ class WbMaster:
         await RisingEdge(self._clk)
         self._en.value = 0
         while not self._complete.value:
-            await RisingEdge(self._clk)
+            await FallingEdge(self._clk)
             if self._dready.value == 1 and idx + 1 < n:
                 idx += 1
                 self._din.value = data[idx]
+            await RisingEdge(self._clk)
         self._we.value = 0
         await RisingEdge(self._clk)
 

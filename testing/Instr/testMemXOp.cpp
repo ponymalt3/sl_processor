@@ -98,7 +98,9 @@ MTEST(TestMemXOp, test_that_sub_AD1_from_Result_with_inc_works)
   proc.writeMemory(ad1, value2.toRaw());
   proc.writeMemory(ad1 + 1, 0U);
 
-  proc.run(9);
+  // +2 cycles vs. the simulator: in VHDL each of the two external mem accesses needs one
+  // extra cycle for bus arbitration
+  proc.run(11);
 
   EXPECT(proc.readMemory(ad1 + 1) == (value - value2).toRaw());
   proc.expectThatMemIs(ad1 + 1, value - value2);
@@ -135,7 +137,9 @@ MTEST(TestMemXOp, test_that_sub_AD1_from_AD0_with_inc_works)
   proc.writeMemory(ad1, value2.toRaw());
   proc.writeMemory(ad1 + 1, 0U);
 
-  proc.run(11);
+  // +2 cycles vs. the simulator: in VHDL each of the two external mem accesses needs one
+  // extra cycle for bus arbitration
+  proc.run(13);
 
   EXPECT(proc.readMemory(ad1 + 1) == (value - value2).toRaw());
   proc.expectThatMemIs(ad1 + 1, value - value2);
@@ -175,7 +179,9 @@ MTEST(TestMemXOp, test_that_sub_AD1_from_AD0_stalls_while_external_write_is_in_p
 
   uint32_t xx = (value - value2).toRaw();
 
-  proc.run(13);
+  // +2 cycles vs. the simulator: in VHDL each of the two external mem accesses needs one
+  // extra cycle for bus arbitration
+  proc.run(15);
 
   EXPECT(proc.readMemory(ad1 + 1) == (value - value2).toRaw());
   proc.expectThatMemIs(ad1 + 1, value - value2);
@@ -216,7 +222,9 @@ MTEST(TestMemXOp, test_that_sub_AD1_from_AD0_stalls_while_external_mem_is_stalle
 
   proc.writeMemory(ad1, value2.toRaw());
 
-  proc.execute(4);
+  // +2 cycles vs. the simulator: in VHDL each of the two external mem accesses needs one
+  // extra cycle for bus arbitration
+  proc.execute(6);
 
   EXPECT(proc.readMemory(ad1 + 1) == (value - value2).toRaw());
   proc.expectThatMemIs(ad1 + 1, value - value2);
