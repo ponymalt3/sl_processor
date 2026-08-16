@@ -174,13 +174,27 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream& stream, CodeGen::TmpStorage&
     return _Operand::createResult();
   }
 
-  if(codeGen_.findFunction(token.getName(stream)).symbols_ != nullptr)
   {
-    _Operand result = parseFunctionCall(stream, token.getName(stream));
+    CodeGen::_FunctionInfo fi = codeGen_.findFunction(token.getName(stream));
 
-    stream.skipWhiteSpaces();
+    if(fi.symbols_ != nullptr && stream.skipWhiteSpaces().peek() != '(')
+    {
+      Error::expect(!fi.isInlineFunction_)
+          << stream << "cannot take the address of inline function '" << token.getName(stream) << "'";
 
-    return result;
+      stream.skipWhiteSpaces();
+
+      return _Operand(qfp32::fromRealQfp32(qfp32_t(fi.address_)));
+    }
+
+    if(fi.symbols_ != nullptr || isFunctionPointerCall(stream, token.getName(stream)))
+    {
+      _Operand result = parseFunctionCall(stream, token.getName(stream));
+
+      stream.skipWhiteSpaces();
+
+      return result;
+    }
   }
 
   uint32_t index = 0xFFFF;
@@ -879,7 +893,8 @@ bool RTParser::parseStatement(Stream& stream)
           break;
         }
 
-        if(codeGen_.findFunction(token.getName(stream)).symbols_ != nullptr)
+        if(codeGen_.findFunction(token.getName(stream)).symbols_ != nullptr ||
+           isFunctionPointerCall(stream, token.getName(stream)))
         {
           parseFunctionCall(stream, token.getName(stream));
           Error::expect(stream.skipWhiteSpaces().read() == ';') << stream << "missing ';'";
@@ -973,10 +988,17 @@ void RTParser::parseStatements(Stream& stream)
     ;
 }
 
+bool RTParser::isFunctionPointerCall(Stream& stream, const Stream::String& name)
+{
+  SymbolMap::_Symbol sym = codeGen_.findSymbol(name);
+  return sym.strLength_ != 0 && !sym.flagIsArray_ && !sym.flagIsStructRef_ &&
+         stream.skipWhiteSpaces().peek() == '(';
+}
+
 _Operand RTParser::parseFunctionCall(Stream& stream, const Stream::String& name)
 {
   CodeGen::_FunctionInfo fi = codeGen_.findFunction(name);
-  Error::expect(fi.symbols_ != nullptr) << stream << "function '" << name << "' not found";
+  bool isFnPtr = fi.symbols_ == nullptr;
   Error::expect(stream.skipWhiteSpaces().read() == '(') << stream << "expect '(' for function call";
 
   CodeGen::TmpStorage callFrame(codeGen_);
@@ -1099,7 +1121,7 @@ _Operand RTParser::parseFunctionCall(Stream& stream, const Stream::String& name)
 
   stream.skipWhiteSpaces().read();  // discards ')'
 
-  Error::expect(fi.parameters == numParameter) << stream << "parameter missmatch";
+  Error::expect(isFnPtr || fi.parameters == numParameter) << stream << "parameter missmatch";
 
   if(fi.isInlineFunction_)
   {
@@ -1124,11 +1146,14 @@ _Operand RTParser::parseFunctionCall(Stream& stream, const Stream::String& name)
   // store original irs address
   codeGen_.instrMov(irsOrig, currentIRS);
 
+  codeGen_.instrMov(_Operand::createResult(),
+                    isFnPtr ? _Operand::createSymbol(name, 0xFFFF)
+                            : _Operand(qfp32::fromRealQfp32(qfp32_t(fi.address_))));
+
   // change irs
   codeGen_.instrMov(_Operand::createInternalReg(_Operand::TY_IR_IRS), irsAddr);
 
   // call
-  codeGen_.instrMov(_Operand::createResult(), _Operand(qfp32::fromRealQfp32(qfp32_t(fi.address_))));
   codeGen_.instrGoto2();
 
   ret.setLabel();

@@ -116,6 +116,7 @@ public:
   void parseWhileStatement(Stream &stream);
   bool parseStatement(Stream &stream);
   void parseStatements(Stream &stream);
+  bool isFunctionPointerCall(Stream &stream,const Stream::String &name);
   _Operand parseFunctionCall(Stream &stream,const Stream::String &name);
   void parseFunctionDecl(Stream &stream);
   void parseArrayDecl(Stream &stream,const Stream::String &name);
