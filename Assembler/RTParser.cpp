@@ -85,14 +85,25 @@ _Operand RTParser::parserSymbolOrConstOrMem(Stream& stream, CodeGen::TmpStorage&
     Token name = stream.readToken();
     Error::expect(name.getType() == Token::TOK_NAME) << stream << "expect symbol";
 
-    SymbolMap::_Symbol sym = codeGen_.findSymbol(name.getName(stream));
-    Error::expect(sym.flagIsArray_ != 0) << stream << "expect array name";
+    uint32_t structTypeId = codeGen_.findStructType(name.getName(stream));
+    uint32_t fieldCount = 0;
+
+    if(structTypeId != CodeGen::NoStructType)
+    {
+      fieldCount = codeGen_.getStructFieldCount(structTypeId);
+    }
+    else
+    {
+      SymbolMap::_Symbol sym = codeGen_.findSymbol(name.getName(stream));
+      Error::expect(sym.flagIsArray_ != 0) << stream << "expect array, struct instance or struct type name";
+      fieldCount = sym.allocatedSize_;
+    }
 
     Error::expect(stream.skipWhiteSpaces().read() == ')') << stream << "missing ')'";
 
     stream.skipWhiteSpaces();
 
-    return _Operand(qfp32::fromRealQfp32(qfp32_t::fromDouble(sym.allocatedSize_)));
+    return _Operand(qfp32::fromRealQfp32(qfp32_t::fromDouble(fieldCount)));
   }
 
   Error::expect(token.getType() == Token::TOK_NAME) << stream << "unexpected token " << token.getName(stream);

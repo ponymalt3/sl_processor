@@ -52,6 +52,53 @@ MTEST(testStruct, test_that_struct_field_write_works)
   tester.expectSymbolWithOffset("p", 1, 2);
 }
 
+MTEST(testStruct, test_that_sizeof_a_struct_type_name_returns_its_field_count)
+{
+  RTProg testCode = R"asm(
+    struct Point { x; y; z; };
+
+    a=sizeof(Point);
+    a=a;
+  )asm";
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a", 3);
+}
+
+MTEST(testStruct, test_that_sizeof_a_struct_instance_returns_its_field_count)
+{
+  RTProg testCode = R"asm(
+    struct Point { x; y; z; };
+
+    Point pt;
+    a=sizeof(pt);
+    a=a;
+  )asm";
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a", 3);
+}
+
+MTEST(testStruct, test_that_sizeof_an_unknown_name_is_an_error)
+{
+  RTProg testCode = R"asm(
+    a=sizeof(NotDeclared);
+  )asm";
+
+  RTProgTester tester(testCode);
+  EXPECT(tester.parse().getNumErrors() != 0);
+}
+
 MTEST(testStruct, test_that_uninitialized_struct_decl_works)
 {
   RTProg testCode = R"asm(

@@ -369,3 +369,22 @@ MTEST(testSyntax, test_that_different_loop_index_cant_be_written_inside_loop_exp
   RTProgTester tester(test);
   EXPECT(tester.parse().getNumErrors() == 7);
 }
+
+MTEST(testSyntax, test_that_a_symbol_name_that_is_a_prefix_of_another_is_not_confused_with_it)
+{
+  RTProg test = R"asm(
+    layer=11;
+    layer_inputs=22;
+    a=layer;
+    b=layer_inputs;
+  )asm";
+
+  RTProgTester tester(test);
+  EXPECT(tester.parse().getNumErrors() == 0);
+
+  tester.loadCode();
+  tester.execute();
+
+  tester.expectSymbol("a", 11);
+  tester.expectSymbol("b", 22);
+}
