@@ -80,7 +80,7 @@ GENERICS = {
 }
 
 
-def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, waves: bool = False):
+def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, waves: bool = True):
     os.environ.setdefault("GHDL_BACKEND", "gcc")
     for p in (COCOTB_LIB, SCRIPT_DIR):
         if str(p) not in sys.path:
@@ -94,6 +94,7 @@ def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, w
     os.environ["SYSTEM_CODE_HEX"] = str(code_hex_path)
 
     from cocotb_tools.runner import get_runner
+    from sim_runner import run_tests
     runner = get_runner("ghdl")
 
     runner.build(
@@ -103,7 +104,8 @@ def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, w
         hdl_toplevel="sl_system_tb_wrapper",
         build_dir=build_dir,
     )
-    runner.test(
+    run_tests(
+        runner,
         test_module=modules,
         hdl_toplevel="sl_system_tb_wrapper",
         hdl_toplevel_library="work",
@@ -111,11 +113,14 @@ def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, w
         build_dir=build_dir,
         parameters=GENERICS,
         test_args=GHDL_ARGS + [f"--workdir={build_dir}", f"-P{build_dir}"],
-        # .ghw (GHDL's native format) instead of VCD: full VHDL type fidelity
-        # (records like wb_slave_ifc_*_t, enums like wb_cache's state_t) --
-        # VCD/GHDL silently skips those ("$comment X is not handled $end").
-        plusargs=GHDL_PLUSARGS + ([f"--vcd={build_dir}/sl_system.vcd"] if waves else []),
-        waves=False,
+        # waveforms: one .ghw per test case in waves/ next to test.py, see
+        # sim_runner.py -- .ghw keeps records (wb_slave_ifc_*_t) and enums
+        # (wb_cache's state_t) intact, which VCD silently drops
+        # ("$comment X is not handled $end").
+        plusargs=GHDL_PLUSARGS,
+        waves=waves,
+        search_dirs=(COCOTB_LIB, SCRIPT_DIR),
+        wave_dir=SCRIPT_DIR / "waves",
     )
 
 

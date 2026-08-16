@@ -59,7 +59,7 @@ GHDL_ARGS     = ["--std=08", "-frelaxed"]
 GHDL_PLUSARGS = ["--ieee-asserts=disable"]
 
 
-def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, waves: bool = False):
+def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, waves: bool = True):
     os.environ.setdefault("GHDL_BACKEND", "gcc")
     for p in (COCOTB_LIB, SCRIPT_DIR):
         if str(p) not in sys.path:
@@ -73,6 +73,7 @@ def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, w
     os.environ["CLUSTER_CODE_HEX"] = str(code_hex_path)
 
     from cocotb_tools.runner import get_runner
+    from sim_runner import run_tests
     runner = get_runner("ghdl")
 
     runner.build(
@@ -82,15 +83,18 @@ def run(modules: list, build_dir: Path, gen_code_bin: Path, prog_source: Path, w
         hdl_toplevel="sl_cluster_wrapper",
         build_dir=build_dir,
     )
-    runner.test(
+    run_tests(
+        runner,
         test_module=modules,
         hdl_toplevel="sl_cluster_wrapper",
         hdl_toplevel_library="work",
         hdl_toplevel_lang="vhdl",
         build_dir=build_dir,
         test_args=GHDL_ARGS + [f"--workdir={build_dir}", f"-P{build_dir}"],
-        plusargs=GHDL_PLUSARGS + ([f"--fst={build_dir}/sl_cluster_wrapper.fst"] if waves else []),
-        waves=False,
+        plusargs=GHDL_PLUSARGS,
+        waves=waves,
+        search_dirs=(COCOTB_LIB, SCRIPT_DIR),
+        wave_dir=SCRIPT_DIR / "waves",
     )
 
 
@@ -102,7 +106,7 @@ if __name__ == "__main__":
     p.add_argument("--prog", default=str(SCRIPT_DIR / "prog_resolved"),
                    help="RT-assembler source to compile for the 4 cores")
     p.add_argument("--no-waves", dest="waves", action="store_false")
-    p.set_defaults(waves=False)
+    p.set_defaults(waves=True)
     args = p.parse_args()
     run(args.modules.split(","), Path(args.build_dir),
         Path(args.gen_code), Path(args.prog), args.waves)

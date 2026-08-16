@@ -31,13 +31,14 @@ GHDL_ARGS      = ["--std=08", "-frelaxed"]
 GHDL_PLUSARGS  = ["--ieee-asserts=disable"]
 
 
-def run(modules: list, build_dir: Path, waves: bool = False, generics: dict = None):
+def run(modules: list, build_dir: Path, waves: bool = True, generics: dict = None):
     os.environ.setdefault("GHDL_BACKEND", "gcc")
     for p in (COCOTB_LIB, SCRIPT_DIR):
         if str(p) not in sys.path:
             sys.path.insert(0, str(p))
 
     from cocotb_tools.runner import get_runner
+    from sim_runner import run_tests
     runner = get_runner("ghdl")
 
     runner.build(
@@ -48,15 +49,18 @@ def run(modules: list, build_dir: Path, waves: bool = False, generics: dict = No
         build_dir=build_dir,
         parameters=generics or {},
     )
-    runner.test(
+    run_tests(
+        runner,
         test_module=modules,
         hdl_toplevel="wb_cache_hierarchy_wrapper",
         hdl_toplevel_library="work",
         hdl_toplevel_lang="vhdl",
         build_dir=build_dir,
         test_args=GHDL_ARGS + [f"--workdir={build_dir}", f"-P{build_dir}"],
-        plusargs=GHDL_PLUSARGS + ([f"--fst={build_dir}/wb_cache_hierarchy_wrapper.fst"] if waves else []),
-        waves=False,
+        plusargs=GHDL_PLUSARGS,
+        waves=waves,
+        search_dirs=(COCOTB_LIB, SCRIPT_DIR),
+        wave_dir=SCRIPT_DIR / "waves",
     )
 
 
@@ -65,6 +69,6 @@ if __name__ == "__main__":
     p.add_argument("--modules", default="test")
     p.add_argument("--build-dir", default=str(_DEFAULT_BUILD_DIR))
     p.add_argument("--no-waves", dest="waves", action="store_false")
-    p.set_defaults(waves=False)
+    p.set_defaults(waves=True)
     args = p.parse_args()
     run(args.modules.split(","), Path(args.build_dir), args.waves)

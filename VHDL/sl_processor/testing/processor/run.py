@@ -60,7 +60,7 @@ VHDL_SOURCES = [
     VHDL_ROOT / "wishbone" / "wb_ixs_arbiter.vhd",
     VHDL_ROOT / "wishbone" / "wb_ixs.vhd",
     # Xorshift peripheral
-    VHDL_ROOT / "xorshift" / "wb_xorshift_slave.vhd",
+    VHDL_ROOT / "peripherals" / "xorshift" / "wb_xorshift_slave.vhd",
     # Test wrapper
     SCRIPT_DIR / "wrapper.vhd",
 ]
@@ -132,7 +132,8 @@ def build(build_dir: Path) -> None:
 
 
 def test(modules: list[str], build_dir: Path, test_vector: Path,
-         waves: bool = False, failed_vector: Path | None = None) -> None:
+         waves: bool = True, failed_vector: Path | None = None,
+         wave_dir: Path | None = None) -> None:
     _setup_env()
     os.environ["TEST_VECTOR"] = str(Path(test_vector).resolve())
     if failed_vector is not None:
@@ -140,24 +141,41 @@ def test(modules: list[str], build_dir: Path, test_vector: Path,
     elif "FAILED_VECTOR" in os.environ:
         del os.environ["FAILED_VECTOR"]
 
+    # The cocotb test case is always "test_from_vector" -- the test that is
+    # actually running comes from the vector file. When the vector holds
+    # exactly one test (which is what every parallel worker gets), name the
+    # waveform after it instead.
+    vector_tests = split_vector(Path(test_vector))
+    wave_name = vector_tests[0][0][5:].strip() if len(vector_tests) == 1 else None
+    # every worker writes into the one waves/ dir next to test.py, so the
+    # per-task build dirs stay pure build artifacts
+    wave_dir = wave_dir or SCRIPT_DIR / "waves"
+
     from cocotb_tools.runner import get_runner
+    from sim_runner import run_tests
     runner = get_runner("ghdl")
-    runner.test(
+    run_tests(
+        runner,
         test_module=modules,
         hdl_toplevel="testing_wrapper",
         hdl_toplevel_library="work",
         hdl_toplevel_lang="vhdl",
         build_dir=build_dir,
         test_args=GHDL_ARGS + [f"--workdir={build_dir}", f"-P{build_dir}"],
-        plusargs=GHDL_PLUSARGS + ([f"--fst={build_dir}/testing_wrapper.fst"] if waves else []),
-        waves=False,
+        plusargs=GHDL_PLUSARGS,
+        waves=waves,
+        search_dirs=(COCOTB_LIB, SCRIPT_DIR),
+        wave_dir=wave_dir,
+        wave_name=wave_name,
     )
 
 
 def run(modules: list[str], build_dir: Path, test_vector: Path,
-        waves: bool = False, failed_vector: Path | None = None) -> None:
+        waves: bool = True, failed_vector: Path | None = None,
+        wave_dir: Path | None = None) -> None:
     build(build_dir)
-    test(modules, build_dir, test_vector, waves=waves, failed_vector=failed_vector)
+    test(modules, build_dir, test_vector, waves=waves, failed_vector=failed_vector,
+         wave_dir=wave_dir)
 
 
 # ---------------------------------------------------------------------------
@@ -173,7 +191,8 @@ def _run_single_test(args: tuple) -> tuple[str, bool, list[str], list[str]]:
     task_dir.mkdir(parents=True, exist_ok=True)
 
     # Symlink compiled artifacts from the shared build dir so GHDL can elaborate
-    # without recompiling. results.xml and FST go into the isolated task_dir.
+    # without recompiling. results.xml goes into the isolated task_dir, the
+    # waveform into the shared waves/ dir under test name (see test()).
     for src in shared_build_dir.iterdir():
         if src.is_file():
             dst = task_dir / src.name
@@ -212,7 +231,7 @@ def _run_single_test(args: tuple) -> tuple[str, bool, list[str], list[str]]:
 
 
 def run_parallel(modules: list[str], build_dir: Path, test_vector: Path,
-                 n_workers: int, waves: bool = False) -> bool:
+                 n_workers: int, waves: bool = True) -> bool:
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
     tests     = split_vector(test_vector)
@@ -274,7 +293,9 @@ if __name__ == "__main__":
     p.add_argument("--filter", metavar="REGEX", action="append", default=[],
                    help="Whitelist regex for test names (repeatable)")
     p.add_argument("--no-waves", dest="waves", action="store_false")
-    p.set_defaults(waves=False)
+    p.add_argument("--wave-dir", default=None,
+                   help="where the .ghw waveforms go (default: <build-dir>/waves)")
+    p.set_defaults(waves=True)
     args = p.parse_args()
 
     bd  = Path(args.build_dir)
@@ -307,4 +328,5 @@ if __name__ == "__main__":
         fv = Path(args.failed_vector) if args.failed_vector else FAILED_VECTOR
         if not args.skip_build:
             build(bd)
-        test(mods, bd, vec, args.waves, failed_vector=fv)
+        test(mods, bd, vec, args.waves, failed_vector=fv,
+             wave_dir=Path(args.wave_dir) if args.wave_dir else None)

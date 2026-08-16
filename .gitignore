@@ -19,6 +19,13 @@ docker/quartus/*.qdz
 **/quartus/output_files*
 **/quartus/db*
 
+# Lokales Quartus-Projekt samt generierter IP (memclk/, sdram/, pll.vhd,
+# *.qsf/*.qws/*.qdf, Reports): gehoert nicht ins Repo
+VHDL/quartus/
+
+# Cocotb-Wellenformen: waves/<testcase>.ghw neben der jeweiligen test.py
+**/waves/
+
 
 #Whitelist subdirectories
 #*.project
