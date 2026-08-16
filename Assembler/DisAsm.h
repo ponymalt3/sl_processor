@@ -97,6 +97,8 @@ public:
       case 3:
         return "result";
     }
+
+    return "invalid";
   }
 
   static std::string irsOffsetToString(uint32_t code) { return valueToString((code >> 2) & 0x1FF); }
@@ -244,6 +246,8 @@ public:
       case 3:
         return "<=";
     }
+
+    return "invalid";
   }
 
   static std::string cmpInstrToString(uint16_t code)

@@ -16,8 +16,8 @@ With waves turned off this falls back to a single run over all test cases,
 which is what CI wants -- no per-test start-up, no waveform files.
 """
 
-import importlib
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -39,30 +39,37 @@ def discover_testcases(test_modules, search_dirs=()) -> list:
     if isinstance(test_modules, str):
         test_modules = [test_modules]
 
-    added = [str(d) for d in search_dirs if str(d) not in sys.path]
-    sys.path[:0] = added
-    try:
-        from cocotb._decorators import Test
-    except ImportError:  # pragma: no cover - cocotb too old, fall back
-        return []
+    # Import in a throwaway subprocess, never in this process: the test
+    # modules import cocotb and whatever else they need, and none of that
+    # belongs in the runner process that is about to launch a simulator.
+    snippet = (
+        "import sys, importlib\n"
+        "from cocotb._decorators import Test\n"
+        "for m in sys.argv[2:]:\n"
+        "    mod = importlib.import_module(m)\n"
+        "    for obj in vars(mod).values():\n"
+        "        if isinstance(obj, Test):\n"
+        "            print(obj.name)\n"
+    )
+    env = dict(os.environ)
+    extra_path = os.pathsep.join(str(d) for d in search_dirs)
+    if extra_path:
+        env["PYTHONPATH"] = extra_path + os.pathsep + env.get("PYTHONPATH", "")
 
-    names = []
     try:
-        for mod_name in test_modules:
-            module = importlib.import_module(mod_name)
-            names += [obj.name for obj in vars(module).values() if isinstance(obj, Test)]
+        proc = subprocess.run([sys.executable, "-c", snippet, "--", *test_modules],
+                              capture_output=True, text=True, env=env, timeout=120)
     except Exception as exc:
-        print(f"sim_runner: could not import {test_modules} ({type(exc).__name__}: {exc}), "
+        print(f"sim_runner: discovery failed ({type(exc).__name__}: {exc}), "
               "falling back to a single run with one waveform", file=sys.stderr)
         return []
-    finally:
-        for d in added:
-            try:
-                sys.path.remove(d)
-            except ValueError:
-                pass
 
-    return names
+    if proc.returncode != 0:
+        print(f"sim_runner: could not import {test_modules}:\n{proc.stderr.strip()}\n"
+              "falling back to a single run with one waveform", file=sys.stderr)
+        return []
+
+    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
 
 
 def _safe_name(name: str) -> str:
@@ -86,16 +93,22 @@ def run_tests(runner, *, test_module, build_dir, plusargs=(), waves=True,
     build_dir = Path(build_dir)
     plusargs = list(plusargs)
 
+    from cocotb_tools.runner import get_results
+
     names = discover_testcases(test_module, search_dirs) if waves else []
     if not names:
-        runner.test(test_module=test_module, build_dir=build_dir,
-                    plusargs=plusargs, **test_kwargs)
+        # Single run over all test cases. runner.test() reports failures only
+        # in the log and still returns normally, so check the results file --
+        # otherwise a failing test exits 0 and every caller believes it passed.
+        results_xml = runner.test(test_module=test_module, build_dir=build_dir,
+                                  plusargs=plusargs, **test_kwargs)
+        _, num_failed = get_results(results_xml)
+        if num_failed:
+            raise SystemExit(f"{num_failed} test case(s) failed")
         return
 
     wave_dir = Path(wave_dir) if wave_dir is not None else build_dir / "waves"
     wave_dir.mkdir(parents=True, exist_ok=True)
-
-    from cocotb_tools.runner import get_results
 
     failed = []
     for name in names:
@@ -107,20 +120,12 @@ def run_tests(runner, *, test_module, build_dir, plusargs=(), waves=True,
             stem = f"{wave_name}.{name}"
         wave_file = wave_dir / f"{_safe_name(stem)}.{WAVE_FORMAT}"
         try:
-            _dbg = os.environ.get("SIM_RUNNER_DEBUG", "")
-            extra = {}
-            if "no_testcase" not in _dbg:
-                extra["testcase"] = [name]
-            if "no_xml" not in _dbg:
-                extra["results_xml"] = f"{name}.results.xml"
-            _plus = list(plusargs)
-            if "no_wavearg" not in _dbg:
-                _plus.append(f"{WAVE_FORMATS[WAVE_FORMAT]}={wave_file}")
             results_xml = runner.test(
                 test_module=test_module,
                 build_dir=build_dir,
-                plusargs=_plus,
-                **extra,
+                testcase=[name],
+                results_xml=f"{name}.results.xml",
+                plusargs=plusargs + [f"{WAVE_FORMATS[WAVE_FORMAT]}={wave_file}"],
                 **test_kwargs)
             _, num_failed = get_results(results_xml)
         except (SystemExit, Exception) as exc:  # noqa: B014 - SystemExit is not an Exception

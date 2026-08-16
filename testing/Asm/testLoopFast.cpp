@@ -19,8 +19,6 @@ MTEST(testLoopFast, test_that_fast_loop_is_generated_if_loop_body_is_not_complex
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
-
   tester.loadCode();
   tester.execute();
 
@@ -45,8 +43,6 @@ MTEST(testLoopFast, test_that_fast_loop_works_with_big_values)
 
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-
-  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
@@ -78,8 +74,6 @@ MTEST(testLoopFast, test_that_fast_loop_inside_another_loop_works)
 
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-
-  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.getProcessor().writeMemory(qfp32_t::fromDouble(20), qfp32_t::fromDouble(99.0));
   tester.getProcessor().writeMemory(qfp32_t::fromDouble(21), qfp32_t::fromDouble(1.0));

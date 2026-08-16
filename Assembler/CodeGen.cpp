@@ -180,7 +180,7 @@ CodeGen::CodeGen(Stream& stream,
   entryVectorSize_ = entryVectorSize;
   for(uint32_t i = 0; i < entryVectorSize; ++i)
   {
-    instrs_[i] = {SLCode::Nop::create(), NoRef};
+    instrs_[i] = {static_cast<uint16_t>(SLCode::Nop::create()), NoRef};
   }
 
   symbolMaps_.push(defaultSymbols_);
@@ -836,7 +836,7 @@ CodeGen::_FunctionInfo& CodeGen::addFunctionAtCurrentAddr(const Stream::String& 
   std::string s = std::string(symbol.getBase() + symbol.getOffset(), symbol.getLength());
 
   _FunctionInfo function{new SymbolMap(stream_, getCurCodeAddr()),
-                         getCurCodeAddr(),
+                         static_cast<int32_t>(getCurCodeAddr()),
                          0,
                          0,
                          false,
@@ -897,9 +897,9 @@ void CodeGen::generateEntryVector(uint32_t startAddr)
 
   uint32_t addr = 0;
   uint32_t startAddrAsRaw = qfp32::fromRealQfp32((double)startAddr).toRealQfp32().getAsRawUint();
-  instrs_[addr++] = {SLCode::Load::create1(startAddrAsRaw), NoRef};
-  instrs_[addr++] = {SLCode::Load::create2(startAddrAsRaw), NoRef};
-  instrs_[addr++] = {SLCode::Goto::create(), NoRef};
+  instrs_[addr++] = {static_cast<uint16_t>(SLCode::Load::create1(startAddrAsRaw)), NoRef};
+  instrs_[addr++] = {static_cast<uint16_t>(SLCode::Load::create2(startAddrAsRaw)), NoRef};
+  instrs_[addr++] = {static_cast<uint16_t>(SLCode::Goto::create()), NoRef};
 }
 
 void CodeGen::generateEntryVector(uint32_t numberOfEntries, uint32_t entrySizeInInstrs)
@@ -930,14 +930,14 @@ void CodeGen::generateEntryVector(uint32_t numberOfEntries, uint32_t entrySizeIn
     Error::expect(specFunctionAddr != NoRef) << "No entry function for core '" << (i) << "'";
 
     uint32_t fctAddrAsRaw = qfp32::fromRealQfp32(qfp32_t(specFunctionAddr)).toRealQfp32().getAsRawUint();
-    instrs_[addr++] = {SLCode::Load::create1(fctAddrAsRaw), NoRef};
-    instrs_[addr++] = {SLCode::Load::create2(fctAddrAsRaw), NoRef};
-    instrs_[addr++] = {SLCode::Goto::create(), NoRef};
+    instrs_[addr++] = {static_cast<uint16_t>(SLCode::Load::create1(fctAddrAsRaw)), NoRef};
+    instrs_[addr++] = {static_cast<uint16_t>(SLCode::Load::create2(fctAddrAsRaw)), NoRef};
+    instrs_[addr++] = {static_cast<uint16_t>(SLCode::Goto::create()), NoRef};
 
     Error::expect(entrySizeInInstrs >= 3) << "Entry function size too small for jump" << ErrorHandler::FATAL;
     for(uint32_t j = 3; j < entrySizeInInstrs; ++j)
     {
-      instrs_[addr++] = {SLCode::Nop::create(), NoRef};
+      instrs_[addr++] = {static_cast<uint16_t>(SLCode::Nop::create()), NoRef};
     }
   }
 }

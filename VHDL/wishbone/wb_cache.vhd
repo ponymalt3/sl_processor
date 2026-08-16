@@ -420,7 +420,7 @@ begin
     -- check if current line is active (fetching/writing back)
     line_active <= '0'; 
     if state /= ST_IDLE and addr_i(31 downto WordIndexBits) = active_line_addr(31 downto WordIndexBits) then
--- maybe entry better name    
+      -- maybe entry better name    
       line_active <= '1';
 
       if WriteThrough and state = ST_WRITE_TROUGH then

@@ -19,8 +19,6 @@ MTEST(testLoop, test_that_loop_and_inc_and_const_count_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
-
   tester.loadCode();
   tester.execute();
 
@@ -94,8 +92,6 @@ MTEST(testLoop, test_that_loop_in_loop_with_index_access_and_var_count_works)
 
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-
-  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
@@ -192,8 +188,6 @@ MTEST(testLoop, test_that_loop_in_loop_with_continue_and_break_works)
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
 
-  std::cout << "disasm:\n" << (tester.getDisAsmString()) << "\n";
-
   tester.loadCode();
   tester.execute();
 
@@ -237,7 +231,7 @@ MTEST(testLoop, test_that_empty_loop_is_rejected)
   )asm";
 
   RTProgTester tester(testCode);
-  EXPECT(tester.parse().getNumErrors() == 0);
+  EXPECT(tester.parse().getNumErrors() == 1);
 
   tester.loadCode();
   tester.execute();
@@ -284,8 +278,6 @@ MTEST(testLoop, test_that_automatic_variable_locate_in_loop_works)
 
   RTProgTester tester(testCode);
   EXPECT(tester.parse().getNumErrors() == 0);
-
-  std::cout << "dis:\n" << (tester.getDisAsmString()) << "\n";
 
   tester.loadCode();
   tester.execute();
