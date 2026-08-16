@@ -34,7 +34,10 @@ bool Stream::String::operator==(const char *str) const
 
 bool Stream::String::operator==(const String &str) const
 {
-  for(uint32_t i=0;i<std::min((uint32_t)length_,str.getLength());++i)
+  if(length_ != str.getLength())
+    return false;
+
+  for(uint32_t i=0;i<length_;++i)
   {
     if(str[i] != base_[offset_+i])
       return false;
